@@ -1,6 +1,17 @@
 (ns leiningen.hlisp
-  (require [clojure.pprint :as pprint]))
+  (:require
+    [fs.core :as fs])
+  (:use
+    [clojure.java.io  :only [file as-file reader resource]]
+    [clojure.pprint   :only [pprint]]))
 
 (defn hlisp [project & args]
-  (pprint/pprint (:hlisp project))
-  (println "Hello leiningen!!!"))
+  (println (slurp (reader (resource "foo.txt")))) 
+  (println "omfg"))
+
+
+(comment
+
+  (hlisp {:hlisp {:workdir "work"}})
+  
+  ) 
