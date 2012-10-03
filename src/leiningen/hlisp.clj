@@ -1,17 +1,27 @@
 (ns leiningen.hlisp
   (:require
-    [fs.core :as fs])
-  (:use
-    [clojure.java.io  :only [file as-file reader resource]]
-    [clojure.pprint   :only [pprint]]))
+    [hlisp.core :as hl]))
 
-(defn hlisp [project & args]
-  (println (slurp (reader (resource "foo.txt")))) 
-  (println "omfg"))
-
+(defn hlisp
+  "Hlisp compiler.
+  
+  USAGE: lein hlisp
+  Compile once.
+  
+  USAGE: lein hlisp auto
+  Watch source dirs and compile when necessary."
+  ([project]
+   (hl/compile-fancy (:hlisp project)))
+  ([project auto] 
+   (hl/watch-compile (:hlisp project))))
 
 (comment
 
-  (hlisp {:hlisp {:workdir "work"}})
-  
+  {:html-src    "src/html"
+   :cljs-src    "src/cljs"
+   :html-out    "resources/public"
+   :prelude     "src/template/prelude.cljs"
+   :includes    ["src/jslib/jquery.js"]
+   :cljsc-opts  {:optimizations  :advanced
+                 :externs        ["src/extern/jquery.js"]}} 
   ) 

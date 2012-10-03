@@ -5,10 +5,7 @@
 *.swn
 *.swo
 *.swp
-src/cljs/____*
 out/
 lib/
 classes/
-resources/
-zzz/
 target/
