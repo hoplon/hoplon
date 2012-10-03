@@ -350,4 +350,3 @@
       (let [$body (jq/$ "body")]
         (jq/empty $body)
         (mapv #(jq/append $body (dom %)) forms)))))
-
