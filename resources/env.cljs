@@ -214,7 +214,7 @@
    (ElemNode. tag attrs kids ids)))
 
 (defn clone [n]
-  (make-elem-node (.-tag n) (.-attrs n) (.-children n) (conj (.-ids n) (gensym))))
+  (make-elem-node (.-tag n) (.-attrs n) (.-children n) (conj (.-ids n) (str (gensym)))))
 
 (def a              (make-elem-node "a"))
 (def abbr           (make-elem-node "abbr"))
