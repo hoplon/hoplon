@@ -103,7 +103,7 @@
   (.startsWith (.getName (file f)) "____"))
 
 (defn hlisp-compile
-  [{:keys [html-src cljs-src html-out prelude includes cljsc-opts]}]
+  [{:keys [html-src cljs-src html-out base-dir prelude includes cljsc-opts]}]
   (let [html-ins    (->>
                       (file html-src)
                       (file-seq)
@@ -120,7 +120,7 @@
         env-tmp     (str cljs-src "/____env.cljs")
         js-tmp      (tmpfile "____hlisp_" ".js")
         js-tmp-path (.getPath js-tmp)
-        js-uri      "/main.js"
+        js-uri      (str base-dir "/main.js")
         js-out      (str html-out js-uri)
         options     (assoc cljsc-opts :output-to js-tmp-path)]
     (mapv #(.delete %) stale) 
@@ -155,7 +155,8 @@
     (recur)))
 
 (comment
-  
+
+  clojure.contrib.map-utils/deep-merge-with 
 
   (munge-path "src/html/index.html")
 

@@ -130,13 +130,13 @@
   (-first [n]
     (first (.-children n)))
   (-rest [n]
-    (make-elem-node "$list" {} (rest (.-children n)) []))
+    (make-elem-node "hlist" {} (vec (rest (.-children n))) []))
 
   INext
   (-next [n]
     (let [nx (next (.-children n))]
       (if (seq nx)
-        (make-elem-node "$list" {} nx [])
+        (make-elem-node "hlist" {} nx [])
         nx)))
 
   ILookup
@@ -340,13 +340,19 @@
 (def video          (make-elem-node "video"))
 (def wbr            (make-elem-node "wbr"))
 
-(def $list          (make-elem-node "$list"))
+(def hlist          (make-elem-node "hlist"))
 (def $text          make-text-node)
 (def $comment       make-comment-node)
+
+(def *initfns* (atom []))
+
+(defn add-initfn! [f]
+  (swap! *initfns* into [f]))
 
 (defn init [forms]
   (jq/$
     (fn []
       (let [$body (jq/$ "body")]
         (jq/empty $body)
-        (mapv #(jq/append $body (dom %)) forms)))))
+        (mapv #(jq/append $body (dom %)) forms)
+        (mapv (fn [f] (f)) @*initfns*)))))

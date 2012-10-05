@@ -122,6 +122,6 @@
 (def html-var       (hlisp.env/make-elem-node "var"))
 (def video          (hlisp.env/make-elem-node "video"))
 (def wbr            (hlisp.env/make-elem-node "wbr"))
-(def $list          (hlisp.env/make-elem-node "$list"))
+(def hlist          (hlisp.env/make-elem-node "hlist"))
 (def $text          hlisp.env/make-text-node)
 (def $comment       hlisp.env/make-comment-node)
