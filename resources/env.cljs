@@ -1,12 +1,24 @@
 (ns hlisp.env
   (:require
-    [jayq.core        :as jq]
-    [jayq.util        :as ju]
+    [goog.dom         :as gdom]
     [clojure.zip      :as zip])
   (:use
     [clojure.string   :only [join]]))
 
 (declare make-elem-node make-text-node)
+
+(defn clj->js
+  "Recursively transforms ClojureScript maps into Javascript objects,
+   other ClojureScript colls into JavaScript arrays, and ClojureScript
+   keywords into JavaScript strings."
+  [x]
+  (cond
+    (string? x) x
+    (keyword? x) (name x)
+    (map? x) (.-strobj (reduce (fn [m [k v]]
+               (assoc m (clj->js k) (clj->js v))) {} x))
+    (coll? x) (apply array (map clj->js x))
+    :else x))
 
 (defprotocol IDomNode
   (-pr-node [n] "Get string representation of node.")
@@ -52,9 +64,9 @@
   (-children [n] (assert false "Text nodes can't have children."))
   (-make-node [n kids] (make-text-node (.-tag n) (.-text n)))
   (-dom [n]
-    (jq/$ (if (= "$text" (.-tag n))
-            (-> js/document (.createTextNode (.-text n)))
-            (-> js/document (.createComment (.-text n)))))))
+    (if (= "$text" (.-tag n))
+      (-> js/document (.createTextNode (.-text n)))
+      (-> js/document (.createComment (.-text n))))))
 
 (defn make-text-node [text]
   (TextNode. "$text" text))
@@ -170,16 +182,17 @@
   (-make-node [n kids]
     (make-elem-node (.-tag n) (.-attrs n) (vec kids) (.-ids n)))
   (-dom [n]
-    (let [$elem       (jq/$ (-> js/document (.createElement (.-tag n)))) 
+    (let [elem        (.createElement js/document (.-tag n)) 
           ids         (.-ids n)
           attrs-noid  (.-attrs n)
           attrs       (if (seq ids)
                         (assoc attrs-noid :data-hl (join " " ids))
-                        attrs-noid) 
+                        attrs-noid)
           children    (mapv dom (.-children n))]
-      (-> $elem
-        (jq/attr attrs)
-        (jq/append children)))))
+      (gdom/setProperties elem (clj->js attrs))
+      (mapv #(.setAttribute elem (name (first %)) (second %)) (vec attrs))
+      (mapv #(gdom/appendChild elem %) children)
+      elem)))
 
 
 (defn make-elem-node
@@ -328,9 +341,8 @@
   (swap! *initfns* into [f]))
 
 (defn init [forms]
-  (jq/$
-    (fn []
-      (let [$body (jq/$ "body")]
-        (jq/empty $body)
-        (mapv #(jq/append $body (dom %)) forms)
-        (mapv (fn [f] (f)) @*initfns*)))))
+  (let [body (.-body js/document)]
+    (gdom/removeChildren body)
+    (mapv #(gdom/appendChild body (dom %)) forms)
+    (mapv (fn [f] (f)) @*initfns*)))
+
