@@ -126,7 +126,7 @@
         js-uri      (.getPath
                       (.relativize (.toURI (file CWD))
                                    (.toURI (file (file base-dir) "main.js"))))
-        js-out      (str html-out js-uri)
+        js-out      (file html-out "main.js")
         options     (assoc cljsc-opts :output-to js-tmp-path)]
     (mapv #(.delete %) stale) 
     (spit env-tmp env-str)
