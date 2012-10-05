@@ -67,23 +67,31 @@
 (declare make-elem-node make-text-node)
 
 (defprotocol IDomNode
-  (pr-node [n] "Get string representation of node.")
-  (tag [n] "Get node's tag string.")
-  (attrs [n] "Get node's attribute map.")
-  (dom [n] "Produce DOM tree for this node (and children)."))
+  (-pr-node [n] "Get string representation of node.")
+  (-tag [n] "Get node's tag string.")
+  (-attrs [n] "Get node's attribute map.")
+  (-dom [n] "Produce DOM tree for this node (and children)."))
+
+(defn pr-node [n] (-pr-node n))
+(defn tag [n] (-tag n))
+(defn attrs [n] (-attrs n))
+(defn dom [n] (-dom n))
 
 (deftype TextNode [tag text]
+  Object
+  (toString [n] (pr-node n))
+
   IPrintable
   (-pr-seq [n opts]
     (js/console.log (dom n))
     (pr-node n))
 
   IDomNode
-  (pr-node [n]
+  (-pr-node [n]
     (str "(" (.-tag n) " " (pr-str (.-text n)) ")"))
-  (tag [n] (.-tag n))
-  (attrs [n] nil)
-  (dom [n]
+  (-tag [n] (.-tag n))
+  (-attrs [n] nil)
+  (-dom [n]
     (jq/$ (if (= "$text" (.-tag n))
             (-> js/document (.createTextNode (.-text n)))
             (-> js/document (.createComment (.-text n)))))))
@@ -95,6 +103,9 @@
   (TextNode. "$comment" text))
 
 (deftype ElemNode [tag attrs children ids]
+  Object
+  (toString [n] (pr-node n))
+
   IFn
   (-invoke [n & args]
     (let [ntag      (.-tag n)
@@ -109,6 +120,10 @@
             (make-elem-node ntag (into nattrs head) (into nchildren (vec tail)) nids)))
         n)))
 
+  IStack
+  (-peek [n] (peek (.-children n)))
+  (-pop [n] (make-elem-node (.-tag n) (.-attrs n) (pop (.-children n)) (.-ids n)))
+  
   ICounted
   (-count [n] (count (.-children n)))
 
@@ -118,7 +133,7 @@
 
   ICollection
   (-conj [n o]
-    (make-elem-node (.-tag n) (.-attrs n) (conj (vec (.-children n)) o) (.-ids n)))
+    (make-elem-node (.-tag n) (.-attrs n) (conj (.-children n) o) (.-ids n)))
  
   IIndexed
   (-nth [n i]
@@ -130,14 +145,14 @@
   (-first [n]
     (first (.-children n)))
   (-rest [n]
-    (make-elem-node "hlist" {} (vec (rest (.-children n))) []))
+    (make-elem-node (.-tag n) (.-attrs n) (vec (rest (.-children n))) (.-ids n)))
 
   INext
   (-next [n]
-    (let [nx (next (.-children n))]
+    (let [nx (vec (next (.-children n)))]
       (if (seq nx)
-        (make-elem-node "hlist" {} nx [])
-        nx)))
+        (make-elem-node (.-tag n) (.-attrs n) nx (.-ids n))
+        nil)))
 
   ILookup
   (-lookup [n k]
@@ -175,7 +190,7 @@
     (pr-node n))
   
   IDomNode
-  (pr-node [n]
+  (-pr-node [n]
     (let [tag       (.-tag n)
           attrs     (.-attrs n) 
           children  (.-children n)
@@ -188,9 +203,9 @@
                       (concat '("(") str-parts '(")"))
                       str-parts)]
       (join " " str-all)))
-  (tag [n] (.-tag n))
-  (attrs [n] (.-attrs n))
-  (dom [n]
+  (-tag [n] (.-tag n))
+  (-attrs [n] (.-attrs n))
+  (-dom [n]
     (let [$elem       (jq/$ (-> js/document (.createElement (.-tag n)))) 
           ids         (.-ids n)
           attrs-noid  (.-attrs n)
@@ -340,7 +355,6 @@
 (def video          (make-elem-node "video"))
 (def wbr            (make-elem-node "wbr"))
 
-(def hlist          (make-elem-node "hlist"))
 (def $text          make-text-node)
 (def $comment       make-comment-node)
 

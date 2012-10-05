@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>lein-hlisp</groupId>
   <artifactId>lein-hlisp</artifactId>
@@ -16,7 +17,7 @@
   <scm>
     <connection>scm:git:git://github.com/micha/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/micha/lein-hlisp.git</developerConnection>
-    <tag>3dff3fa6ef4c17e6529bade79d4eb1e4ec2e57cf</tag>
+    <tag>61a751069b09c49c33ee9fbb0f380c789b7c7cba</tag>
     <url>https://github.com/micha/lein-hlisp</url>
   </scm>
   <build>
