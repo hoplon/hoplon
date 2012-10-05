@@ -1,68 +1,10 @@
 (ns hlisp.env
   (:require
     [jayq.core        :as jq]
-    [jayq.util        :as ju])
+    [jayq.util        :as ju]
+    [clojure.zip      :as zip])
   (:use
     [clojure.string   :only [join]]))
-
-(comment
-
-  ;; In the cljs repl you can do things like these and see the results in both
-  ;; the repl and the browser console.
-
-  (in-ns 'hlisp.env)
-
-  (div
-    ($comment "hey there")
-    (p ($text "foo"))
-    (p ($text "bar")))
-
-  ;; (div ($comment "hey there") (p ($text "foo")) (p ($text "bar")))
-  ;; <div>
-  ;;   <!--hey there-->
-  ;;   <p>foo</p>
-  ;;   <p>bar</p>
-  ;; </div>
-
-  (defn foo [x]
-    (div
-      (h1 ($text "Title"))
-      x))
-
-  ;; #<function foo(x){ ... }>
-
-  (foo (p ($text "hello world")))
-  
-  ;; (div (h1 ($text "Title")) (p ($text "hello world")))
-  ;; <div>
-  ;;   <h1>Title</h1>
-  ;;   <p>hello world</p>
-  ;; </div>
-
-  (let [[x y & z] (div (h1 ($text "Hello")) (p ($text "ClojureScript")))]
-    (assoc x :id "master"))
-
-  ;; (h1 {:id "master"} ($text "Hello"))
-  ;; <h1 id="master">Hello</h1>
-
-  (reduce
-    conj
-    (div {:id "main"}
-      (div
-        (p ($text "whoa"))))
-    (map #(assoc % :foo (gensym "thing"))
-         (foo (p ($text "hello world")))))
-
-  ;; (div {:id "main"} (h1 ($text "Title")) (p ($text "hello world")))
-  ;; <div id="main">
-  ;;   <div>
-  ;;     <p>whoa</p>
-  ;;   </div>
-  ;;   <h1 foo="thing7">Title</h1>
-  ;;   <p foo="thing8">hello world</p>
-  ;; </div>
-
-  )
 
 (declare make-elem-node make-text-node)
 
@@ -70,12 +12,27 @@
   (-pr-node [n] "Get string representation of node.")
   (-tag [n] "Get node's tag string.")
   (-attrs [n] "Get node's attribute map.")
+  (-branch? [n] "True if this node is a branch.")
+  (-children [n] "Returns a seq of child nodes.")
+  (-make-node [n children] "Given a node and a seq of children, make a new node.")
   (-dom [n] "Produce DOM tree for this node (and children)."))
 
 (defn pr-node [n] (-pr-node n))
+
 (defn tag [n] (-tag n))
+
 (defn attrs [n] (-attrs n))
+
+(defn branch? [n] (-branch? n))
+
+(defn children [n] (-children n))
+
+(defn make-node [n children] (-make-node n children))
+
 (defn dom [n] (-dom n))
+
+(defn node-zip [root]
+  (zip/zipper branch? children make-node root))
 
 (deftype TextNode [tag text]
   Object
@@ -91,6 +48,9 @@
     (str "(" (.-tag n) " " (pr-str (.-text n)) ")"))
   (-tag [n] (.-tag n))
   (-attrs [n] nil)
+  (-branch? [n] false)
+  (-children [n] (assert false "Text nodes can't have children."))
+  (-make-node [n kids] (make-text-node (.-tag n) (.-text n)))
   (-dom [n]
     (jq/$ (if (= "$text" (.-tag n))
             (-> js/document (.createTextNode (.-text n)))
@@ -200,11 +160,15 @@
           child-str (if (seq children) (join " " (map pr-node children)) "")
           str-parts (filter #(not= "" %) (list tag attrs-str child-str))
           str-all   (if (< 1 (count str-parts))
-                      (concat '("(") str-parts '(")"))
+                      (concat ["("] str-parts [")"])
                       str-parts)]
       (join " " str-all)))
   (-tag [n] (.-tag n))
   (-attrs [n] (.-attrs n))
+  (-branch? [n] true)
+  (-children [n] (seq (.-children n)))
+  (-make-node [n kids]
+    (make-elem-node (.-tag n) (.-attrs n) (vec kids) (.-ids n)))
   (-dom [n]
     (let [$elem       (jq/$ (-> js/document (.createElement (.-tag n)))) 
           ids         (.-ids n)
