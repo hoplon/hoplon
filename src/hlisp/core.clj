@@ -5,7 +5,7 @@
                                    filter-b]]
     [hlisp.colors           :only [style pr-ok]]
     [pl.danieljanus.tagsoup :only [parse tag attributes children]]
-    [clojure.java.io        :only [file reader resource]]
+    [clojure.java.io        :only [copy file reader resource]]
     [clojure.stacktrace     :only [print-stack-trace]]
     [clojure.pprint         :only [pprint]]
     [hiccup.core            :only [html]]
@@ -13,6 +13,8 @@
   (:require
     [clojure.string         :as string]
     [cljs.closure           :as closure]))
+
+(def CWD (System/getProperty "user.dir"))
 
 (defn file-hidden? [f]
   (not= \. (first (.getName f))))
@@ -76,14 +78,15 @@
     (string/replace-first html-in dummy scripts)))
 
 (defn prepare-compile [prelude js-out html-in html-out cljs-out]
-  (let [parsed    (parse html-in)
-        sforms    (extract-cljs-script parsed)
-        page-ns   (second (first sforms))
-        bforms    (extract-cljs-body parsed)
-        html-str  (build-html-str (slurp html-in) js-out page-ns)
-        cljs-str  (build-cljs-str sforms bforms prelude)]
-    (spit html-out html-str)
-    (spit cljs-out cljs-str)))
+  (let [parsed (parse html-in)] 
+    (if-let [sforms (seq (extract-cljs-script parsed))]
+      (let [page-ns   (second (first sforms))
+            bforms    (extract-cljs-body parsed)
+            html-str  (build-html-str (slurp html-in) js-out page-ns)
+            cljs-str  (build-cljs-str sforms bforms prelude)]
+        (spit cljs-out cljs-str) 
+        (spit html-out html-str)) 
+      (copy html-in html-out))))
 
 (defn munge-path [path]
   (->
@@ -114,13 +117,15 @@
                       (file-seq)
                       (filter tmp-cljs-file?))
         html-outs   (map #(srcdir->outdir % html-src html-out) html-ins)
-        cljs-outs   (map #(str cljs-src "/" (munge-path %) ".cljs") html-ins)
+        cljs-outs   (map #(file cljs-src (str (munge-path %) ".cljs")) html-ins)
         prelude-str (slurp (reader (resource "prelude.cljs")))
         env-str     (slurp (reader (resource "env.cljs")))
-        env-tmp     (str cljs-src "/____env.cljs")
+        env-tmp     (file cljs-src "____env.cljs")
         js-tmp      (tmpfile "____hlisp_" ".js")
         js-tmp-path (.getPath js-tmp)
-        js-uri      (str base-dir "/main.js")
+        js-uri      (.getPath
+                      (.relativize (.toURI (file CWD))
+                                   (.toURI (file (file base-dir) "main.js"))))
         js-out      (str html-out js-uri)
         options     (assoc cljsc-opts :output-to js-tmp-path)]
     (mapv #(.delete %) stale) 
