@@ -120,7 +120,7 @@
         env-tmp     (str cljs-src "/____env.cljs")
         js-tmp      (tmpfile "____hlisp_" ".js")
         js-tmp-path (.getPath js-tmp)
-        js-uri      (str "/" base-dir "/main.js")
+        js-uri      (str base-dir "/main.js")
         js-out      (str html-out js-uri)
         options     (assoc cljsc-opts :output-to js-tmp-path)]
     (mapv #(.delete %) stale) 
