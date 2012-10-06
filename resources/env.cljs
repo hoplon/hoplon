@@ -3,7 +3,7 @@
     [goog.dom         :as gdom]
     [clojure.zip      :as zip])
   (:use
-    [clojure.string   :only [join]]))
+    [clojure.string   :only [join blank?]]))
 
 (declare make-elem-node make-text-node)
 
@@ -46,7 +46,7 @@
 (defn node-zip [root]
   (zip/zipper branch? children make-node root))
 
-(deftype TextNode [tag text]
+(deftype TextNode [tag text mymeta]
   Object
   (toString [n] (pr-node n))
 
@@ -54,6 +54,13 @@
   (-pr-seq [n opts]
     (js/console.log (dom n))
     (pr-node n))
+
+  IMeta
+  (-meta [n] (.-mymeta n))
+
+  IWithMeta
+  (-with-meta [n new-meta]
+    (TextNode. (.-tag n) (.-text n) new-meta))
 
   IDomNode
   (-pr-node [n]
@@ -69,12 +76,12 @@
       (-> js/document (.createComment (.-text n))))))
 
 (defn make-text-node [text]
-  (TextNode. "$text" text))
+  (TextNode. "$text" text nil))
 
 (defn make-comment-node [text]
-  (TextNode. "$comment" text))
+  (TextNode. "$comment" text nil))
 
-(deftype ElemNode [tag attrs children ids]
+(deftype ElemNode [tag attrs children ids mymeta]
   Object
   (toString [n] (pr-node n))
 
@@ -91,6 +98,13 @@
             (make-elem-node ntag nattrs (into nchildren (vec args)) nids)
             (make-elem-node ntag (into nattrs head) (into nchildren (vec tail)) nids)))
         n)))
+
+  IMeta
+  (-meta [n] (.-mymeta n))
+
+  IWithMeta
+  (-with-meta [n new-meta]
+    (ElemNode. (.-tag n) (.-attrs n) (.-children n) (.-ids n) new-meta))
 
   IStack
   (-peek [n] (peek (.-children n)))
@@ -163,18 +177,16 @@
   
   IDomNode
   (-pr-node [n]
-    (let [tag       (.-tag n)
-          attrs     (.-attrs n) 
-          children  (.-children n)
-          o-paren   (if (seq children) "(" "")
-          c-paren   (if (seq children) ")" "")
-          attrs-str (if (< 0 (count attrs)) (pr-str attrs) "")
-          child-str (if (seq children) (join " " (map pr-node children)) "")
-          str-parts (filter #(not= "" %) (list tag attrs-str child-str))
-          str-all   (if (< 1 (count str-parts))
-                      (concat ["("] str-parts [")"])
-                      str-parts)]
-      (join " " str-all)))
+    (let [tag         (.-tag n)
+          attrs       (.-attrs n) 
+          children    (.-children n)
+          need-paren? (or (seq attrs) (seq children))
+          o-paren     (if need-paren? "(" "")
+          c-paren     (if need-paren? ")" "")
+          attrs-str   (if (< 0 (count attrs)) (pr-str attrs) "")
+          child-str   (if (seq children) (join " " (map pr-node children)) "")
+          body        (join " " (remove blank? [tag attrs-str child-str]))]
+      (str o-paren body c-paren)))
   (-tag [n] (.-tag n))
   (-attrs [n] (.-attrs n))
   (-branch? [n] true)
@@ -197,13 +209,13 @@
 
 (defn make-elem-node
   ([tag]
-   (ElemNode. tag {} [] []))
+   (ElemNode. tag {} [] [] nil))
   ([tag attrs]
-   (ElemNode. tag attrs [] []))
+   (ElemNode. tag attrs [] [] nil))
   ([tag attrs kids]
-   (ElemNode. tag attrs kids []))
+   (ElemNode. tag attrs kids [] nil))
   ([tag attrs kids ids]
-   (ElemNode. tag attrs kids ids)))
+   (ElemNode. tag attrs kids ids nil)))
 
 (defn clone [n]
   (make-elem-node (.-tag n) (.-attrs n) (.-children n) (conj (.-ids n) (str (gensym)))))
