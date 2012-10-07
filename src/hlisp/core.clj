@@ -16,25 +16,40 @@
 
 (def CWD (System/getProperty "user.dir"))
 
-(defn file-hidden? [f]
+(defn file-hidden?
+  "Returns true if the filename begins with a dot."
+  [f]
   (not= \. (first (.getName f))))
 
-(defn file-ext [f]
+(defn file-ext
+  "Returns the file extension (without the dot) or nil if none exists."
+  [f]
   (let [fname (.getName f)
         i     (.lastIndexOf fname ".")
         ext   (subs fname (inc (.lastIndexOf fname ".")))]
     (when (< 0 i) (subs fname (inc i)))))
 
-(defn file-has-ext? [ext f]
+(defn file-has-ext?
+  "Returns true if file f has the extenstion ext."
+  [ext f]
   (= ext (file-ext f)))
 
-(defn ext-filter [coll ext]
+(defn ext-filter
+  "Given a collection of files coll and an extension string ext, returns coll
+  minus any files without extension ext."
+  [coll ext]
   (filter (partial file-has-ext? ext) coll))
 
-(defn elapsed-sec [f & args]
+(defn elapsed-sec
+  "Given a function f and arguments, applies f to the arguments and returns the
+  elapsed time in seconds."
+  [f & args]
   (float (/ (first (time-body (apply f args))) 1000000000)))
 
-(defn tagsoup->hlisp [elem]
+(defn tagsoup->hlisp
+  "Given a tagsoup/hiccup data structure elem, returns the corresponding list
+  of hlisp forms."
+  [elem]
   (if (string? elem)
     (list '$text elem)
     (let [[t attrs & kids] elem
@@ -42,7 +57,10 @@
           kids  (map tagsoup->hlisp kids)]
       (list* tag attrs kids))))
 
-(defn extract-cljs-script [page]
+(defn extract-cljs-script
+  "Given a tagsoup/hiccup data structure page, returns a list of hlisp forms
+  read from the <script type=\"text/hlisp\"> element in the page <head>."
+  [page]
   (let [elem      (->> (children page)
                     (filter #(= :head (first %)))
                     (first)
@@ -52,14 +70,21 @@
                     (first))]
     (read-string (str "(" (nth elem 2) ")"))))
 
-(defn extract-cljs-body [page]
+(defn extract-cljs-body
+  "Given a tagsoup/hiccup data structure page, returns a list of hlisp forms
+  corresponding to the contents of the page <body>."
+  [page]
   (->> (children page)
     (filter #(= :body (first %)))
     (first)
     (drop 2)
     (mapv tagsoup->hlisp)))
 
-(defn build-cljs-str [script-forms body-forms prelude]
+(defn build-cljs-str
+  "Given lists of hlisp forms script-forms and body-forms (from the <script>
+  and <body> tags in the page, resp.) and a string prelude, returns a string
+  of cljs source for the page."
+  [script-forms body-forms prelude]
   (let [[ns-decl & sforms] script-forms
         wrapped (list (symbol "hlisp.env/init") body-forms)
         s1      (pr-str ns-decl)
@@ -67,7 +92,10 @@
         s3      (str "(defn ^:export hlispinit []\n" (pr-str wrapped) ")")]
     (string/join "\n" [s1 (string/trim prelude) s2 s3])))
 
-(defn build-html-str [html-in js-out page-ns]
+(defn build-html-str
+  "Given html content html-in, the deployed location of main.js js-out, and
+  the namespace of the page page-ns, returns the processed html content."
+  [html-in js-out page-ns]
   (let [[dummy pad] (re-find #"( *)<!--__HLISP__-->" html-in)
         s1      [:script {:type "text/javascript"} "var CLOSURE_NO_DEPS = true"]
         s2      [:script {:type "text/javascript" :src js-out}]
@@ -77,7 +105,8 @@
                                                      (html s3)]))]
     (string/replace-first html-in dummy scripts)))
 
-(defn prepare-compile [prelude js-out html-in html-out cljs-out]
+(defn prepare-compile
+  [prelude js-out html-in html-out cljs-out]
   (let [parsed (parse html-in)] 
     (if-let [sforms (seq (extract-cljs-script parsed))]
       (let [page-ns   (second (first sforms))
