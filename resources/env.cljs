@@ -7,6 +7,10 @@
 
 (declare make-elem-node make-text-node)
 
+(defn append-child [elem children]
+  (when (and elem children) 
+    (gdom/appendChild elem children)))
+
 (defn clj->js
   "Recursively transforms ClojureScript maps into Javascript objects,
    other ClojureScript colls into JavaScript arrays, and ClojureScript
@@ -41,14 +45,14 @@
 
 (defn make-node [n children] (-make-node n children))
 
-(defn dom [n] (-dom n))
+(defn dom [n] (if (satisfies? IDomNode n) (-dom n) nil))
 
 (defn node-zip [root]
   (zip/zipper branch? children make-node root))
 
 (deftype TextNode [tag text mymeta]
   Object
-  (toString [n] (pr-node n))
+  (toString [n] (.-text n))
 
   IPrintable
   (-pr-seq [n opts]
@@ -92,9 +96,8 @@
           nchildren (.-children n)
           nids      (.-ids n)]
       (if (seq args)
-        (let [[head & tail] args
-              typ (type head)]
-          (if (or (= typ ElemNode) (= typ TextNode))
+        (let [[head & tail] args]
+          (if (satisfies? IDomNode head)
             (make-elem-node ntag nattrs (into nchildren (vec args)) nids)
             (make-elem-node ntag (into nattrs head) (into nchildren (vec tail)) nids)))
         n)))
@@ -203,7 +206,7 @@
           children    (mapv dom (.-children n))]
       (gdom/setProperties elem (clj->js attrs))
       (mapv #(.setAttribute elem (name (first %)) (second %)) (vec attrs))
-      (mapv #(gdom/appendChild elem %) children)
+      (mapv #(append-child elem %) children)
       elem)))
 
 
@@ -347,6 +350,8 @@
 (def $text          make-text-node)
 (def $comment       make-comment-node)
 
+(defn text [_ txt] txt)
+
 (def *initfns* (atom []))
 
 (defn add-initfn! [f]
@@ -355,6 +360,6 @@
 (defn init [forms]
   (let [body (.-body js/document)]
     (gdom/removeChildren body)
-    (mapv #(gdom/appendChild body (dom %)) forms)
+    (mapv #(append-child body (dom %)) forms)
     (mapv (fn [f] (f)) @*initfns*)))
 
