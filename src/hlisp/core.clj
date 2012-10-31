@@ -5,7 +5,7 @@
                                    filter-b]]
     [hlisp.colors           :only [style pr-ok]]
     [pl.danieljanus.tagsoup :only [parse tag attributes children]]
-    [clojure.java.io        :only [copy file reader resource]]
+    [clojure.java.io        :only [copy file make-parents reader resource]]
     [clojure.stacktrace     :only [print-stack-trace]]
     [clojure.pprint         :only [pprint]]
     [hiccup.core            :only [html]]
@@ -108,6 +108,7 @@
 (defn prepare-compile
   [prelude js-out html-in html-out cljs-out]
   (let [parsed (parse html-in)] 
+    (mapv make-parents [js-out html-out cljs-out])
     (if-let [sforms (seq (extract-cljs-script parsed))]
       (let [page-ns   (second (first sforms))
             bforms    (extract-cljs-body parsed)
