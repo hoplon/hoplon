@@ -350,7 +350,7 @@
 (def $text          make-text-node)
 (def $comment       make-comment-node)
 
-(defn text [_ txt] txt)
+(defn text [txt] txt)
 
 (def *initfns* (atom []))
 

@@ -125,5 +125,5 @@
 (def hlist          (hlisp.env/make-elem-node "hlist"))
 (def $text          hlisp.env/make-text-node)
 (def $comment       hlisp.env/make-comment-node)
-(defn text [_ txt] txt)
+(defn text [txt] txt)
 
