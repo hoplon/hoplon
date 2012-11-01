@@ -54,8 +54,9 @@
     (list '$text elem)
     (let [[t attrs & kids] elem
           tag   (symbol (name t)) 
-          kids  (map tagsoup->hlisp kids)]
-      (list* tag attrs kids))))
+          kids  (map tagsoup->hlisp kids)
+          expr  (concat (list tag) (when (seq attrs) (list attrs)) kids)]
+      (if (< 1 (count expr)) expr (first expr)))))
 
 (defn extract-cljs-script
   "Given a tagsoup/hiccup data structure page, returns a list of hlisp forms
