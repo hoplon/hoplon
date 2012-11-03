@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/micha/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/micha/lein-hlisp.git</developerConnection>
-    <tag>e008b59d12f701d9231320919af8860a3fc9cfc8</tag>
+    <tag>11808a674bbdd9714ad381619484f10c384c4782</tag>
     <url>https://github.com/micha/lein-hlisp</url>
   </scm>
   <build>

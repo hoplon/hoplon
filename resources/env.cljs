@@ -94,12 +94,22 @@
     (let [ntag      (.-tag n)
           nattrs    (.-attrs n)
           nchildren (.-children n)
-          nids      (.-ids n)]
-      (if (seq args)
-        (let [[head & tail] args]
+          nids      (.-ids n)
+          nmeta     (.-mymeta n)
+          nargs     (map #(if (string? %) (make-text-node %) %) args)]
+      (if (seq nargs)
+        (let [[head & tail] nargs]
           (if (satisfies? IDomNode head)
-            (make-elem-node ntag nattrs (into nchildren (vec args)) nids)
-            (make-elem-node ntag (into nattrs head) (into nchildren (vec tail)) nids)))
+            (make-elem-node ntag
+                            nattrs
+                            (into nchildren (vec nargs))
+                            nids
+                            nmeta)
+            (make-elem-node ntag
+                            (into nattrs head)
+                            (into nchildren (vec tail))
+                            nids
+                            nmeta)))
         n)))
 
   IMeta
@@ -107,22 +117,38 @@
 
   IWithMeta
   (-with-meta [n new-meta]
-    (ElemNode. (.-tag n) (.-attrs n) (.-children n) (.-ids n) new-meta))
+    (make-elem-node (.-tag n)
+                    (.-attrs n)
+                    (.-children n)
+                    (.-ids n)
+                    new-meta))
 
   IStack
   (-peek [n] (peek (.-children n)))
-  (-pop [n] (make-elem-node (.-tag n) (.-attrs n) (pop (.-children n)) (.-ids n)))
+  (-pop [n] (make-elem-node (.-tag n)
+                            (.-attrs n)
+                            (pop (.-children n))
+                            (.-ids n)
+                            (.-mymeta n)))
   
   ICounted
   (-count [n] (count (.-children n)))
 
   IEmptyableCollection
   (-empty [n]
-    (make-elem-node (.-tag n) (.-attrs n) [] (.-ids n)))
+    (make-elem-node (.-tag n)
+                    (.-attrs n)
+                    []
+                    (.-ids n)
+                    (.-mymeta n)))
 
   ICollection
   (-conj [n o]
-    (make-elem-node (.-tag n) (.-attrs n) (conj (.-children n) o) (.-ids n)))
+    (make-elem-node (.-tag n)
+                    (.-attrs n)
+                    (conj (.-children n) o)
+                    (.-ids n)
+                    (.-mymeta n)))
  
   IIndexed
   (-nth [n i]
@@ -134,13 +160,21 @@
   (-first [n]
     (first (.-children n)))
   (-rest [n]
-    (make-elem-node (.-tag n) (.-attrs n) (vec (rest (.-children n))) (.-ids n)))
+    (make-elem-node (.-tag n)
+                    (.-attrs n)
+                    (vec (rest (.-children n)))
+                    (.-ids n)
+                    (.-mymeta n)))
 
   INext
   (-next [n]
     (let [nx (vec (next (.-children n)))]
       (if (seq nx)
-        (make-elem-node (.-tag n) (.-attrs n) nx (.-ids n))
+        (make-elem-node (.-tag n)
+                        (.-attrs n)
+                        nx
+                        (.-ids n)
+                        (.-mymeta n))
         nil)))
 
   ILookup
@@ -157,13 +191,22 @@
       (make-elem-node (.-tag n)
                       (.-attrs n)
                       (assoc (.-children n) k v)
-                      (.-ids n))
-      (make-elem-node (.-tag n) (assoc (.-attrs n) k v) (.-children n) (.-ids n))))
+                      (.-ids n)
+                      (.-mymeta n))
+      (make-elem-node (.-tag n)
+                      (assoc (.-attrs n) k v)
+                      (.-children n)
+                      (.-ids n)
+                      (.-mymeta n))))
 
   IMap
   (-dissoc [n k]
     (assert (not (integer? k)) "Can't dissoc children")
-    (make-elem-node (.-tag n) (dissoc (.-attrs n) k) (.-children n) (.-ids n)))
+    (make-elem-node (.-tag n)
+                    (dissoc (.-attrs n) k)
+                    (.-children n)
+                    (.-ids n)
+                    (.-mymeta n)))
 
   ISeqable
   (-seq [n]
@@ -171,7 +214,11 @@
 
   IReversible
   (-rseq [n]
-    (make-elem-node (.-tag n) (.-attrs n) (vec (reverse (.-children n))) (.-ids n)))
+    (make-elem-node (.-tag n)
+                    (.-attrs n)
+                    (vec (reverse (.-children n)))
+                    (.-ids n)
+                    (.-mymeta n)))
 
   IPrintable
   (-pr-seq [n opts]
@@ -195,7 +242,7 @@
   (-branch? [n] true)
   (-children [n] (seq (.-children n)))
   (-make-node [n kids]
-    (make-elem-node (.-tag n) (.-attrs n) (vec kids) (.-ids n)))
+    (make-elem-node (.-tag n) (.-attrs n) (vec kids) (.-ids n) (.-mymeta n)))
   (-dom [n]
     (let [elem        (.createElement js/document (.-tag n)) 
           ids         (.-ids n)
@@ -218,7 +265,9 @@
   ([tag attrs kids]
    (ElemNode. tag attrs kids [] nil))
   ([tag attrs kids ids]
-   (ElemNode. tag attrs kids ids nil)))
+   (ElemNode. tag attrs kids ids nil))
+  ([tag attrs kids ids mymeta]
+   (ElemNode. tag attrs kids ids mymeta)))
 
 (defn clone [n]
   (make-elem-node (.-tag n) (.-attrs n) (.-children n) (conj (.-ids n) (str (gensym)))))
