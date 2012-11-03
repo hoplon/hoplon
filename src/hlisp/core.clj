@@ -1,13 +1,15 @@
 (ns hlisp.core
   (:use
-    [criterium.core         :only [time-body]]
     [hlisp.watchdir         :only [watch-dir-ext process-last-b merge-b
                                    filter-b]]
     [hlisp.colors           :only [style pr-ok]]
+    [hlisp.macros           :only [interpolate]]
+    [criterium.core         :only [time-body]]
     [pl.danieljanus.tagsoup :only [parse tag attributes children]]
     [clojure.java.io        :only [copy file make-parents reader resource]]
     [clojure.stacktrace     :only [print-stack-trace]]
     [clojure.pprint         :only [pprint]]
+    [clojure.walk           :only [postwalk]]
     [hiccup.core            :only [html]]
     [hiccup.element         :only [javascript-tag]])
   (:require
@@ -46,12 +48,30 @@
   [f & args]
   (float (/ (first (time-body (apply f args))) 1000000000)))
 
+(defn script?
+  [form]
+  (and (vector? form) (= :script (first form))))
+
+(defn hlisp-script?
+  [form]
+  (and (script? form) (= "text/hlisp" (:type (second form)))))
+
+(defn other-script?
+  [form]
+  (and (script? form) ((complement hlisp-script?) form)))
+
 (defn tagsoup->hlisp
   "Given a tagsoup/hiccup data structure elem, returns the corresponding list
   of hlisp forms."
   [elem]
-  (if (string? elem)
+  (cond
+    (string? elem)
     (list '$text elem)
+
+    (hlisp-script? elem)
+    (read-string (nth elem 2))
+    
+    :else
     (let [[t attrs & kids] elem
           tag   (symbol (name t)) 
           kids  (map tagsoup->hlisp kids)
@@ -71,6 +91,18 @@
                     (first))]
     (read-string (str "(" (nth elem 2) ")"))))
 
+(defn process-cljs-body-scripts
+  [body]
+  (postwalk
+    #(if (hlisp-script? %) (assoc-in % [2] (str "(do " (nth % 2) ")")) %)
+    body))
+
+(defn process-other-body-scripts
+  [body]
+  (postwalk
+    #(if (other-script? %) (assoc-in % [2] "") %)
+    body))
+
 (defn extract-cljs-body
   "Given a tagsoup/hiccup data structure page, returns a list of hlisp forms
   corresponding to the contents of the page <body>."
@@ -78,8 +110,12 @@
   (->> (children page)
     (filter #(= :body (first %)))
     (first)
+    (process-cljs-body-scripts)
+    (process-other-body-scripts)
     (drop 2)
-    (mapv tagsoup->hlisp)))
+    (mapv tagsoup->hlisp)
+    (interpolate)
+    (first)))
 
 (defn build-cljs-str
   "Given lists of hlisp forms script-forms and body-forms (from the <script>
@@ -87,10 +123,10 @@
   of cljs source for the page."
   [script-forms body-forms prelude]
   (let [[ns-decl & sforms] script-forms
-        wrapped (list (symbol "hlisp.env/init") body-forms)
+        wrapped (with-out-str (pprint (list (symbol "hlisp.env/init") body-forms))) 
         s1      (pr-str ns-decl)
         s2      (string/join "\n" (map pr-str sforms))
-        s3      (str "(defn ^:export hlispinit []\n" (pr-str wrapped) ")")]
+        s3      (str "(defn ^:export hlispinit []\n" wrapped ")")]
     (string/join "\n" [s1 (string/trim prelude) s2 s3])))
 
 (defn build-html-str
