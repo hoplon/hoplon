@@ -9,4 +9,6 @@ out/
 lib/
 classes/
 target/
+hlwork/
+test/src/
 doc

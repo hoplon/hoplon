@@ -13,6 +13,8 @@
 (def default-opts
   {:html-src    "src/html"
    :cljs-src    "src/cljs"
+   :html-work   "hlwork/html"
+   :cljs-work   "hlwork/cljs"
    :html-out    "resources/public"
    :base-dir    ""
    :includes    []

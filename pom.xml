@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/micha/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/micha/lein-hlisp.git</developerConnection>
-    <tag>11808a674bbdd9714ad381619484f10c384c4782</tag>
+    <tag>5696b018503cb753880ceca3f87456c32c988023</tag>
     <url>https://github.com/micha/lein-hlisp</url>
   </scm>
   <build>
@@ -67,9 +67,19 @@
       <version>1.4.0</version>
     </dependency>
     <dependency>
+      <groupId>hlisp-macros</groupId>
+      <artifactId>hlisp-macros</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>criterium</groupId>
       <artifactId>criterium</artifactId>
       <version>0.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojars.jmeeks</groupId>
+      <artifactId>jtidy</artifactId>
+      <version>r938</version>
     </dependency>
     <dependency>
       <groupId>hiccup</groupId>

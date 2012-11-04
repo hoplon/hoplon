@@ -1,9 +1,11 @@
 (ns hlisp.core
+  (:import (org.w3c.tidy Tidy) 
+           (java.io StringReader StringWriter))
   (:use
+    [hlisp.macros           :only [interpolate]]
     [hlisp.watchdir         :only [watch-dir-ext process-last-b merge-b
                                    filter-b]]
     [hlisp.colors           :only [style pr-ok]]
-    [hlisp.macros           :only [interpolate]]
     [criterium.core         :only [time-body]]
     [pl.danieljanus.tagsoup :only [parse tag attributes children]]
     [clojure.java.io        :only [copy file make-parents reader resource]]
@@ -17,6 +19,30 @@
     [cljs.closure           :as closure]))
 
 (def CWD (System/getProperty "user.dir"))
+
+(defn eagerly
+  "Descend form, converting all lazy seqs into lists.
+   Metadata is preserved. In the result all non-collections
+   are identical? to those in the original form (as is
+   their metadata). None of the collections are identical?
+   even if they contains no lazy seqs."
+  ;; Modified from clojure.walk/walk
+  [form]
+  (let [m #(with-meta % (meta form))]
+    (cond (or (seq? form) (list? form))
+          (m (apply list (map eagerly form)))
+                          
+          (vector? form)
+          (m (vec (map eagerly form)))
+        
+          (map? form)
+          (m (into (if (sorted? form) (sorted-map) {}) (map eagerly form)))
+
+          (set? form)
+          (m (into (if (sorted? form) (sorted-set) #{}) (map eagerly form)))
+
+          :else
+          form)))
 
 (defn file-hidden?
   "Returns true if the filename begins with a dot."
@@ -78,6 +104,89 @@
           expr  (concat (list tag) (when (seq attrs) (list attrs)) kids)]
       (if (< 1 (count expr)) expr (first expr)))))
 
+(defn hlisp->tagsoup
+  "Given a hlisp form, returns the corresponding tagsoup/hiccup data structure."
+  [form]
+  (cond
+    (symbol? form)
+    [(keyword form) {}]
+
+    (list? form)
+    (let [[tag & tail]    form
+          [attrs & kids]  (if (map? (first tail)) tail (cons {} tail))]
+      (into [(keyword tag) attrs] (mapv hlisp->tagsoup kids)))
+
+    :else
+    form))
+
+(defn pp
+  [forms]
+  (with-out-str (pprint forms)))
+
+(defn pp-html
+  [doctype html-str]
+  (let [printer (doto (new Tidy)
+                  (.setTidyMark     false)
+                  (.setDocType      "omit")
+                  (.setSmartIndent  true)
+                  (.setShowWarnings false)
+                  (.setQuiet        true))
+        writer  (new StringWriter)
+        reader  (new StringReader html-str)]
+    (.parse printer reader writer)
+    (str "<!DOCTYPE " doctype ">\n" writer)))
+
+(defn bytag-tagsoup
+  [tag page]
+  (if (vector? page)
+    (let [[mytag attrs & kids] page]
+      (if (= tag mytag)
+        page
+        (first (remove nil? (map (partial bytag-tagsoup tag) kids)))))
+    nil))
+
+(defn empty-tagsoup
+  [tag page]
+  (if (vector? page)
+    (let [[mytag attrs & kids] page]
+      (if (= tag mytag)
+        [mytag attrs]
+        (into [mytag attrs] (mapv (partial empty-tagsoup tag) kids))))
+    page))
+
+(defn append-tagsoup
+  [tag elem page]
+  (if (vector? page)
+    (let [[mytag attrs & kids] page]
+      (if (= tag mytag)
+        (conj page elem)
+        (into [mytag attrs] (mapv (partial append-tagsoup tag elem) kids))))
+    page))
+
+(defn wrap-body
+  [page]
+  (map
+    (fn [form]
+      (if (and (list? form) (= 'body (first form)))
+        (let [[tag & tail]    form
+              [attrs & kids]  (if (map? (first tail)) tail (cons {} tail))]
+          (list tag attrs (list 'script {:type "text/hlisp"} (pp (last kids))))) 
+        form))
+    page))
+
+(defn parse-hcljs
+  [s]
+  (let [page    (read-string (str "(" s ")")) 
+        script  [:script {:type "text/hlisp"} (apply str (mapv pp (butlast page)))]
+        html    (hlisp->tagsoup (eagerly (wrap-body (last page))))]
+    (->> html
+      (append-tagsoup :head script))))
+
+(defn hcljs-tagsoup->html
+  [page]
+  (let [html-str (append-tagsoup :body "<!--__HLISP__-->" page)]
+    (pp-html "html" (html html-str))))
+
 (defn extract-cljs-script
   "Given a tagsoup/hiccup data structure page, returns a list of hlisp forms
   read from the <script type=\"text/hlisp\"> element in the page <head>."
@@ -123,7 +232,7 @@
   of cljs source for the page."
   [script-forms body-forms prelude]
   (let [[ns-decl & sforms] script-forms
-        wrapped (with-out-str (pprint (list (symbol "hlisp.env/init") body-forms))) 
+        wrapped (pp (list (symbol "hlisp.env/init") body-forms)) 
         s1      (pr-str ns-decl)
         s2      (string/join "\n" (map pr-str sforms))
         s3      (str "(defn ^:export hlispinit []\n" wrapped ")")]
@@ -172,22 +281,67 @@
 (defn tmp-cljs-file? [f]
   (.startsWith (.getName (file f)) "____"))
 
-(defn hlisp-compile
-  [{:keys [html-src cljs-src html-out base-dir prelude includes cljsc-opts]}]
-  (let [html-ins    (->>
-                      (file html-src)
-                      (file-seq)
-                      (filter #(= "html" (file-ext %)))
+(defn is-file? [f] (.isFile f))
+(defn html-file? [f] (and (is-file? f) (= "html" (file-ext f))))
+(defn cljs-file? [f] (and (is-file? f) (= "cljs" (file-ext f))))
+(defn other-file? [f] (and (is-file? f) (not (or (html-file? f) (cljs-file? f)))))
+
+(defn delete-all
+  [dir]
+  (mapv #(.delete %) (filter #(.isFile %) (file-seq (file dir)))))
+
+(defn prepare-hcljs
+  [html-src]
+  (let [html-files (file-seq (file html-src))
+        hcljs-ins   (->> html-files
+                      (filter cljs-file?)
                       (map #(.getPath %)))
-        stale       (->>
-                      (file cljs-src)
-                      (file-seq)
-                      (filter tmp-cljs-file?))
-        html-outs   (map #(srcdir->outdir % html-src html-out) html-ins)
-        cljs-outs   (map #(file cljs-src (str (munge-path %) ".cljs")) html-ins)
+        hcljs-srcs  (->> hcljs-ins
+                      (map #(string/replace-first % #"\.cljs$" ".html")))
+        process     (fn [in src]
+                      (make-parents src)
+                      (spit src (hcljs-tagsoup->html (parse-hcljs (slurp in)))))]
+    (mapv process hcljs-ins hcljs-srcs)))
+
+(defn copy-files
+  [src dest]
+  (let [files  (map #(.getPath %) (filter #(.isFile %) (file-seq (file src)))) 
+        outs   (map #(srcdir->outdir % src dest) files)]
+    (mapv make-parents (map file outs))
+    (mapv #(copy (file %1) (file %2)) files outs)))
+
+(defn hlisp-prepare
+  [html-src cljs-src html-work cljs-work] 
+  (copy-files html-src html-work)
+  (copy-files cljs-src cljs-work))
+
+(comment
+  (srcdir->outdir "test/src/html/foo.html" "test/src/html" "hlwork/html")
+  (hlisp-prepare "test/src/html" "test/src/cljs" "hlwork/html" "hlwork/cljs")
+  )
+
+(defn hlisp-compile
+  [{:keys [html-src cljs-src html-work cljs-work html-out
+           base-dir prelude includes cljsc-opts]}]
+  (delete-all html-work)
+  (delete-all cljs-work)
+  (delete-all html-out)
+  (hlisp-prepare html-src cljs-src html-work cljs-work)
+  (prepare-hcljs html-work)
+  (let [html-files  (file-seq (file html-work))
+        cljs-files  (file-seq (file cljs-work))
+        html-ins    (->> html-files
+                      (filter html-file?)
+                      (map #(.getPath %)))
+        other-ins   (->> html-files
+                      (filter other-file?)
+                      (map #(.getPath %)))
+        html-outs   (map #(srcdir->outdir % html-work html-out) html-ins)
+        cljs-outs   (map #(file cljs-work (str (munge-path %) ".cljs")) html-ins)
+        other-outs  (map #(srcdir->outdir % html-work html-out) other-ins)
         prelude-str (slurp (reader (resource "prelude.cljs")))
         env-str     (slurp (reader (resource "env.cljs")))
-        env-tmp     (file cljs-src "____env.cljs")
+        env-tmp     (file cljs-work "____env.cljs")
         js-tmp      (tmpfile "____hlisp_" ".js")
         js-tmp-path (.getPath js-tmp)
         js-uri      (.getPath
@@ -195,10 +349,10 @@
                                    (.toURI (file (file base-dir) "main.js"))))
         js-out      (file html-out "main.js")
         options     (assoc cljsc-opts :output-to js-tmp-path)]
-    (mapv #(.delete %) stale) 
     (spit env-tmp env-str)
     (mapv (partial prepare-compile prelude-str js-uri) html-ins html-outs cljs-outs)
-    (closure/build cljs-src options)
+    (mapv #(copy (file %1) (file %2)) other-ins other-outs)
+    (closure/build cljs-work options)
     (spit js-out (string/join "\n" (map slurp (conj includes js-tmp-path))))
     (.delete js-tmp)))
 
@@ -219,20 +373,14 @@
 (defn watch-compile [{:keys [html-src cljs-src] :as opts}]
   (->>
     (merge-b (watch-dir-ext html-src "html" 100)
-             (watch-dir-ext cljs-src "cljs" 100)) 
-    (filter-b (complement tmp-cljs-file?))
+             (watch-dir-ext html-src "cljs" 100)) 
+    (merge-b (watch-dir-ext cljs-src "cljs" 100)) 
     (process-last-b (fn [_] (compile-fancy opts))))
   (loop []
     (Thread/sleep 1000)
     (recur)))
 
 (comment
-
-  clojure.contrib.map-utils/deep-merge-with 
-
-  (munge-path "src/html/index.html")
-
-  (doit) 
 
 
   )
