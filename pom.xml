@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/micha/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/micha/lein-hlisp.git</developerConnection>
-    <tag>5696b018503cb753880ceca3f87456c32c988023</tag>
+    <tag>eac7c27c72f599419c0e38ff80b8b60b084cab82</tag>
     <url>https://github.com/micha/lein-hlisp</url>
   </scm>
   <build>
@@ -65,6 +65,11 @@
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
       <version>1.4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.cemerick</groupId>
+      <artifactId>pomegranate</artifactId>
+      <version>0.0.13</version>
     </dependency>
     <dependency>
       <groupId>hlisp-macros</groupId>

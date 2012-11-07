@@ -20,6 +20,22 @@
 
 (def CWD (System/getProperty "user.dir"))
 
+(def hlisp-exports
+  ['hlisp.env :only ['a 'abbr 'acronym 'address 'applet 'area 'article
+  'aside 'audio 'b 'base 'basefont 'bdi 'bdo 'big 'blockquote 'body 'br
+  'button 'canvas 'caption 'center 'cite 'code 'col 'colgroup 'command
+  'data 'datalist 'dd 'del 'details 'dfn 'dir 'div 'dl 'dt 'em 'embed
+  'eventsource 'fieldset 'figcaption 'figure 'font 'footer 'form 'frame
+  'frameset 'h1 'h2 'h3 'h4 'h5 'h6 'head 'header 'hgroup 'hr 'html 'i
+  'iframe 'img 'input 'ins 'isindex 'kbd 'keygen 'label 'legend 'li 'link
+  'html-map 'mark 'menu 'html-meta 'meter 'nav 'noframes 'noscript 'object
+  'ol 'optgroup 'option 'output 'p 'param 'pre 'progress 'q 'rp 'rt 'ruby
+  's 'samp 'script 'section 'select 'small 'source 'span 'strike 'strong
+  'style 'sub 'summary 'sup 'table 'tbody 'td 'textarea 'tfoot 'th 'thead
+  'html-time 'title 'tr 'track 'tt 'u 'ul 'html-var 'video 'wbr '$text
+  '$comment 'text 'pr-node 'tag 'attrs 'branch?  'children 'make-node 'dom
+  'node-zip 'clone]])
+
 (defn eagerly
   "Descend form, converting all lazy seqs into lists.
    Metadata is preserved. In the result all non-collections
@@ -170,7 +186,7 @@
       (if (and (list? form) (= 'body (first form)))
         (let [[tag & tail]    form
               [attrs & kids]  (if (map? (first tail)) tail (cons {} tail))]
-          (list tag attrs (list 'script {:type "text/hlisp"} (pp (last kids))))) 
+          (list tag attrs (list 'script {:type "text/hlisp"} (pp (cons 'do kids))))) 
         form))
     page))
 
@@ -226,17 +242,24 @@
     (interpolate)
     (first)))
 
+(defn add-hlisp-uses
+  [[_ nm & forms]]
+  (let [parts (group-by #(= :use (first %)) forms)
+        uses  (concat (or (first (get parts true)) (list :use)) (list hlisp-exports)) 
+        other (get parts false)] 
+    (list* 'ns nm uses other)))
+
 (defn build-cljs-str
   "Given lists of hlisp forms script-forms and body-forms (from the <script>
-  and <body> tags in the page, resp.) and a string prelude, returns a string
-  of cljs source for the page."
-  [script-forms body-forms prelude]
+  and <body> tags in the page, resp.), returns a string of cljs source for
+  the page."
+  [script-forms body-forms]
   (let [[ns-decl & sforms] script-forms
         wrapped (pp (list (symbol "hlisp.env/init") body-forms)) 
-        s1      (pr-str ns-decl)
+        s1      (pr-str (add-hlisp-uses ns-decl))
         s2      (string/join "\n" (map pr-str sforms))
         s3      (str "(defn ^:export hlispinit []\n" wrapped ")")]
-    (string/join "\n" [s1 (string/trim prelude) s2 s3])))
+    (string/join "\n" [s1 s2 s3])))
 
 (defn build-html-str
   "Given html content html-in, the deployed location of main.js js-out, and
@@ -252,14 +275,14 @@
     (string/replace-first html-in dummy scripts)))
 
 (defn prepare-compile
-  [prelude js-out html-in html-out cljs-out]
+  [js-out html-in html-out cljs-out]
   (let [parsed (parse html-in)] 
     (mapv make-parents [js-out html-out cljs-out])
     (if-let [sforms (seq (extract-cljs-script parsed))]
       (let [page-ns   (second (first sforms))
             bforms    (extract-cljs-body parsed)
             html-str  (build-html-str (slurp html-in) js-out page-ns)
-            cljs-str  (build-cljs-str sforms bforms prelude)]
+            cljs-str  (build-cljs-str sforms bforms)]
         (spit cljs-out cljs-str) 
         (spit html-out html-str)) 
       (copy html-in html-out))))
@@ -277,9 +300,6 @@
 
 (defn srcdir->outdir [fname srcdir outdir]
   (str outdir "/" (subs fname (inc (count srcdir)))))
-
-(defn tmp-cljs-file? [f]
-  (.startsWith (.getName (file f)) "____"))
 
 (defn is-file? [f] (.isFile f))
 (defn html-file? [f] (and (is-file? f) (= "html" (file-ext f))))
@@ -315,19 +335,15 @@
   (copy-files html-src html-work)
   (copy-files cljs-src cljs-work))
 
-(comment
-  (srcdir->outdir "test/src/html/foo.html" "test/src/html" "hlwork/html")
-  (hlisp-prepare "test/src/html" "test/src/cljs" "hlwork/html" "hlwork/cljs")
-  )
-
 (defn hlisp-compile
   [{:keys [html-src cljs-src html-work cljs-work html-out
-           base-dir prelude includes cljsc-opts]}]
+           cljs-dep inc-dep ext-dep base-dir includes cljsc-opts]}]
   (delete-all html-work)
   (delete-all cljs-work)
   (delete-all html-out)
   (hlisp-prepare html-src cljs-src html-work cljs-work)
   (prepare-hcljs html-work)
+  (copy-files cljs-dep cljs-work)
   (let [html-files  (file-seq (file html-work))
         cljs-files  (file-seq (file cljs-work))
         html-ins    (->> html-files
@@ -336,10 +352,11 @@
         other-ins   (->> html-files
                       (filter other-file?)
                       (map #(.getPath %)))
+        incs        (mapv #(.getPath %) (filter is-file? (file-seq (file inc-dep)))) 
+        exts        (mapv #(.getPath %) (filter is-file? (file-seq (file ext-dep)))) 
         html-outs   (map #(srcdir->outdir % html-work html-out) html-ins)
         cljs-outs   (map #(file cljs-work (str (munge-path %) ".cljs")) html-ins)
         other-outs  (map #(srcdir->outdir % html-work html-out) other-ins)
-        prelude-str (slurp (reader (resource "prelude.cljs")))
         env-str     (slurp (reader (resource "env.cljs")))
         env-tmp     (file cljs-work "____env.cljs")
         js-tmp      (tmpfile "____hlisp_" ".js")
@@ -348,9 +365,11 @@
                       (.relativize (.toURI (file CWD))
                                    (.toURI (file (file base-dir) "main.js"))))
         js-out      (file html-out "main.js")
-        options     (assoc cljsc-opts :output-to js-tmp-path)]
+        options     (-> (assoc cljsc-opts :output-to js-tmp-path)
+                      (update-in [:externs] into exts))
+        includes    (vec (reverse (sort (into includes incs))))]
     (spit env-tmp env-str)
-    (mapv (partial prepare-compile prelude-str js-uri) html-ins html-outs cljs-outs)
+    (mapv (partial prepare-compile js-uri) html-ins html-outs cljs-outs)
     (mapv #(copy (file %1) (file %2)) other-ins other-outs)
     (closure/build cljs-work options)
     (spit js-out (string/join "\n" (map slurp (conj includes js-tmp-path))))
