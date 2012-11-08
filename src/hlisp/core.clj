@@ -2,21 +2,21 @@
   (:import (org.w3c.tidy Tidy) 
            (java.io StringReader StringWriter))
   (:use
-    [hlisp.macros           :only [interpolate]]
-    [hlisp.watchdir         :only [watch-dir-ext process-last-b merge-b
-                                   filter-b]]
-    [hlisp.colors           :only [style pr-ok]]
-    [criterium.core         :only [time-body]]
-    [pl.danieljanus.tagsoup :only [parse tag attributes children]]
-    [clojure.java.io        :only [copy file make-parents reader resource]]
-    [clojure.stacktrace     :only [print-stack-trace]]
-    [clojure.pprint         :only [pprint]]
-    [clojure.walk           :only [postwalk]]
-    [hiccup.core            :only [html]]
-    [hiccup.element         :only [javascript-tag]])
+    [hlisp.macros             :only [interpolate]]
+    [hlisp.watchdir           :only [watch-dir-ext process-last-b merge-b
+                                     filter-b]]
+    [hlisp.colors             :only [style pr-ok]]
+    [criterium.core           :only [time-body]]
+    [pl.danieljanus.tagsoup   :only [parse tag attributes children]]
+    [clojure.java.io          :only [copy file make-parents reader resource]]
+    [clojure.stacktrace       :only [print-stack-trace]]
+    [clojure.pprint           :only [pprint]]
+    [clojure.walk             :only [postwalk]]
+    [hiccup.core              :only [html]]
+    [hiccup.element           :only [javascript-tag]])
   (:require
-    [clojure.string         :as string]
-    [cljs.closure           :as closure]))
+    [clojure.string           :as string]
+    [cljs.closure             :as closure]))
 
 (def CWD (System/getProperty "user.dir"))
 
@@ -367,12 +367,12 @@
         js-out      (file html-out "main.js")
         options     (-> (assoc cljsc-opts :output-to js-tmp-path)
                       (update-in [:externs] into exts))
-        includes    (vec (reverse (sort (into includes incs))))]
+        all-incs    (into (vec (reverse (sort incs))) includes)]
     (spit env-tmp env-str)
     (mapv (partial prepare-compile js-uri) html-ins html-outs cljs-outs)
     (mapv #(copy (file %1) (file %2)) other-ins other-outs)
     (closure/build cljs-work options)
-    (spit js-out (string/join "\n" (map slurp (conj includes js-tmp-path))))
+    (spit js-out (string/join "\n" (map slurp (conj all-incs js-tmp-path))))
     (.delete js-tmp)))
 
 (defn compile-fancy [opts]

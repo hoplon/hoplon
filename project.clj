@@ -12,6 +12,6 @@
                        [org.clojars.jmeeks/jtidy "r938"]
                        [hiccup "1.0.1"]
                        [compojure "1.0.4"]
-                       [clj-tagsoup "0.3.0"]
+                       [clj-tagsoup "0.3.0" :exclusions  [org.clojure/clojure]]
                        [org.clojure/clojurescript "0.0-1450"]
                        [fs "1.3.2"]])

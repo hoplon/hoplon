@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>lein-hlisp</groupId>
   <artifactId>lein-hlisp</artifactId>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/micha/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/micha/lein-hlisp.git</developerConnection>
-    <tag>eac7c27c72f599419c0e38ff80b8b60b084cab82</tag>
+    <tag>30aeea55baf284290deb2c5268483c717f9812a0</tag>
     <url>https://github.com/micha/lein-hlisp</url>
   </scm>
   <build>
@@ -100,6 +100,12 @@
       <groupId>clj-tagsoup</groupId>
       <artifactId>clj-tagsoup</artifactId>
       <version>0.3.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
