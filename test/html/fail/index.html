@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TFD Errors</title>
+
+    <script type="text/hlisp">
+      (ns monfail
+        (:use
+          [flapjax.core :only [sync-e]]
+          [mytest.ui    :only [deftemplate make-radio make-tabs]])
+        (:use-macros
+          [hlisp.macros :only [def-values]]))
+    </script>
+
+    <!-- Page CSS -->
+    <link type="text/css" rel="stylesheet" href="main.css"/>
+  </head>
+
+  <body>
+    <!-- This form pulls log messages from the backend via AJAX and fills the
+         inline templates below. The page url fragment is synched to this. -->
+    <form 
+      name          = "/"
+      get-json      = "data.php"
+      bind-url
+      fill-template-error-full >
+
+      <input
+        type        = "hidden"
+        name        = "type"
+        value       = "1"
+        depends-on  = "choose-type"
+        do-set-val />
+
+      <input
+        type        = "hidden"
+        name        = "subject"
+        value       = ""
+        depends-on  = "the-error"
+        do-set-val />
+    </form>
+
+    <form
+      get-json="data.php"
+      fill-template-error-list >
+
+      <input
+        type="hidden"
+        name="type"
+        value="1"
+        depends-on="choose-type"
+        do-set-val />
+    </form>
+
+    <!-- The "list view" of all errors in table -->
+    <div id="list">
+
+      <!-- Amusing picture -->
+      <img src="dont-panic-im-on-it.jpg"/>
+
+      <table cellpadding="6" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>#</th>
+            <th>Error Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Inline template definition. Elements are annotated with direc-
+               tives to specify how the data should be filled in. -->
+          <deftemplate>
+            <error-list></error-list>
+            <max_created></max_created> <td></td>
+            <num></num>                 <td></td>
+            <subject></subject>         <td></td>
+            <tr
+              template        = "error-list"
+              acts-like       = "input"
+              type            = "radio"
+              name            = "the-error"
+              data-fill-value = "subject" >
+
+              <td
+                data-fill = "max_created"
+                align     = "left" > 22:15:52 </td>
+
+              <td
+                data-fill = "num"
+                align     = "right" > 42 </td>
+
+              <td
+                data-fill = "subject"
+                align     = "left" > This is a test. </td>
+            </tr>
+          </deftemplate>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- The "detail view" of errors with a specific subject line -->
+    <div id="detail">
+
+      <div template="error-full">
+        <h3 data-fill="created"> Hello! </h3>
+        <pre data-fill="body"> This... is a test. </pre>
+      </div>
+    </div>
+
+    <!--__HLISP__-->
+
+  </body>
+</html>
