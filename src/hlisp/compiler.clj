@@ -41,17 +41,19 @@
                       (list 'script {:type "text/javascript" :src js-uri})
                       (list 'script {:type "text/javascript"} (str nsname ".hlispinit()")))
         bnew    (list* 'body battr scripts)
-        bforms  (drop 1 forms)
-        cljs    (list nsdecl
-                      (list 'defn (symbol "^:export") 'hlispinit []
-                            (list (symbol "hlisp.env/init") (vec bforms)))) 
+        cljs    (concat
+                  (list nsdecl)
+                  (drop 1 (butlast forms)) 
+                  (list
+                    (list 'defn (symbol "^:export") 'hlispinit []
+                          (list (symbol "hlisp.env/init") [(last forms)])))) 
         cljsstr (string/join "\n" (map #(with-out-str (pprint %)) cljs)) 
         html    (replace {body bnew} html-forms)
         htmlstr (ts/pp-html "html" (ts/html (ts/hlisp->tagsoup html)))]
     {:html htmlstr :cljs cljsstr}))
 
 (defn compile-ts [html-ts js-uri]
-  (compile-forms (ts/tagsoup->hlisp html-ts) js-uri))
+  (compile-forms (first (ts/tagsoup->hlisp html-ts)) js-uri))
 
 (defn compile-string [html-str js-uri]
   (compile-ts (ts/parse-string html-str) js-uri))
@@ -67,8 +69,12 @@
 
   (compile-file (file "asdfasdf") "/main.js")
 
+  (pprint
+    (first (ts/tagsoup->hlisp (ts/parse (file "test/html/index.html")))) 
+    )
+
   (println
-    (:cljs (compile-file (file "test/html/foo.cljs") "/main.js")) 
+    (:cljs (compile-file (file "test/html/index.html") "/main.js")) 
     )
 
   (println

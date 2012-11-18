@@ -27,6 +27,7 @@
     t))
 
 (defn srcdir->outdir [fname srcdir outdir]
+  (pprint [fname srcdir outdir])
   (str outdir "/" (subs fname (inc (count srcdir)))))
 
 (defn delete-all
@@ -43,13 +44,17 @@
 (defn compile-file
   [f js-uri html-work cljs-work html-out]
   (let [path      (.getPath f)
-        to-html   (if (re-matches #"\.cljs$" path)
+        to-html   (if (.endsWith path ".cljs")
                     (string/replace path #"\.cljs$" ".html")
                     path)
-        to-cljs   (str cljs-work "/" (munge-path path) ".cljs")] 
-    (when-let [compiled (hlc/compile-file f)] 
-      (spit (file (srcdir->outdir to-html html-work html-out)) (:html compiled)) 
-      (spit (file to-cljs) (:cljs compiled)))))
+        html-file (file (srcdir->outdir to-html html-work html-out))
+        cljs-file (file (str cljs-work "/" (munge-path path) ".cljs"))] 
+    (when-let [compiled (hlc/compile-file f js-uri)] 
+      (mapv make-parents [html-file cljs-file])
+      (spit html-file (:html compiled)) 
+      (spit cljs-file (:cljs compiled)))))
+
+(def is-file? #(.isFile %))
 
 (defn hlisp-compile
   [{:keys [html-src cljs-src html-work cljs-work html-out
@@ -62,7 +67,7 @@
   (copy-files cljs-src cljs-work)
   (copy-files cljs-dep cljs-work)
 
-  (let [page-files  (file-seq (file html-work))
+  (let [page-files  (filter is-file? (file-seq (file html-work))) 
         incs        (mapv #(.getPath %) (filter is-file? (file-seq (file inc-dep)))) 
         exts        (mapv #(.getPath %) (filter is-file? (file-seq (file ext-dep)))) 
         env-str     (slurp (reader (resource "env.cljs")))
@@ -113,7 +118,7 @@
     (recur)))
 
 (comment
-
+  (.endsWith "foo.html" ".html")
 
   )
 

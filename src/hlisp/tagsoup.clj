@@ -41,17 +41,17 @@
   [elem]
   (cond
     (string? elem)
-    (list '$text elem)
+    (list (list '$text elem)) 
 
     (hlisp-script? elem)
-    (read-string (nth elem 2))
+    (read-string (str "(" (nth elem 2) ")"))
     
     :else
     (let [[t attrs & kids] elem
           tag   (symbol (name t)) 
-          kids  (map tagsoup->hlisp kids)
+          kids  (apply concat (map tagsoup->hlisp kids)) 
           expr  (concat (list tag) (when (seq attrs) (list attrs)) kids)]
-      (if (< 1 (count expr)) expr (first expr)))))
+      (list (if (< 1 (count expr)) expr (first expr))))))
 
 (defn hlisp->tagsoup
   "Given a hlisp form, returns the corresponding tagsoup/hiccup data structure."
