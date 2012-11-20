@@ -31,17 +31,18 @@
 
 (def default-opts
   {:html-src    "src/html"
+   :html-static "src/static"
    :cljs-src    "src/cljs"
    :html-work   "hlwork/html"
    :cljs-work   "hlwork/cljs"
+   :out-work    "hlwork/out"
    :inc-dep     "hlwork/dep/inc"
    :ext-dep     "hlwork/dep/ext"
    :cljs-dep    "hlwork/dep/cljs"
    :html-out    "resources/public"
    :base-dir    ""
    :includes    []
-   :cljsc-opts  {:optimizations :whitespace
-                 :externs       []}})
+   :cljsc-opts  {:externs []}})
 
 (defn process-opts [opts]
   (deep-merge-with #(last %&) default-opts opts))

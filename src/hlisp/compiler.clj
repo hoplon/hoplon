@@ -31,15 +31,24 @@
         other (get parts false)] 
     (list* 'ns nm uses other)))
 
-(defn compile-forms [html-forms js-uri]
+(defn compile-forms [html-forms js-uri base-uri]
   (let [body    (first (filter #(and (seq? %) (= 'body (first %))) html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
         nsdecl  (add-hlisp-uses (first forms)) 
         nsname  (second nsdecl)
-        scripts (list (list 'script {:type "text/javascript"} "var CLOSURE_NO_DEPS = true")
-                      (list 'script {:type "text/javascript" :src js-uri})
-                      (list 'script {:type "text/javascript"} (str nsname ".hlispinit()")))
+        scripts (if base-uri
+                  (list (list 'script {:type "text/javascript" :src base-uri})
+                        (list 'script {:type "text/javascript" :src js-uri})
+                        (list 'script {:type "text/javascript"}
+                              (str "goog.require('" nsname "');"))
+                        (list 'script {:type "text/javascript"}
+                              (str nsname ".hlispinit()")))
+                  (list (list 'script {:type "text/javascript"}
+                              "var CLOSURE_NO_DEPS = true")
+                        (list 'script {:type "text/javascript" :src js-uri})
+                        (list 'script {:type "text/javascript"}
+                              (str nsname ".hlispinit()"))))
         bnew    (list* 'body battr scripts)
         cljs    (concat
                   (list nsdecl)
@@ -52,17 +61,19 @@
         htmlstr (ts/pp-html "html" (ts/html (ts/hlisp->tagsoup html)))]
     {:html htmlstr :cljs cljsstr}))
 
-(defn compile-ts [html-ts js-uri]
-  (compile-forms (first (ts/tagsoup->hlisp html-ts)) js-uri))
+(defn compile-ts [html-ts js-uri base-uri]
+  (compile-forms (first (ts/tagsoup->hlisp html-ts)) js-uri base-uri))
 
-(defn compile-string [html-str js-uri]
-  (compile-ts (ts/parse-string html-str) js-uri))
+(defn compile-string [html-str js-uri base-uri]
+  (compile-ts (ts/parse-string html-str) js-uri base-uri))
 
 (defn compile-file
-  [f js-uri]
-  (let [doit (re-map #"\.html$" #(compile-string (slurp %) js-uri)
-                     #"\.cljs$" #(compile-forms (read-string (slurp %)) js-uri)
-                     #".*"      (constantly nil))]
+  [f js-uri base-uri]
+  (let [doit
+        (re-map
+          #"\.html$" #(compile-string (slurp %) js-uri base-uri)
+          #"\.cljs$" #(compile-forms (read-string (slurp %)) js-uri base-uri)
+          #".*"      (constantly nil))]
     ((doit (.getPath f)) f)))
 
 (comment

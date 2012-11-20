@@ -27,29 +27,36 @@
     t))
 
 (defn srcdir->outdir [fname srcdir outdir]
-  (pprint [fname srcdir outdir])
-  (str outdir "/" (subs fname (inc (count srcdir)))))
+  (.getPath (file outdir (.getPath (.relativize (.toURI (file srcdir))
+                                                (.toURI (file fname)))))))
 
 (defn delete-all
   [dir]
   (mapv #(.delete %) (filter #(.isFile %) (file-seq (file dir)))))
 
+(defn copy-with-lastmod
+  [src-file dst-file]
+  (copy src-file dst-file)
+  (.setLastModified dst-file (.lastModified src-file)))
+
 (defn copy-files
   [src dest]
   (let [files  (map #(.getPath %) (filter #(.isFile %) (file-seq (file src)))) 
-        outs   (map #(srcdir->outdir % src dest) files)]
-    (mapv make-parents (map file outs))
-    (mapv #(copy (file %1) (file %2)) files outs)))
+        outs   (map #(srcdir->outdir % src dest) files)
+        srcs   (map file files)
+        dsts   (map file outs)]
+    (mapv make-parents dsts)
+    (mapv copy-with-lastmod srcs dsts)))
 
 (defn compile-file
-  [f js-uri html-work cljs-work html-out]
+  [f js-uri html-work cljs-work html-out base-uri]
   (let [path      (.getPath f)
         to-html   (if (.endsWith path ".cljs")
                     (string/replace path #"\.cljs$" ".html")
                     path)
         html-file (file (srcdir->outdir to-html html-work html-out))
         cljs-file (file (str cljs-work "/" (munge-path path) ".cljs"))] 
-    (when-let [compiled (hlc/compile-file f js-uri)] 
+    (when-let [compiled (hlc/compile-file f js-uri base-uri)] 
       (mapv make-parents [html-file cljs-file])
       (spit html-file (:html compiled)) 
       (spit cljs-file (:cljs compiled)))))
@@ -57,12 +64,13 @@
 (def is-file? #(.isFile %))
 
 (defn hlisp-compile
-  [{:keys [html-src cljs-src html-work cljs-work html-out
+  [{:keys [html-src cljs-src html-work cljs-work html-static html-out out-work
            cljs-dep inc-dep ext-dep base-dir includes cljsc-opts]}]
 
   (delete-all html-work)
   (delete-all cljs-work)
   (delete-all html-out)
+  (copy-files html-static html-out)
   (copy-files html-src html-work)
   (copy-files cljs-src cljs-work)
   (copy-files cljs-dep cljs-work)
@@ -78,12 +86,21 @@
                       (.relativize (.toURI (file CWD))
                                    (.toURI (file (file base-dir) "main.js"))))
         js-out      (file html-out "main.js")
-        options     (-> (assoc cljsc-opts :output-to js-tmp-path)
+        output-dir  (.getPath (file html-out "out"))
+        base-uri    (and (nil? (:optimizations cljsc-opts))
+                         (.getPath
+                           (.relativize
+                             (.toURI (file CWD))
+                             (.toURI (file (file base-dir) "out" "goog" "base.js"))))) 
+        options     (->
+                      (assoc cljsc-opts :output-to js-tmp-path)
+                      (assoc :output-dir out-work)
                       (update-in [:externs] into exts))
         all-incs    (into (vec (reverse (sort incs))) includes)]
     (spit env-tmp env-str)
-    (mapv #(compile-file % js-uri html-work cljs-work html-out) page-files)
+    (mapv #(compile-file % js-uri html-work cljs-work html-out base-uri) page-files)
     (closure/build cljs-work options)
+    (copy-files out-work output-dir)
     (spit js-out (string/join "\n" (map slurp (conj all-incs js-tmp-path))))
     (.delete js-tmp)))
 
