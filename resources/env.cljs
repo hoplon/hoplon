@@ -96,18 +96,19 @@
           nchildren (.-children n)
           nids      (.-ids n)
           nmeta     (.-mymeta n)
-          nargs     (map #(if (string? %) (make-text-node %) %) args)]
+          nargs     (map #(if (string? %) (make-text-node %) %) args)
+          cleanup   (fn [nodes] (vec (filter #(satisfies? IDomNode %) nodes)))]
       (if (seq nargs)
         (let [[head & tail] nargs]
           (if (satisfies? IDomNode head)
             (make-elem-node ntag
                             nattrs
-                            (into nchildren (vec nargs))
+                            (into nchildren (cleanup nargs))
                             nids
                             nmeta)
             (make-elem-node ntag
                             (into nattrs head)
-                            (into nchildren (vec tail))
+                            (into nchildren (cleanup tail))
                             nids
                             nmeta)))
         n)))

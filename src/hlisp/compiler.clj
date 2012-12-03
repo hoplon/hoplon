@@ -52,14 +52,29 @@
         bnew    (list* 'body battr scripts)
         cljs    (concat
                   (list nsdecl)
-                  (drop 1 (butlast forms)) 
                   (list
                     (list 'defn (symbol "^:export") 'hlispinit []
-                          (list (symbol "hlisp.env/init") [(last forms)])))) 
+                          (list (symbol "hlisp.env/init") (vec (drop 1 forms)))))) 
         cljsstr (string/join "\n" (map #(with-out-str (pprint %)) cljs)) 
         html    (replace {body bnew} html-forms)
         htmlstr (ts/pp-html "html" (ts/html (ts/hlisp->tagsoup html)))]
     {:html htmlstr :cljs cljsstr}))
+
+(defn move-cljs-to-body
+  [[[first-tag & _ :as first-form] & more :as forms]]
+  (case first-tag
+    ns    (let [html-forms  (last forms)
+                cljs-forms  (butlast forms)
+                body        (first (filter #(and (seq? %) (= 'body (first %))) html-forms)) 
+                bnew        (let [a (second body)]
+                              (list*
+                                'body
+                                (if (map? a)
+                                  (list* a (concat cljs-forms (drop 2 body)))
+                                  (list* {} (concat cljs-forms (rest body))))))]
+            (replace {body bnew} html-forms))
+    html  first-form
+    (throw (Exception. "First tag is not HTML or namespace declaration."))))
 
 (defn compile-ts [html-ts js-uri base-uri]
   (compile-forms (first (ts/tagsoup->hlisp html-ts)) js-uri base-uri))
@@ -72,7 +87,11 @@
   (let [doit
         (re-map
           #"\.html$" #(compile-string (slurp %) js-uri base-uri)
-          #"\.cljs$" #(compile-forms (read-string (slurp %)) js-uri base-uri)
+          #"\.cljs$" #(compile-forms
+                        (move-cljs-to-body
+                          (read-string (str "(" (slurp %) ")")))
+                        js-uri
+                        base-uri)
           #".*"      (constantly nil))]
     ((doit (.getPath f)) f)))
 
@@ -81,7 +100,7 @@
   (compile-file (file "asdfasdf") "/main.js")
 
   (pprint
-    (first (ts/tagsoup->hlisp (ts/parse (file "test/html/index.html")))) 
+    (ts/parse (file "../hlisp-starter/src/html/index.html")) 
     )
 
   (println
