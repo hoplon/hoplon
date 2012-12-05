@@ -24,6 +24,19 @@
     '$comment 'text 'pr-node 'tag 'attrs 'branch?  'children 'make-node 'dom
     'node-zip 'clone]])
 
+(defn is-tag? [tag form]
+  (and (seq? form) (= tag (first form))))
+
+(defn filter-tag [tag forms]
+  (filter (partial is-tag? tag) forms))
+
+(defn prepend-children
+  [[tag & tail] newkids]
+  (let [a (first tail)]
+    (list* tag (if (map? a)
+                 (list* a (concat newkids (rest tail)))
+                 (list* {} (concat newkids tail))))))
+
 (defn add-hlisp-uses
   [[_ nm & forms]]
   (let [parts (group-by #(= :use (first %)) forms)
@@ -32,7 +45,7 @@
     (list* 'ns nm uses other)))
 
 (defn compile-forms [html-forms js-uri base-uri]
-  (let [body    (first (filter #(and (seq? %) (= 'body (first %))) html-forms))
+  (let [body    (first (filter-tag 'body html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
         nsdecl  (add-hlisp-uses (first forms)) 
@@ -63,15 +76,13 @@
 (defn move-cljs-to-body
   [[[first-tag & _ :as first-form] & more :as forms]]
   (case first-tag
-    ns    (let [html-forms  (last forms)
-                cljs-forms  (butlast forms)
-                body        (first (filter #(and (seq? %) (= 'body (first %))) html-forms)) 
-                bnew        (let [a (second body)]
-                              (list*
-                                'body
-                                (if (map? a)
-                                  (list* a (concat cljs-forms (drop 2 body)))
-                                  (list* {} (concat cljs-forms (rest body))))))]
+    ns    (let [html-forms        (last forms)
+                [nsdecl & exprs]  (butlast forms)
+                cljs-forms        (list*
+                                    nsdecl
+                                    (list (list* 'do (concat exprs (list 'nil)))))
+                body              (first (filter-tag 'body html-forms)) 
+                bnew              (prepend-children body cljs-forms)]
             (replace {body bnew} html-forms))
     html  first-form
     (throw (Exception. "First tag is not HTML or namespace declaration."))))
