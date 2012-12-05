@@ -94,6 +94,7 @@
   USAGE: lein hlisp auto
   Watch source dirs and compile when necessary."
   ([project]
+   (install-hlisp-deps! project)
    (hl/compile-fancy (process-opts (:hlisp project))))
   ([project auto] 
    (install-hlisp-deps! project)
