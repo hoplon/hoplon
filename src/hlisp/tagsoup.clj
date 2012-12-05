@@ -11,10 +11,7 @@
   (:require
     [hiccup.core              :as hu]
     [pl.danieljanus.tagsoup   :as ts]
-    [clojure.string           :as string]
-    )
-  
-  )
+    [clojure.string           :as string]))
 
 (def parse ts/parse)
 (def parse-string ts/parse-string)
@@ -69,6 +66,23 @@
 
     :else
     form))
+
+(defn pedanticize
+  [form]
+  (cond
+    (string? form)
+    (list '$text form)
+
+    (symbol? form)
+    (list form {})
+
+    (seq? form)
+    (let [[tag & tail] form] 
+      (if (or (= '$text tag) (= '$comment tag))
+        form
+        (let [attr (if (map? (first tail)) (first tail) {}) 
+              kids (map pedanticize (if (map? (first tail)) (rest tail) tail))]
+          (list* tag attr kids))))))
 
 (defn pp-html
   [doctype html-str]

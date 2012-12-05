@@ -1,5 +1,6 @@
 (ns hlisp.compiler
   (:use
+    [clojure.walk       :only [postwalk]]
     [hlisp.util.re-map  :only [re-map]]
     [clojure.java.io    :only [file]]
     [clojure.pprint     :only [pprint]])
@@ -7,22 +8,26 @@
     [clojure.string     :as   string]
     [hlisp.tagsoup      :as   ts]))
 
+(def html-tags
+  ['a 'abbr 'acronym 'address 'applet 'area 'article
+   'aside 'audio 'b 'base 'basefont 'bdi 'bdo 'big 'blockquote 'body 'br
+   'button 'canvas 'caption 'center 'cite 'code 'col 'colgroup 'command
+   'data 'datalist 'dd 'del 'details 'dfn 'dir 'div 'dl 'dt 'em 'embed
+   'eventsource 'fieldset 'figcaption 'figure 'font 'footer 'form 'frame
+   'frameset 'h1 'h2 'h3 'h4 'h5 'h6 'head 'header 'hgroup 'hr 'html 'i
+   'iframe 'img 'input 'ins 'isindex 'kbd 'keygen 'label 'legend 'li 'link
+   'html-map 'mark 'menu 'html-meta 'meter 'nav 'noframes 'noscript 'object
+   'ol 'optgroup 'option 'output 'p 'param 'pre 'progress 'q 'rp 'rt 'ruby
+   's 'samp 'script 'section 'select 'small 'source 'span 'strike 'strong
+   'style 'sub 'summary 'sup 'table 'tbody 'td 'textarea 'tfoot 'th 'thead
+   'html-time 'title 'tr 'track 'tt 'u 'ul 'html-var 'video 'wbr '$text
+   '$comment])
+
 (def hlisp-exports
   ['hlisp.env :only
-   ['a 'abbr 'acronym 'address 'applet 'area 'article
-    'aside 'audio 'b 'base 'basefont 'bdi 'bdo 'big 'blockquote 'body 'br
-    'button 'canvas 'caption 'center 'cite 'code 'col 'colgroup 'command
-    'data 'datalist 'dd 'del 'details 'dfn 'dir 'div 'dl 'dt 'em 'embed
-    'eventsource 'fieldset 'figcaption 'figure 'font 'footer 'form 'frame
-    'frameset 'h1 'h2 'h3 'h4 'h5 'h6 'head 'header 'hgroup 'hr 'html 'i
-    'iframe 'img 'input 'ins 'isindex 'kbd 'keygen 'label 'legend 'li 'link
-    'html-map 'mark 'menu 'html-meta 'meter 'nav 'noframes 'noscript 'object
-    'ol 'optgroup 'option 'output 'p 'param 'pre 'progress 'q 'rp 'rt 'ruby
-    's 'samp 'script 'section 'select 'small 'source 'span 'strike 'strong
-    'style 'sub 'summary 'sup 'table 'tbody 'td 'textarea 'tfoot 'th 'thead
-    'html-time 'title 'tr 'track 'tt 'u 'ul 'html-var 'video 'wbr '$text
-    '$comment 'text 'pr-node 'tag 'attrs 'branch?  'children 'make-node 'dom
-    'node-zip 'clone]])
+   (into html-tags
+         ['text 'pr-node 'tag 'attrs 'branch? 'children 'make-node 'dom
+          'node-zip 'clone])])
 
 (defn is-tag? [tag form]
   (and (seq? form) (= tag (first form))))
@@ -37,6 +42,16 @@
                  (list* a (concat newkids (rest tail)))
                  (list* {} (concat newkids tail))))))
 
+(defn htmlize
+  [[tag & tail :as form]]
+  (if (map? (first tail))
+    (let [attr (first tail)
+          kids (map htmlize (rest tail))]
+      (if (some #{tag} html-tags)
+        (list* tag attr kids)
+        (list* 'div {} kids)))
+    form))
+
 (defn add-hlisp-uses
   [[_ nm & forms]]
   (let [parts (group-by #(= :use (first %)) forms)
@@ -50,19 +65,24 @@
         forms   (drop (if (map? (second body)) 2 1) body) 
         nsdecl  (add-hlisp-uses (first forms)) 
         nsname  (second nsdecl)
+        bhtml   (map (comp htmlize ts/pedanticize) (rest forms))
+        emptyjs (string/join "\n" ["(function(node) {"
+                                   "  while (node.hasChildNodes())"
+                                   "    node.removeChild(node.lastChild);"
+                                   "})(document.body);"])
+        s-empty (list 'script {:type "text/javascript"} emptyjs)
+        s-base  (list 'script {:type "text/javascript" :src base-uri})
+        s-main  (list 'script {:type "text/javascript" :src js-uri})
+        s-nodep (list 'script {:type "text/javascript"}
+                      "var CLOSURE_NO_DEPS = true;")
+        s-goog  (list 'script {:type "text/javascript"}
+                      (str "goog.require('" nsname "');"))
+        s-init  (list 'script {:type "text/javascript"}
+                      (str nsname ".hlispinit();"))
         scripts (if base-uri
-                  (list (list 'script {:type "text/javascript" :src base-uri})
-                        (list 'script {:type "text/javascript" :src js-uri})
-                        (list 'script {:type "text/javascript"}
-                              (str "goog.require('" nsname "');"))
-                        (list 'script {:type "text/javascript"}
-                              (str nsname ".hlispinit()")))
-                  (list (list 'script {:type "text/javascript"}
-                              "var CLOSURE_NO_DEPS = true")
-                        (list 'script {:type "text/javascript" :src js-uri})
-                        (list 'script {:type "text/javascript"}
-                              (str nsname ".hlispinit()"))))
-        bnew    (list* 'body battr scripts)
+                  (list s-empty s-base s-main s-goog s-init)
+                  (list s-empty s-nodep s-main s-init))
+        bnew    (list* 'body battr (concat bhtml scripts))
         cljs    (concat
                   (list nsdecl)
                   (list
@@ -108,14 +128,8 @@
 
 (comment
 
-  (compile-file (file "asdfasdf") "/main.js")
-
-  (pprint
-    (ts/parse (file "../hlisp-starter/src/html/index.html")) 
-    )
-
   (println
-    (:cljs (compile-file (file "test/html/index.html") "/main.js")) 
+    (:html (compile-file (file "../hlisp-starter/src/html/index.html") "/main.js" nil)) 
     )
 
   (println
