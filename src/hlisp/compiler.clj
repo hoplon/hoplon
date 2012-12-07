@@ -1,10 +1,11 @@
 (ns hlisp.compiler
   (:use
-    [clojure.walk       :only [postwalk]]
+    [clojure.walk       :only [stringify-keys]]
     [hlisp.util.re-map  :only [re-map]]
     [clojure.java.io    :only [file]]
     [clojure.pprint     :only [pprint]])
   (:require
+    [clojure.zip        :as   zip]
     [clojure.string     :as   string]
     [hlisp.tagsoup      :as   ts]))
 
@@ -29,6 +30,45 @@
          ['text 'pr-node 'tag 'attrs 'branch? 'children 'make-node 'dom
           'node-zip 'clone])])
 
+(defn seq-update-by
+  [root pred f]
+  (let [dz      (zip/seq-zip root)
+        update  (fn [loc]
+                  (let [n (zip/node loc)]
+                    (if (pred n) (zip/replace loc (f n)) loc)))]
+    (loop [loc dz]
+      (if (zip/end? loc)
+        (zip/root loc)
+        (recur (zip/next (update loc)))))))
+
+(defn clj->css [forms]
+  (let [[selectors properties]
+        (apply map vector (partition 2 (partition-by map? forms)))
+        sel-str
+        (fn [sels]
+          (->> (map #(string/join " " (map name %)) sels)
+            (string/join ",\n")))
+        prop-str
+        (fn [[prop & _]]
+          (str " {\n" 
+               (->> (stringify-keys prop) 
+                 (map (comp (partial str "  ") (partial string/join ": ")))
+                 (string/join ";\n"))
+               ";\n}\n"))]
+    (->>
+      (map str (map sel-str selectors) (map prop-str properties))
+      (string/join "\n"))))
+
+(defn style
+  [[_ & forms]]
+  (if (vector? (first forms))
+    (list 'style {:type "text/css"} (clj->css forms))
+    (list* 'style forms)))
+
+(defn process-styles
+  [form]
+  (seq-update-by form #(and (seq? %) (= 'style (first %))) style))
+
 (defn is-tag? [tag form]
   (and (seq? form) (= tag (first form))))
 
@@ -49,7 +89,7 @@
           kids (map htmlize (rest tail))]
       (if (some #{tag} html-tags)
         (list* tag attr kids)
-        (list* 'div {} kids)))
+        (list* 'div attr kids)))
     form))
 
 (defn add-hlisp-uses
@@ -96,7 +136,7 @@
 (defn move-cljs-to-body
   [[[first-tag & _ :as first-form] & more :as forms]]
   (case first-tag
-    ns    (let [html-forms        (last forms)
+    ns    (let [html-forms        (process-styles (last forms)) 
                 [nsdecl & exprs]  (butlast forms)
                 cljs-forms        (list*
                                     nsdecl
@@ -129,7 +169,7 @@
 (comment
 
   (println
-    (:html (compile-file (file "../hlisp-starter/src/html/index.html") "/main.js" nil)) 
+    (:html (compile-file (file "../hlisp-starter/src/html/index2.cljs") "/main.js" nil)) 
     )
 
   (println
