@@ -40,7 +40,10 @@
    :ext-dep     "hlwork/dep/ext"
    :cljs-dep    "hlwork/dep/cljs"
    :html-out    "resources/public"
+   :outdir-out  nil
    :base-dir    ""
+   :pre-script  "pre-compile"
+   :post-script "post-compile"
    :includes    []
    :cljsc-opts  {:externs []}})
 

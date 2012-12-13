@@ -28,9 +28,7 @@
   [form]
   (and (script? form) (= "text/hlisp" (:type (second form)))))
 
-(defn other-script?
-  [form]
-  (and (script? form) ((complement hlisp-script?) form)))
+(def hlisp-script-include (comp :include second))
 
 (defn tagsoup->hlisp
   "Given a tagsoup/hiccup data structure elem, returns the corresponding list

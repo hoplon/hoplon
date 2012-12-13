@@ -8,6 +8,7 @@
     [clojure.stacktrace       :only [print-stack-trace]]
     [clojure.pprint           :only [pprint]])
   (:require
+    [clojure.java.shell       :as shell]
     [hlisp.compiler           :as hlc]
     [hlisp.tagsoup            :as ts]
     [clojure.string           :as string]
@@ -65,7 +66,7 @@
 
 (defn hlisp-compile
   [{:keys [html-src cljs-src html-work cljs-work html-static html-out out-work
-           cljs-dep inc-dep ext-dep base-dir includes cljsc-opts]}]
+           outdir-out cljs-dep inc-dep ext-dep base-dir includes cljsc-opts]}]
 
   (delete-all html-work)
   (delete-all cljs-work)
@@ -86,7 +87,6 @@
                       (.relativize (.toURI (file CWD))
                                    (.toURI (file (file base-dir) "main.js"))))
         js-out      (file html-out "main.js")
-        output-dir  (.getPath (file html-out "out"))
         base-uri    (and (nil? (:optimizations cljsc-opts))
                          (.getPath
                            (.relativize
@@ -100,7 +100,7 @@
     (spit env-tmp env-str)
     (mapv #(compile-file % js-uri html-work cljs-work html-out base-uri) page-files)
     (closure/build cljs-work options)
-    (copy-files out-work output-dir)
+    (when outdir-out (copy-files out-work outdir-out)) 
     (spit js-out (string/join "\n" (map slurp (conj all-incs js-tmp-path))))
     (.delete js-tmp)))
 
@@ -110,19 +110,37 @@
   [f & args]
   (float (/ (first (time-body (apply f args))) 1000000000)))
 
-(defn compile-fancy [opts]
-  (print (style (str (java.util.Date.) " << ") :blue))
-  (print (style "compiling" :bold-blue))
-  (print (style " >> " :blue))
-  (flush)
+(defn print* [& args]
+  (apply print args)
+  (flush))
+
+(defn println* [& args]
+  (apply println args)
+  (flush))
+
+(defn run-script [script]
+  (when (.exists (file script))
+    (print* (style (str (java.util.Date.) " << ") :blue))
+    (print* (style (str "script " script) :bold-blue))
+    (println* (style " >> " :blue))
+    (let [res (shell/sh script)
+          out (:out res)
+          err (:err res)]
+      (print* out)
+      (print* (style err :red)))))
+
+(defn compile-fancy [{:keys [pre-script post-script] :as opts}]
   (try
-    (let [elapsed (elapsed-sec hlisp-compile opts)]
-      (println (-> (format "%.3f sec." elapsed) (style :green)))
-      (flush)) 
+    (run-script pre-script)
+    (print* (style (str (java.util.Date.) " << ") :blue))
+    (print* (style "compiling" :bold-blue))
+    (print* (style " >> " :blue))
+    (println* (-> (format "%.3f sec." (elapsed-sec hlisp-compile opts)) 
+               (style :green))) 
+    (run-script post-script)
     (catch Throwable e
-      (println (style "Dang!" :red))
-      (print (style (with-out-str (print-stack-trace e)) :red))
-      (flush))))
+      (println* (style "Dang!" :red))
+      (print* (style (with-out-str (print-stack-trace e)) :red)))))
 
 (defn watch-compile [{:keys [html-src cljs-src] :as opts}]
   (->>

@@ -9,6 +9,8 @@
     [clojure.string     :as   string]
     [hlisp.tagsoup      :as   ts]))
 
+(def ^:dynamic *current-file* nil)
+
 (def html-tags
   ['a 'abbr 'acronym 'address 'applet 'area 'article
    'aside 'audio 'b 'base 'basefont 'bdi 'bdo 'big 'blockquote 'body 'br
@@ -30,7 +32,25 @@
          ['text 'pr-node 'tag 'attrs 'branch? 'children 'make-node 'dom
           'node-zip 'clone])])
 
-(defn seq-update-by
+(defn clj->css [forms]
+  (let [[selectors properties]
+        (apply map vector (partition 2 (partition-by map? forms)))
+        sel-str   (fn [sels]
+                    (->> sels
+                      (map #(string/join " " (map name %)))
+                      (string/join ",\n")))
+        prop-str  (fn [[props & _]]
+                    (let [p (->> props
+                              (stringify-keys) 
+                              (map (comp (partial str "  ")
+                                         (partial string/join ": ")))
+                              (string/join ";\n"))]
+                      (str " {\n" p ";\n}\n")))]
+    (->>
+      (map str (map sel-str selectors) (map prop-str properties))
+      (string/join "\n"))))
+
+(defn tree-update-in
   [root pred f]
   (let [dz      (zip/seq-zip root)
         update  (fn [loc]
@@ -41,23 +61,19 @@
         (zip/root loc)
         (recur (zip/next (update loc)))))))
 
-(defn clj->css [forms]
-  (let [[selectors properties]
-        (apply map vector (partition 2 (partition-by map? forms)))
-        sel-str
-        (fn [sels]
-          (->> (map #(string/join " " (map name %)) sels)
-            (string/join ",\n")))
-        prop-str
-        (fn [[prop & _]]
-          (str " {\n" 
-               (->> (stringify-keys prop) 
-                 (map (comp (partial str "  ") (partial string/join ": ")))
-                 (string/join ";\n"))
-               ";\n}\n"))]
-    (->>
-      (map str (map sel-str selectors) (map prop-str properties))
-      (string/join "\n"))))
+(defn tree-update-splicing
+  ([root pred f]
+   (first (tree-update-splicing root pred f ::doit))) 
+  ([root pred f _]
+   (cond
+     (pred root)
+     (f root)
+
+     (seq? root)
+     (list (apply concat (map #(tree-update-splicing % pred f ::doit) root)))
+
+     :else
+     (list root))))
 
 (defn style
   [[_ & forms]]
@@ -66,8 +82,8 @@
     (list* 'style forms)))
 
 (defn process-styles
-  [form]
-  (seq-update-by form #(and (seq? %) (= 'style (first %))) style))
+  [root]
+  (tree-update-in root #(and (seq? %) (= 'style (first %))) style))
 
 (defn is-tag? [tag form]
   (and (seq? form) (= tag (first form))))
@@ -91,6 +107,21 @@
         (list* tag attr kids)
         (list* 'div attr kids)))
     form))
+
+(defn process-includes
+  [root]
+  (tree-update-in
+    root
+    (fn [x]
+      (when (and (seq? x) (< 1 (count x)))
+        (let [[tag attr & _] x]
+          (when (map? attr)
+            (let [{:keys [type include]} attr]
+              (and (= 'script tag) (= "text/hlisp" type) (string? include)))))))
+    (fn [[tag {:keys [include]}]]
+      
+      )
+    ))
 
 (defn add-hlisp-uses
   [[_ nm & forms]]
@@ -164,16 +195,30 @@
                         js-uri
                         base-uri)
           #".*"      (constantly nil))]
-    ((doit (.getPath f)) f)))
+    (binding [*current-file* f]
+      ((doit (.getPath f)) f))))
 
 (comment
 
   (println
-    (:html (compile-file (file "../hlisp-starter/src/html/index2.cljs") "/main.js" nil)) 
+    (:cljs (compile-file (file "../hlisp-starter/src/html/index2.cljs") "/main.js" nil)) 
     )
 
   (println
-    (:html (compile-file (file "test/html/foo.cljs") "/main.js")) 
+    (process-includes '(body (script {:type "text/hlisp" :include "foo.bar"} asdf) (h1 "ok yeah")))
     )
+
+  (println
+    (:cljs (compile-file (file "test/index.html") "/main.js" nil))
+    )
+
+  (tree-update-splicing
+    '(a (b c d) e)
+    (fn [x] (and (seq? x) (= 'b (first x))))
+    (fn [x] (list '(foo bar) '(baz baf)))
+    )
+  (def x (file "/foo/bar/baz.html")) 
+  (def y (file "../quux/fzz.cljs")) 
+  (.getCanonicalFile (file (.getParentFile x) y)) 
 
   )
