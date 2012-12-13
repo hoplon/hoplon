@@ -63,7 +63,7 @@
 
 (defn tree-update-splicing
   ([root pred f]
-   (first (tree-update-splicing root pred f ::doit))) 
+   (apply concat (tree-update-splicing root pred f ::doit))) 
   ([root pred f _]
    (cond
      (pred root)
@@ -110,18 +110,20 @@
 
 (defn process-includes
   [root]
-  (tree-update-in
-    root
-    (fn [x]
-      (when (and (seq? x) (< 1 (count x)))
-        (let [[tag attr & _] x]
-          (when (map? attr)
-            (let [{:keys [type include]} attr]
-              (and (= 'script tag) (= "text/hlisp" type) (string? include)))))))
-    (fn [[tag {:keys [include]}]]
-      
-      )
-    ))
+  (let [cur-dir (.getParentFile *current-file*)]
+    (tree-update-splicing
+      root
+      (fn [x]
+        (when (and (seq? x) (< 1 (count x)))
+          (let [[tag attr & _] x]
+            (when (map? attr)
+              (let [{:keys [type src]} attr]
+                (and (= 'include tag) (= "text/hlisp" type) (string? src)))))))
+      (fn [[_ {:keys [src]} & _]]
+        (let [inc-file          (.getCanonicalFile (file cur-dir src))
+              [nsdecl & forms]  (read-string (str "(" (slurp inc-file) ")"))
+              do-expr           (list* 'do (concat forms (list 'nil)))] 
+          (list nsdecl do-expr))))))
 
 (defn add-hlisp-uses
   [[_ nm & forms]]
@@ -179,7 +181,7 @@
     (throw (Exception. "First tag is not HTML or namespace declaration."))))
 
 (defn compile-ts [html-ts js-uri base-uri]
-  (compile-forms (first (ts/tagsoup->hlisp html-ts)) js-uri base-uri))
+  (compile-forms (process-includes (first (ts/tagsoup->hlisp html-ts))) js-uri base-uri))
 
 (defn compile-string [html-str js-uri base-uri]
   (compile-ts (ts/parse-string html-str) js-uri base-uri))
@@ -205,7 +207,7 @@
     )
 
   (println
-    (process-includes '(body (script {:type "text/hlisp" :include "foo.bar"} asdf) (h1 "ok yeah")))
+    (process-includes '(body (script {:type "text/hlisp" :include "foo.cljs"} asdf) (h1 "ok yeah")) "test")
     )
 
   (println
