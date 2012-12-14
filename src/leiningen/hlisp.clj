@@ -31,11 +31,13 @@
 
 (def default-opts
   {:html-src    "src/html"
-   :html-static "src/static"
+   :static-src  "src/static"
+   :include-src "src/include"
    :cljs-src    "src/cljs"
    :html-work   "hlwork/html"
    :cljs-work   "hlwork/cljs"
    :out-work    "hlwork/out"
+   :include-work "hlwork/include"
    :inc-dep     "hlwork/dep/inc"
    :ext-dep     "hlwork/dep/ext"
    :cljs-dep    "hlwork/dep/cljs"

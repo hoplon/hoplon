@@ -65,15 +65,18 @@
 (def is-file? #(.isFile %))
 
 (defn hlisp-compile
-  [{:keys [html-src cljs-src html-work cljs-work html-static html-out out-work
-           outdir-out cljs-dep inc-dep ext-dep base-dir includes cljsc-opts]}]
+  [{:keys [html-src cljs-src html-work cljs-work include-src include-work 
+           static-src html-out out-work outdir-out cljs-dep inc-dep ext-dep
+           base-dir includes cljsc-opts]}]
 
   (delete-all html-work)
   (delete-all cljs-work)
+  (delete-all include-work)
   (delete-all html-out)
-  (copy-files html-static html-out)
+  (copy-files static-src html-out)
   (copy-files html-src html-work)
   (copy-files cljs-src cljs-work)
+  (copy-files include-src include-work)
   (copy-files cljs-dep cljs-work)
 
   (let [page-files  (filter is-file? (file-seq (file html-work))) 
