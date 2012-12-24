@@ -98,14 +98,20 @@
                  (list* a (concat newkids (rest tail)))
                  (list* {} (concat newkids tail))))))
 
+(defn guess-tag
+  [tag kids]
+  (cond
+    (some #(or (= 'option (first %)) (= 'optgroup (first %))) kids) 'select
+    :else 'div))
+
 (defn htmlize
   [[tag & tail :as form]]
   (if (map? (first tail))
     (let [attr (first tail)
-          kids (map htmlize (rest tail))]
+          kids (mapv htmlize (rest tail))]
       (if (some #{tag} html-tags)
         (list* tag attr kids)
-        (list* 'div attr kids)))
+        (list* (guess-tag tag kids) attr kids)))
     form))
 
 (defn process-includes
@@ -132,13 +138,16 @@
         other (get parts false)] 
     (list* 'ns nm uses other)))
 
-(defn compile-forms [html-forms js-uri base-uri]
-  (let [body    (first (filter-tag 'body html-forms))
+(defn compile-forms [proc html-forms js-uri base-uri]
+  (let [body-noinc    (first (filter-tag 'body html-forms))
+        forms-noinc   (drop (if (map? (second body-noinc)) 2 1) body-noinc) 
+        bhtml         (map (comp htmlize ts/pedanticize) (rest forms-noinc))
+        html-forms    (proc html-forms)
+        body    (first (filter-tag 'body html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
         nsdecl  (add-hlisp-uses (first forms)) 
         nsname  (second nsdecl)
-        bhtml   (map (comp htmlize ts/pedanticize) (rest forms))
         emptyjs (string/join "\n" ["(function(node) {"
                                    "  while (node.hasChildNodes())"
                                    "    node.removeChild(node.lastChild);"
@@ -181,7 +190,7 @@
     (throw (Exception. "First tag is not HTML or namespace declaration."))))
 
 (defn compile-ts [html-ts js-uri base-uri]
-  (compile-forms (process-includes (first (ts/tagsoup->hlisp html-ts))) js-uri base-uri))
+  (compile-forms process-includes (first (ts/tagsoup->hlisp html-ts)) js-uri base-uri))
 
 (defn compile-string [html-str js-uri base-uri]
   (compile-ts (ts/parse-string html-str) js-uri base-uri))
@@ -192,6 +201,7 @@
         (re-map
           #"\.html$" #(compile-string (slurp %) js-uri base-uri)
           #"\.cljs$" #(compile-forms
+                        identity
                         (move-cljs-to-body
                           (read-string (str "(" (slurp %) ")")))
                         js-uri

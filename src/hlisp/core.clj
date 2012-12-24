@@ -145,11 +145,12 @@
       (println* (style "Dang!" :red))
       (print* (style (with-out-str (print-stack-trace e)) :red)))))
 
-(defn watch-compile [{:keys [html-src cljs-src] :as opts}]
+(defn watch-compile [{:keys [html-src cljs-src include-src] :as opts}]
   (->>
-    (merge-b (watch-dir-ext html-src "html" 100)
-             (watch-dir-ext html-src "cljs" 100)) 
-    (merge-b (watch-dir-ext cljs-src "cljs" 100)) 
+    (merge-b (watch-dir-ext html-src    "html" 100)
+             (watch-dir-ext html-src    "cljs" 100)) 
+    (merge-b (watch-dir-ext cljs-src    "cljs" 100)) 
+    (merge-b (watch-dir-ext include-src "cljs" 100)) 
     (process-last-b (fn [_] (compile-fancy opts))))
   (loop []
     (Thread/sleep 1000)
