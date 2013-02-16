@@ -39,6 +39,8 @@
    :out-work    "hlwork/out"
    :include-work "hlwork/include"
    :inc-dep     "hlwork/dep/inc"
+   :lib-dep     "hlwork/dep/lib"
+   :flib-dep    "hlwork/dep/flib"
    :ext-dep     "hlwork/dep/ext"
    :cljs-dep    "hlwork/dep/cljs"
    :html-out    "resources/public"
@@ -67,9 +69,11 @@
   (str "________" (format "%010d" (counter)) "_" f))
 
 (defn process-jar! [jar opts]
-  (let [dirmap    (re-map #"\.inc\.js$" (:inc-dep opts) 
-                          #"\.ext\.js$" (:ext-dep opts) 
-                          #"\.cljs$"    (:cljs-dep opts))
+  (let [dirmap    (re-map #"\.inc\.js$"   (:inc-dep opts) 
+                          #"\.ext\.js$"   (:ext-dep opts) 
+                          #"\.lib\.js$"   (:lib-dep opts) 
+                          #"\.flib\.js$"  (:flib-dep opts) 
+                          #"\.cljs$"      (:cljs-dep opts))
         entries   (enumeration-seq (.entries jar))
         names     (map #(munge-name (.getName %)) entries)
         dirs      (map dirmap names)

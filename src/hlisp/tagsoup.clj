@@ -93,10 +93,13 @@
         writer  (new StringWriter)
         reader  (new StringReader html-str)]
     (.parse printer reader writer)
-    (str "<!DOCTYPE " doctype ">\n" writer)))
+    (let [pp-str (str writer)
+          html   (if (string/blank? pp-str) html-str pp-str)]
+      (str "<!DOCTYPE " doctype ">\n" html))))
 
 (comment
-  (ts/parse-string "<html><head><title>foo</title></head><body></body></html>")
+
+  (let [x (new java.io.StringWriter)] (pp-html "html" "<html><head><title>foo</title></head><body><section>foo</section></body></html>")) 
   (type (first (read-string "(<html><head><title>foo</title></head><body></body></html>)"))) 
   (ts/parse-string "(ns foo) ((body))")
 

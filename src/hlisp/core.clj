@@ -67,7 +67,7 @@
 (defn hlisp-compile
   [{:keys [html-src cljs-src html-work cljs-work include-src include-work 
            static-src html-out out-work outdir-out cljs-dep inc-dep ext-dep
-           base-dir includes cljsc-opts]}]
+           lib-dep flib-dep base-dir includes cljsc-opts]}]
 
   (delete-all html-work)
   (delete-all cljs-work)
@@ -82,6 +82,7 @@
   (let [page-files  (filter is-file? (file-seq (file html-work))) 
         incs        (mapv #(.getPath %) (filter is-file? (file-seq (file inc-dep)))) 
         exts        (mapv #(.getPath %) (filter is-file? (file-seq (file ext-dep)))) 
+        libs        (mapv #(.getPath %) (filter is-file? (file-seq (file lib-dep))))
         env-str     (slurp (reader (resource "env.cljs")))
         env-tmp     (file cljs-work "____env.cljs")
         js-tmp      (tmpfile "____hlisp_" ".js")
@@ -96,9 +97,11 @@
                              (.toURI (file CWD))
                              (.toURI (file (file base-dir) "out" "goog" "base.js"))))) 
         options     (->
-                      (assoc cljsc-opts :output-to js-tmp-path)
-                      (assoc :output-dir out-work)
-                      (update-in [:externs] into exts))
+                      (assoc cljsc-opts
+                             :output-to     js-tmp-path
+                             :output-dir    out-work)
+                      (update-in [:externs] into exts)
+                      (update-in [:libs] into libs))
         all-incs    (into (vec (reverse (sort incs))) includes)]
     (spit env-tmp env-str)
     (mapv #(compile-file % js-uri html-work cljs-work html-out base-uri) page-files)
