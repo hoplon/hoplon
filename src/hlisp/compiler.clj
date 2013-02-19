@@ -212,25 +212,4 @@
 
 (comment
 
-  (println
-    (:cljs (compile-file (file "../hlisp-starter/src/html/index2.cljs") "/main.js" nil)) 
-    )
-
-  (println
-    (process-includes '(body (script {:type "text/hlisp" :include "foo.cljs"} asdf) (h1 "ok yeah")) "test")
-    )
-
-  (println
-    (:cljs (compile-file (file "test/index.html") "/main.js" nil))
-    )
-
-  (tree-update-splicing
-    '(a (b c d) e)
-    (fn [x] (and (seq? x) (= 'b (first x))))
-    (fn [x] (list '(foo bar) '(baz baf)))
-    )
-  (def x (file "/foo/bar/baz.html")) 
-  (def y (file "../quux/fzz.cljs")) 
-  (.getCanonicalFile (file (.getParentFile x) y)) 
-
   )

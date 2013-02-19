@@ -33,7 +33,8 @@
 
 (defn delete-all
   [dir]
-  (mapv #(.delete %) (filter #(.isFile %) (file-seq (file dir)))))
+  (if (.exists (file dir))
+    (mapv #(.delete %) (filter #(.isFile %) (file-seq (file dir))))))
 
 (defn copy-with-lastmod
   [src-file dst-file]
@@ -42,12 +43,13 @@
 
 (defn copy-files
   [src dest]
-  (let [files  (map #(.getPath %) (filter #(.isFile %) (file-seq (file src)))) 
-        outs   (map #(srcdir->outdir % src dest) files)
-        srcs   (map file files)
-        dsts   (map file outs)]
-    (mapv make-parents dsts)
-    (mapv copy-with-lastmod srcs dsts)))
+  (if (.exists (file src))
+    (let [files  (map #(.getPath %) (filter #(.isFile %) (file-seq (file src)))) 
+          outs   (map #(srcdir->outdir % src dest) files)
+          srcs   (map file files)
+          dsts   (map file outs)]
+      (mapv make-parents dsts)
+      (mapv copy-with-lastmod srcs dsts))))
 
 (defn compile-file
   [f js-uri html-work cljs-work html-out base-uri]
@@ -73,6 +75,10 @@
   (delete-all cljs-work)
   (delete-all include-work)
   (delete-all html-out)
+
+  (mapv #(make-parents (file % "foo"))
+        [html-out html-work cljs-work include-work cljs-work])
+
   (copy-files static-src html-out)
   (copy-files html-src html-work)
   (copy-files cljs-src cljs-work)

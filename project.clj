@@ -1,5 +1,5 @@
 (defproject
-  lein-hlisp          "0.1.0-SNAPSHOT"
+  lein-hlisp          "1.0.0"
   :description        "Hlisp compiler."
   :url                "http://github.com/micha/lein-hlisp"
   :license            {:name "Eclipse Public License"
@@ -7,7 +7,7 @@
   :eval-in-leiningen  true
   :dependencies       [[org.clojure/clojure "1.4.0"]
                        [com.cemerick/pomegranate "0.0.13"]
-                       [hlisp-macros "0.1.0-SNAPSHOT"]
+                       [hlisp-macros "1.0.0"]
                        [criterium "0.3.0"]
                        [org.clojars.jmeeks/jtidy "r938"]
                        [hiccup "1.0.1"]
