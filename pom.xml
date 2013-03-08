@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>lein-hlisp</groupId>
+  <groupId>tailrecursion</groupId>
   <artifactId>lein-hlisp</artifactId>
   <packaging>jar</packaging>
   <version>1.0.0</version>
   <name>lein-hlisp</name>
   <description>Hlisp compiler.</description>
-  <url>http://github.com/micha/lein-hlisp</url>
+  <url>http://github.com/tailrecursion/lein-hlisp</url>
   <licenses>
     <license>
       <name>Eclipse Public License</name>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/tailrecursion/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hlisp.git</developerConnection>
-    <tag>11dfea57208533835bb5aaf7816b2104b39ea7ce</tag>
+    <tag>db971fc5ce573e300c2ff1b0d51040979a85be24</tag>
     <url>https://github.com/tailrecursion/lein-hlisp</url>
   </scm>
   <build>
@@ -72,7 +72,7 @@
       <version>0.0.13</version>
     </dependency>
     <dependency>
-      <groupId>hlisp-macros</groupId>
+      <groupId>tailrecursion</groupId>
       <artifactId>hlisp-macros</artifactId>
       <version>1.0.0</version>
     </dependency>

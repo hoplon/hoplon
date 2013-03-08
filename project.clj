@@ -6,7 +6,7 @@
   :eval-in-leiningen  true
   :dependencies       [[org.clojure/clojure "1.4.0"]
                        [com.cemerick/pomegranate "0.0.13"]
-                       [hlisp-macros "1.0.0"]
+                       [tailrecursion/hlisp-macros "1.0.0"]
                        [criterium "0.3.0"]
                        [org.clojars.jmeeks/jtidy "r938"]
                        [hiccup "1.0.1"]
