@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/tailrecursion/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hlisp.git</developerConnection>
-    <tag>db971fc5ce573e300c2ff1b0d51040979a85be24</tag>
+    <tag>a9dfbafef221258fc424243823f05dc74276034c</tag>
     <url>https://github.com/tailrecursion/lein-hlisp</url>
   </scm>
   <build>
@@ -41,9 +41,9 @@
   <repositories>
     <repository>
       <id>central</id>
-      <url>http://repo1.maven.org/maven2</url>
+      <url>http://repo1.maven.org/maven2/</url>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </snapshots>
       <releases>
         <enabled>true</enabled>
@@ -110,7 +110,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>0.0-1450</version>
+      <version>0.0-1552</version>
     </dependency>
     <dependency>
       <groupId>fs</groupId>

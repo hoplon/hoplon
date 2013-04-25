@@ -11,19 +11,6 @@
   (when (and elem children) 
     (gdom/appendChild elem children)))
 
-(defn clj->js
-  "Recursively transforms ClojureScript maps into Javascript objects,
-   other ClojureScript colls into JavaScript arrays, and ClojureScript
-   keywords into JavaScript strings."
-  [x]
-  (cond
-    (string? x) x
-    (keyword? x) (name x)
-    (map? x) (.-strobj (reduce (fn [m [k v]]
-               (assoc m (clj->js k) (clj->js v))) {} x))
-    (coll? x) (apply array (map clj->js x))
-    :else x))
-
 (defprotocol IDomNode
   (-pr-node [n] "Get string representation of node.")
   (-tag [n] "Get node's tag string.")
@@ -54,10 +41,10 @@
   Object
   (toString [n] (.-text n))
 
-  IPrintable
-  (-pr-seq [n opts]
+  IPrintWithWriter
+  (-pr-writer [n writer _]
     (js/console.log (dom n))
-    (pr-node n))
+    (-write writer (pr-node n)))
 
   IMeta
   (-meta [n] (.-mymeta n))
@@ -221,10 +208,10 @@
                     (.-ids n)
                     (.-mymeta n)))
 
-  IPrintable
-  (-pr-seq [n opts]
+  IPrintWithWriter
+  (-pr-writer [n writer _]
     (js/console.log (dom n))
-    (pr-node n))
+    (-write writer (pr-node n)))
   
   IDomNode
   (-pr-node [n]
