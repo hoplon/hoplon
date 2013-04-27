@@ -1,13 +1,12 @@
 (ns hlisp.core
   (:use
-    [hlisp.watchdir           :only [watch-dir-ext process-last-b merge-b
-                                     filter-b]]
     [hlisp.colors             :only [style pr-ok]]
     [criterium.core           :only [time-body]]
     [clojure.java.io          :only [copy file make-parents reader resource]]
     [clojure.stacktrace       :only [print-stack-trace]]
     [clojure.pprint           :only [pprint]])
   (:require
+    [hlisp.sync               :as sync]
     [clojure.java.shell       :as shell]
     [hlisp.compiler           :as hlc]
     [hlisp.tagsoup            :as ts]
@@ -33,7 +32,7 @@
 
 (defn delete-all
   [dir]
-  (if (.exists (file dir))
+  (if (and dir (.exists (file dir))) 
     (mapv #(.delete %) (filter #(.isFile %) (file-seq (file dir))))))
 
 (defn copy-with-lastmod
@@ -52,34 +51,33 @@
       (mapv copy-with-lastmod srcs dsts))))
 
 (defn compile-file
-  [f js-uri html-work cljs-work html-out base-uri]
+  [f js-uri html-work cljs-work stage-work base-uri]
   (let [path      (.getPath f)
         to-html   (if (.endsWith path ".cljs")
                     (string/replace path #"\.cljs$" ".html")
                     path)
-        html-file (file (srcdir->outdir to-html html-work html-out))
+        html-file (file (srcdir->outdir to-html html-work stage-work))
         cljs-file (file (str cljs-work "/" (munge-path path) ".cljs"))] 
     (when-let [compiled (hlc/compile-file f js-uri base-uri)] 
       (mapv make-parents [html-file cljs-file])
       (spit html-file (:html compiled)) 
       (spit cljs-file (:cljs compiled)))))
 
-(def is-file? #(.isFile %))
+(def is-file?     #(.isFile %))
+(def last-html    (atom {}))
+(def last-cljs    (atom {}))
+(def last-include (atom {}))
 
 (defn hlisp-compile
-  [{:keys [html-src cljs-src html-work cljs-work include-src include-work 
-           static-src html-out out-work outdir-out cljs-dep inc-dep ext-dep
-           lib-dep flib-dep base-dir includes cljsc-opts]}]
+  [{:keys [html-out   outdir-out  base-dir      includes    cljsc-opts
+           html-work  cljs-work   include-work  out-work    stage-work
+           cljs-dep   inc-dep     ext-dep       lib-dep     flib-dep
+           html-src   cljs-src    include-src   static-src  cljs-stage]}]
 
   (delete-all html-work)
   (delete-all cljs-work)
   (delete-all include-work)
-  (delete-all html-out)
 
-  (mapv #(make-parents (file % "foo"))
-        [html-out html-work cljs-work include-work cljs-work])
-
-  (copy-files static-src html-out)
   (copy-files html-src html-work)
   (copy-files cljs-src cljs-work)
   (copy-files include-src include-work)
@@ -96,7 +94,7 @@
         js-uri      (.getPath
                       (.relativize (.toURI (file CWD))
                                    (.toURI (file (file base-dir) "main.js"))))
-        js-out      (file html-out "main.js")
+        js-out      (file stage-work "main.js")
         base-uri    (and (nil? (:optimizations cljsc-opts))
                          (.getPath
                            (.relativize
@@ -110,8 +108,9 @@
                       (update-in [:libs] into libs))
         all-incs    (into (vec (reverse (sort incs))) includes)]
     (spit env-tmp env-str)
-    (mapv #(compile-file % js-uri html-work cljs-work html-out base-uri) page-files)
-    (closure/build cljs-work options)
+    (mapv #(compile-file % js-uri html-work cljs-work stage-work base-uri) page-files)
+    (sync/sync-hash cljs-stage cljs-work)
+    (closure/build cljs-stage options)
     (when outdir-out (copy-files out-work outdir-out)) 
     (spit js-out (string/join "\n" (map slurp (conj all-incs js-tmp-path))))
     (.delete js-tmp)))
@@ -146,27 +145,33 @@
     (run-script pre-script)
     (print* (style (str (java.util.Date.) " << ") :blue))
     (print* (style "compiling" :bold-blue))
-    (print* (style " >> " :blue))
-    (println* (-> (format "%.3f sec." (elapsed-sec hlisp-compile opts)) 
-               (style :green))) 
+    (println* (style " >> " :blue))
+    (let [t (elapsed-sec hlisp-compile opts)]
+      (print* (style (str (java.util.Date.) " << ") :blue))
+      (print* (-> (format "%.3f sec." t) (style :green)))
+      (println* (style " >> " :blue))) 
     (run-script post-script)
     (catch Throwable e
       (println* (style "Dang!" :red))
       (print* (style (with-out-str (print-stack-trace e)) :red)))))
 
-(defn watch-compile [{:keys [html-src cljs-src include-src] :as opts}]
-  (->>
-    (merge-b (watch-dir-ext html-src    "html" 100)
-             (watch-dir-ext html-src    "cljs" 100)) 
-    (merge-b (watch-dir-ext cljs-src    "cljs" 100)) 
-    (merge-b (watch-dir-ext include-src "cljs" 100)) 
-    (process-last-b (fn [_] (compile-fancy opts))))
-  (loop []
-    (Thread/sleep 1000)
-    (recur)))
+(defn prepare [{:keys [work-dir html-out outdir-out html-work cljs-work
+                       include-work stage-work] :as opts}]
+  (delete-all work-dir)
+  (mapv #(make-parents (file % "foo"))
+        [html-out html-work cljs-work include-work stage-work outdir-out])
+  (delete-all html-out)
+  (delete-all outdir-out))
 
-(comment
-  (.endsWith "foo.html" ".html")
-
-  )
-
+(defn start [{:keys [html-work  cljs-work   include-work  stage-work
+                     static-src html-src    cljs-src      include-src
+                     work-dir   outdir-out  html-out] :as opts} & {:keys [auto]}]
+  (let [dirs    [html-src cljs-src include-src]
+        exts    #{".cljs" ".html"}
+        mods    #(apply sync/dir-map-ext exts %)
+        changes #(reduce into #{} (sync/what-changed %1 %2))]
+    (loop [before {} now (mods dirs)]
+      (when (seq (changes before now)) (compile-fancy opts))
+      (sync/sync html-out stage-work static-src)
+      (Thread/sleep 100)
+      (when auto (recur now (mods dirs))))))

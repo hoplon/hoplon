@@ -1,13 +1,10 @@
 (ns hlisp.tagsoup
-
-  (:import (org.w3c.tidy Tidy) 
-           (java.io StringReader StringWriter))
-  
+  (:import
+    (org.w3c.tidy Tidy) 
+    (java.io StringReader StringWriter))
   (:use
     [clojure.walk             :only [postwalk]]
-    [hiccup.element           :only [javascript-tag]]
-    )
-
+    [hiccup.element           :only [javascript-tag]])
   (:require
     [hiccup.core              :as hu]
     [pl.danieljanus.tagsoup   :as ts]
@@ -17,8 +14,7 @@
 (def parse-string ts/parse-string)
 (def children ts/children)
 
-(defn html [elem]
-  (hu/html elem) )
+(defn html [elem] (hu/html elem))
 
 (defn script?
   [form]

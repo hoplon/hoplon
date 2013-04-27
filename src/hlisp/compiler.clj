@@ -102,6 +102,8 @@
   [tag kids]
   (cond
     (some #(or (= 'option (first %)) (= 'optgroup (first %))) kids) 'select
+    (contains? #{'table 'tr 'td 'th 'col 'colgroup 'thead 'tfoot} tag) 'div
+    (contains? (set html-tags) tag) tag
     :else 'div))
 
 (defn htmlize
@@ -109,9 +111,7 @@
   (if (map? (first tail))
     (let [attr (first tail)
           kids (mapv htmlize (rest tail))]
-      (if (some #{tag} html-tags)
-        (list* tag attr kids)
-        (list* (guess-tag tag kids) attr kids)))
+      (list* (guess-tag tag kids) attr kids))
     form))
 
 (defn process-includes
@@ -170,7 +170,7 @@
                   (list
                     (list 'defn (symbol "^:export") 'hlispinit []
                           (list (symbol "hlisp.env/init") (vec (drop 1 forms)))))) 
-        cljsstr (string/join "\n" (map #(with-out-str (pprint %)) cljs)) 
+        cljsstr (string/join "\n" (map #(pr-str %) cljs)) 
         html    (replace {body bnew} html-forms)
         htmlstr (ts/pp-html "html" (ts/html (ts/hlisp->tagsoup html)))]
     {:html htmlstr :cljs cljsstr}))
