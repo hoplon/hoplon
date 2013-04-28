@@ -1,10 +1,16 @@
 # lein-hlisp
 
-A Clojure library designed to ... well, that part is up to you.
+A Leiningen plugin for compiling HLisp projects.
 
 ## Usage
 
-FIXME
+Lein-hlisp artifacts are [published on Clojars](http://clojars.org:8002/tailrecursion/lein-hlisp).
+
+Add the following to your `:plugins` in your _project.clj_ file:
+
+```clojure
+[tailrecursion/lein-hlisp "2.0.1"]
+```
 
 ## License
 
