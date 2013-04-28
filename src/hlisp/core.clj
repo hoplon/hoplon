@@ -68,6 +68,21 @@
 (def last-cljs    (atom {}))
 (def last-include (atom {}))
 
+(defn up-parents
+  [f base & parts]
+  (->> (file f)
+    (sync/relative-to (file base))
+    .getPath
+    file
+    (iterate #(.getParentFile %))
+    (take-while identity)
+    butlast
+    (map (constantly ".."))
+    (concat (reverse parts))
+    reverse
+    (apply file)
+    .getPath))
+
 (defn hlisp-compile
   [{:keys [html-out   outdir-out  base-dir      includes    cljsc-opts
            html-work  cljs-work   include-work  out-work    stage-work
@@ -91,15 +106,12 @@
         env-tmp     (file cljs-work "____env.cljs")
         js-tmp      (tmpfile "____hlisp_" ".js")
         js-tmp-path (.getPath js-tmp)
-        js-uri      (.getPath
-                      (.relativize (.toURI (file CWD))
-                                   (.toURI (file (file base-dir) "main.js"))))
+        js-uris     (mapv #(up-parents % html-work "main.js") page-files) 
         js-out      (file stage-work "main.js")
-        base-uri    (and (nil? (:optimizations cljsc-opts))
-                         (.getPath
-                           (.relativize
-                             (.toURI (file CWD))
-                             (.toURI (file (file base-dir) "out" "goog" "base.js"))))) 
+        optimize?   (:optimizations cljsc-opts)
+        base-uris   (mapv #(when-not optimize?
+                             (up-parents % html-work outdir-out "goog" "base.js"))
+                          page-files)
         options     (->
                       (assoc cljsc-opts
                              :output-to     js-tmp-path
@@ -108,10 +120,10 @@
                       (update-in [:libs] into libs))
         all-incs    (into (vec (reverse (sort incs))) includes)]
     (spit env-tmp env-str)
-    (mapv #(compile-file % js-uri html-work cljs-work stage-work base-uri) page-files)
+    (mapv #(compile-file %1 %2 html-work cljs-work stage-work %3) page-files js-uris base-uris)
     (sync/sync-hash cljs-stage cljs-work)
     (closure/build cljs-stage options)
-    (when outdir-out (copy-files out-work outdir-out)) 
+    (when-not optimize? (copy-files out-work (file stage-work outdir-out))) 
     (spit js-out (string/join "\n" (map slurp (conj all-incs js-tmp-path))))
     (.delete js-tmp)))
 

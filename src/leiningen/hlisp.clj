@@ -36,8 +36,7 @@
    :cljs-src    "src/cljs"
    :work-dir    ".hlisp-work-dir"
    :html-out    "resources/public"
-   :outdir-out  nil
-   :base-dir    ""
+   :outdir-out  "out"
    :pre-script  "pre-compile"
    :post-script "post-compile"
    :includes    []
