@@ -9,7 +9,7 @@ Lein-hlisp artifacts are [published on Clojars](http://clojars.org:8002/tailrecu
 Add the following to your `:plugins` in your _project.clj_ file:
 
 ```clojure
-[tailrecursion/lein-hlisp "2.0.1"]
+[tailrecursion/lein-hlisp "2.0.2"]
 ```
 
 ## License
