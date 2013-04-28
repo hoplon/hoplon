@@ -170,7 +170,7 @@
                   (list
                     (list 'defn (symbol "^:export") 'hlispinit []
                           (list (symbol "hlisp.env/init") (vec (drop 1 forms)))))) 
-        cljsstr (string/join "\n" (map #(pr-str %) cljs)) 
+        cljsstr  (->> cljs (map #(pr-str %)) (string/join "\n"))
         html    (replace {body bnew} html-forms)
         htmlstr (ts/pp-html "html" (ts/html (ts/hlisp->tagsoup html)))]
     {:html htmlstr :cljs cljsstr}))

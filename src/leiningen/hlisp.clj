@@ -34,7 +34,7 @@
    :static-src  "src/static"
    :include-src "src/include"
    :cljs-src    "src/cljs"
-   :work-dir    "hlwork"
+   :work-dir    ".hlisp-work-dir"
    :html-out    "resources/public"
    :outdir-out  nil
    :base-dir    ""
