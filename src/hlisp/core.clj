@@ -33,7 +33,7 @@
 (defn delete-all
   [dir]
   (if (and dir (.exists (file dir))) 
-    (mapv #(.delete %) (filter #(.isFile %) (file-seq (file dir))))))
+    (mapv #(.delete %) (reverse (rest (file-seq (file dir)))))))
 
 (defn copy-with-lastmod
   [src-file dst-file]

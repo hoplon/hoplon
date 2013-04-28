@@ -1,4 +1,4 @@
-(defproject tailrecursion/lein-hlisp "2.0.2"
+(defproject tailrecursion/lein-hlisp "2.0.3-SNAPSHOT"
   :description        "Hlisp compiler."
   :url                "http://github.com/tailrecursion/lein-hlisp"
   :license            {:name "Eclipse Public License"

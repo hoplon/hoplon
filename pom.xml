@@ -3,7 +3,7 @@
   <groupId>tailrecursion</groupId>
   <artifactId>lein-hlisp</artifactId>
   <packaging>jar</packaging>
-  <version>2.0.1</version>
+  <version>2.0.3-SNAPSHOT</version>
   <name>lein-hlisp</name>
   <description>Hlisp compiler.</description>
   <url>http://github.com/tailrecursion/lein-hlisp</url>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/tailrecursion/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hlisp.git</developerConnection>
-    <tag>0a008ced4156120358105b7697dd054f63d1aab3</tag>
+    <tag>030827296abf109f234195afa306d3958d1e0953</tag>
     <url>https://github.com/tailrecursion/lein-hlisp</url>
   </scm>
   <build>
