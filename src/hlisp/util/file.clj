@@ -1,4 +1,4 @@
-(ns hlisp.sync
+(ns hlisp.util.file
   (:require
     [digest           :as d]
     [clojure.data     :as data]
@@ -9,6 +9,48 @@
 (defn relative-to
   [base f]
   (.relativize (.toURI base) (.toURI f)))
+
+(defn up-parents
+  [f base & parts]
+  (->> (file f)
+    (relative-to (file base))
+    .getPath
+    file
+    (iterate #(.getParentFile %))
+    (take-while identity)
+    butlast
+    (map (constantly ".."))
+    (concat (reverse parts))
+    reverse
+    (apply file)
+    .getPath))
+
+(defn tmpfile
+  [prefix postfix]
+  (doto (java.io.File/createTempFile prefix postfix) .deleteOnExit))
+
+(defn srcdir->outdir
+  [fname srcdir outdir]
+  (.getPath
+    (file outdir (.getPath (relative-to (file srcdir) (file fname))))))
+
+(defn delete-all
+  [dir]
+  (if (and dir (.exists (file dir))) 
+    (mapv #(.delete %) (reverse (rest (file-seq (file dir)))))))
+
+(defn copy-with-lastmod
+  [src-file dst-file]
+  (make-parents dst-file)
+  (copy src-file dst-file)
+  (.setLastModified dst-file (.lastModified src-file)))
+
+(defn copy-files
+  [src dest]
+  (if (.exists (file src))
+    (let [files  (map #(.getPath %) (filter #(.isFile %) (file-seq (file src)))) 
+          outs   (map #(srcdir->outdir % src dest) files)]
+      (mapv copy-with-lastmod (map file files) (map file outs)))))
 
 (defn select-keys-by [m pred?]
   (select-keys m (filter pred? (keys m))))
@@ -33,12 +75,6 @@
   (let [ext  #(let [f (.getName (file %))] (subs f (.lastIndexOf f ".")))
         ext? #(contains? exts (ext %))]
     (select-keys-by (apply dir-map dirs) ext?)))
-
-(defn copy-with-lastmod
-  [src-file dst-file]
-  (make-parents dst-file)
-  (copy src-file dst-file)
-  (.setLastModified dst-file (.lastModified src-file)))
 
 (defn what-changed
   ([dst-map src-map] (what-changed dst-map src-map :time))

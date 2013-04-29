@@ -1,4 +1,5 @@
-(ns hlisp.colors)
+(ns hlisp.colors
+  (:refer-clojure :exclude [print println]))
 
 (def ANSI-CODES
   {:reset           "[0m"
@@ -40,4 +41,13 @@
   (str (apply str (map ansi codes)) s (ansi :reset)))
 
 (defn pr-ok [ok? text]
-  (print (style text (if ok? :green :red))))
+  (clojure.core/print (style text (if ok? :green :red))))
+
+(defn print [& args]
+  (apply clojure.core/print args)
+  (flush))
+
+(defn println [& args]
+  (apply clojure.core/println args)
+  (flush))
+
