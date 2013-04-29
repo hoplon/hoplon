@@ -15,30 +15,25 @@
 
 (def CWD (System/getProperty "user.dir"))
 
-(defn munge-path [path]
-  (->
-    (str "__" path)
+(defn munge-path
+  [path]
+  (-> (str "__" path)
     (string/replace "_" "__")
     (string/replace "/" "_")))
 
-(defn tmpfile [prefix postfix]
-  (let [t (java.io.File/createTempFile prefix postfix)]
-    (.deleteOnExit t) 
-    t))
+(defn tmpfile
+  [prefix postfix]
+  (doto (java.io.File/createTempFile prefix postfix) .deleteOnExit))
 
-(defn srcdir->outdir [fname srcdir outdir]
-  (.getPath (file outdir (.getPath (.relativize (.toURI (file srcdir))
-                                                (.toURI (file fname)))))))
+(defn srcdir->outdir
+  [fname srcdir outdir]
+  (.getPath
+    (file outdir (.getPath (sync/relative-to (file srcdir) (file fname))))))
 
 (defn delete-all
   [dir]
   (if (and dir (.exists (file dir))) 
     (mapv #(.delete %) (reverse (rest (file-seq (file dir)))))))
-
-(defn copy-with-lastmod
-  [src-file dst-file]
-  (copy src-file dst-file)
-  (.setLastModified dst-file (.lastModified src-file)))
 
 (defn copy-files
   [src dest]
@@ -47,8 +42,7 @@
           outs   (map #(srcdir->outdir % src dest) files)
           srcs   (map file files)
           dsts   (map file outs)]
-      (mapv make-parents dsts)
-      (mapv copy-with-lastmod srcs dsts))))
+      (mapv sync/copy-with-lastmod srcs dsts))))
 
 (defn compile-file
   [f js-uri html-work cljs-work stage-work base-uri]

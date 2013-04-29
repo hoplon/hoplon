@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/tailrecursion/lein-hlisp.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hlisp.git</developerConnection>
-    <tag>030827296abf109f234195afa306d3958d1e0953</tag>
+    <tag>32b9acb99e69e8cc58ac66979a534fa63b9e2df6</tag>
     <url>https://github.com/tailrecursion/lein-hlisp</url>
   </scm>
   <build>
