@@ -1,20 +1,13 @@
 (ns hlisp.tagsoup
-  (:import
-    (org.w3c.tidy Tidy) 
-    (java.io StringReader StringWriter))
-  (:use
-    [clojure.walk             :only [postwalk]]
-    [hiccup.element           :only [javascript-tag]])
   (:require
-    [hiccup.core              :as hu]
-    [pl.danieljanus.tagsoup   :as ts]
-    [clojure.string           :as string]))
+    [clojure.walk :as walk :refer [postwalk]]
+    [hlisp.pprint :as pp]
+    [pl.danieljanus.tagsoup :as ts]
+    [clojure.string :as string]))
 
 (def parse ts/parse)
 (def parse-string ts/parse-string)
 (def children ts/children)
-
-(defn html [elem] (hu/html elem))
 
 (defn script?
   [form]
@@ -44,23 +37,6 @@
           expr  (concat (list tag) (when (seq attrs) (list attrs)) kids)]
       (list (if (< 1 (count expr)) expr (first expr))))))
 
-(defn hlisp->tagsoup
-  "Given a hlisp form, returns the corresponding tagsoup/hiccup data structure."
-  [form]
-  (cond
-    (symbol? form)
-    [(keyword form) {}]
-
-    (seq? form)
-    (let [[tag & tail]    form
-          [attrs & kids]  (if (map? (first tail)) tail (cons {} tail))]
-      (if (or (= (symbol "$text") tag) (= (symbol "$comment") tag))
-        (apply str kids)
-        (into [(keyword tag) attrs] (mapv hlisp->tagsoup kids))))
-
-    :else
-    form))
-
 (defn pedanticize
   [form]
   (cond
@@ -78,25 +54,6 @@
               kids (map pedanticize (if (map? (first tail)) (rest tail) tail))]
           (list* tag attr kids))))))
 
-(defn pp-html
-  [doctype html-str]
-  (let [printer (doto (new Tidy)
-                  (.setTidyMark     false)
-                  (.setDocType      "omit")
-                  (.setSmartIndent  true)
-                  (.setShowWarnings false)
-                  (.setQuiet        true))
-        writer  (new StringWriter)
-        reader  (new StringReader html-str)]
-    (.parse printer reader writer)
-    (let [pp-str (str writer)
-          html   (if (string/blank? pp-str) html-str pp-str)]
-      (str "<!DOCTYPE " doctype ">\n" html))))
-
-(comment
-
-  (let [x (new java.io.StringWriter)] (pp-html "html" "<html><head><title>foo</title></head><body><section>foo</section></body></html>")) 
-  (type (first (read-string "(<html><head><title>foo</title></head><body></body></html>)"))) 
-  (ts/parse-string "(ns foo) ((body))")
-
-  )
+(defn pp-forms
+  [doctype forms]
+  (str "<!DOCTYPE " doctype ">\n" (with-out-str (pp/pprint forms))))

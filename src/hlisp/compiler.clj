@@ -1,15 +1,15 @@
 (ns hlisp.compiler
-  (:use
-    [clojure.walk       :only [stringify-keys]]
-    [hlisp.util.re-map  :only [re-map]]
-    [clojure.java.io    :only [file]]
-    [clojure.pprint     :only [pprint]])
   (:require
-    [clojure.zip        :as   zip]
-    [clojure.string     :as   string]
-    [hlisp.tagsoup      :as   ts]))
+    [clojure.walk       :refer  [stringify-keys]]
+    [hlisp.util.re-map  :refer  [re-map]]
+    [clojure.java.io    :refer  [file]]
+    [clojure.pprint     :refer  [pprint]]
+    [clojure.zip        :as     zip]
+    [clojure.string     :as     string]
+    [hlisp.tagsoup      :as     ts]))
 
 (def ^:dynamic *current-file* nil)
+(def ^:dynamic *printer*      prn)
 
 (def html-tags
   ['a 'abbr 'acronym 'address 'applet 'area 'article
@@ -98,22 +98,6 @@
                  (list* a (concat newkids (rest tail)))
                  (list* {} (concat newkids tail))))))
 
-(defn guess-tag
-  [tag kids]
-  (cond
-    (some #(or (= 'option (first %)) (= 'optgroup (first %))) kids) 'select
-    (contains? #{'table 'tr 'td 'th 'col 'colgroup 'thead 'tfoot} tag) 'div
-    (contains? (set html-tags) tag) tag
-    :else 'div))
-
-(defn htmlize
-  [[tag & tail :as form]]
-  (if (map? (first tail))
-    (let [attr (first tail)
-          kids (mapv htmlize (rest tail))]
-      (list* (guess-tag tag kids) attr kids))
-    form))
-
 (defn process-includes
   [root]
   (let [cur-dir (.getParentFile *current-file*)]
@@ -141,17 +125,17 @@
 (defn compile-forms [proc html-forms js-uri base-uri]
   (let [body-noinc    (first (filter-tag 'body html-forms))
         forms-noinc   (drop (if (map? (second body-noinc)) 2 1) body-noinc) 
-        bhtml         (map (comp htmlize ts/pedanticize) (rest forms-noinc))
+        bhtml         (map ts/pedanticize (rest forms-noinc))
         html-forms    (proc html-forms)
         body    (first (filter-tag 'body html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
         nsdecl  (add-hlisp-uses (first forms)) 
         nsname  (second nsdecl)
-        emptyjs (string/join "\n" ["(function(node) {"
-                                   "  while (node.hasChildNodes())"
-                                   "    node.removeChild(node.lastChild);"
-                                   "})(document.body);"])
+        emptyjs (str "(function(node) {"
+                     " while (node.hasChildNodes())"
+                     " node.removeChild(node.lastChild)"
+                     " })(document.body);")
         s-empty (list 'script {:type "text/javascript"} emptyjs)
         s-base  (list 'script {:type "text/javascript" :src base-uri})
         s-main  (list 'script {:type "text/javascript" :src js-uri})
@@ -170,9 +154,9 @@
                   (list
                     (list 'defn (symbol "^:export") 'hlispinit []
                           (list (symbol "hlisp.env/init") (vec (drop 1 forms)))))) 
-        cljsstr  (->> cljs (map #(pr-str %)) (string/join "\n"))
+        cljsstr  (string/join "\n" (map #(with-out-str (*printer* %)) cljs))
         html    (replace {body bnew} html-forms)
-        htmlstr (ts/pp-html "html" (ts/html (ts/hlisp->tagsoup html)))]
+        htmlstr (ts/pp-forms "html" html)]
     {:html htmlstr :cljs cljsstr}))
 
 (defn move-cljs-to-body
@@ -209,7 +193,3 @@
           #".*"      (constantly nil))]
     (binding [*current-file* f]
       ((doit (.getPath f)) f))))
-
-(comment
-
-  )

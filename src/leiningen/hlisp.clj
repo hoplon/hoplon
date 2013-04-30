@@ -2,16 +2,14 @@
   (:import
     [java.util.jar JarFile]
     [java.util.zip ZipFile])
-  (:use
-    [hlisp.util.kahnsort        :only [topo-sort]]
-    [hlisp.util.re-map          :only [re-map]]
-    [clojure.java.io            :only [file input-stream make-parents]]
-    [clojure.pprint             :only [pprint]])
   (:require
-    [leiningen.core.classpath     :as cp]
-    [cemerick.pomegranate.aether  :as aether]
-    [robert.hooke                 :as hooke]
-    [hlisp.core                   :as hl]))
+    [hlisp.util.kahnsort        :refer [topo-sort]]
+    [hlisp.util.re-map          :refer [re-map]]
+    [clojure.java.io            :refer [file input-stream make-parents]]
+    [clojure.pprint             :refer [pprint]]
+    [leiningen.core.classpath   :as cp]
+    [hlisp.core                 :as hl]
+    [hlisp.compiler             :as hlc]))
 
 (defn deep-merge-with [f & maps]
   (apply
@@ -30,17 +28,18 @@
 (def trans (partial apply map vector))
 
 (def default-opts
-  {:html-src    "src/html"
-   :static-src  "src/static"
-   :include-src "src/include"
-   :cljs-src    "src/cljs"
-   :work-dir    ".hlisp-work-dir"
-   :html-out    "resources/public"
-   :outdir-out  "out"
-   :pre-script  "pre-compile"
-   :post-script "post-compile"
-   :includes    []
-   :cljsc-opts  {:externs []}})
+  {:html-src      "src/html"
+   :static-src    "src/static"
+   :include-src   "src/include"
+   :cljs-src      "src/cljs"
+   :work-dir      ".hlisp-work-dir"
+   :html-out      "resources/public"
+   :outdir-out    "out"
+   :pre-script    "pre-compile"
+   :post-script   "post-compile"
+   :pretty-print  false
+   :includes      []
+   :cljsc-opts    {:externs []}})
 
 (defn process-opts [opts]
   (let [opts (deep-merge-with #(last %&) default-opts opts)
@@ -100,7 +99,8 @@
   (let [opts (process-opts (:hlisp project))]
     (hl/prepare opts)
     (install-hlisp-deps! project opts)
-    (hl/start (process-opts (:hlisp project)) :auto auto)))
+    (binding [hlc/*printer* (if (:pretty-print opts) pprint prn)]
+      (hl/start opts :auto auto))))
   
 (defn hlisp
   "Hlisp compiler.
