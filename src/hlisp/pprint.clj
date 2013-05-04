@@ -7,12 +7,6 @@
   #{'area     'base     'br       'col      'embed    'hr       'img    'input
     'keygen   'link     'menuitem 'meta     'param    'source   'track  'wbr})
 
-(def raw-text-elems
-  #{'script 'style})
-
-(def rcdata-elems
-  #{'textarea 'title})
-
 (defprotocol IPretty
   (-pp [this]))
 
