@@ -25,6 +25,14 @@
     (apply file)
     .getPath))
 
+(defn lockfile
+  [f]
+  (let [f (file f)]
+    (when (.createNewFile f)
+      (doto f
+        .deleteOnExit
+        (spit (.getName (java.lang.management.ManagementFactory/getRuntimeMXBean)))))))
+
 (defn tmpfile
   [prefix postfix]
   (doto (java.io.File/createTempFile prefix postfix) .deleteOnExit))

@@ -8,6 +8,7 @@
     [clojure.java.io            :refer [file input-stream make-parents]]
     [clojure.pprint             :refer [pprint]]
     [leiningen.core.classpath   :as cp]
+    [hlisp.util.file            :as f]
     [hlisp.core                 :as hl]
     [hlisp.compiler             :as hlc]))
 
@@ -96,11 +97,13 @@
         (throw (Exception. (str "Circular dependency: " (pr-str deps))))))))
 
 (defn start-compiler [project auto]
-  (let [opts (process-opts (:hlisp project))]
-    (hl/prepare opts)
-    (install-hlisp-deps! project opts)
-    (binding [hlc/*printer* (if (:pretty-print opts) pprint prn)]
-      (hl/start opts :auto auto))))
+  (if (f/lockfile ".hlisp-lock")
+    (let [opts (process-opts (:hlisp project))]
+      (hl/prepare opts)
+      (install-hlisp-deps! project opts)
+      (binding [hlc/*printer* (if (:pretty-print opts) pprint prn)]
+        (hl/start opts :auto auto)))
+    (println "HLisp compiler is already running.")))
   
 (defn hlisp
   "Hlisp compiler.
