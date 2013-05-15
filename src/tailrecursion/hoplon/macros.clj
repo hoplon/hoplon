@@ -1,9 +1,9 @@
 (ns hlisp.macros
-  (:use
-    [clojure.walk   :only [postwalk]]
-    [clojure.string :only [blank? split]]) 
   (:require
-    [clojure.core.strint :as strint]))
+    [clojure.walk         :as walk    :refer [postwalk]]
+    [clojure.string       :as string  :refer [blank? split]]
+    [clojure.set          :as s       :refer [union intersection]]
+    [clojure.core.strint  :as i]))
 
 (let [add-docstring (fn [docstring pair]
                       (if (string? docstring)
@@ -40,10 +40,43 @@
   `(do (def ~nm (tpl ~params ~body)) nil))
 
 (let [i (fn [template]
-          (let [parts (remove #(= "" %) (#'strint/interpolate template))]
+          (let [parts (remove #(= "" %) (#'i/interpolate template))]
             (if (every? string? parts) (apply str parts) `(str ~@parts))))
       interpolate (fn [& forms]
                     (postwalk #(if (string? %) (i %) %) forms))]
   (defmacro interpolating
     [& body]
     `(do ~@(apply interpolate body))))
+
+(create-ns 'js)
+(create-ns 'tailrecursion.hoplon.env)
+(create-ns 'tailrecursion.javelin.macros)
+(create-ns 'tailrecursion.javelin.core)
+
+(let [jQuery  (symbol "js" "jQuery")
+      clone   (symbol "tailrecursion.hoplon.env" "clone")
+      cell    (symbol "tailrecursion.javelin.macros" "cell")
+      deref*  (symbol "tailrecursion.javelin.core" "deref*")
+      listy?  (fn [form]
+                (or (list? form)
+                    (= clojure.lang.LazySeq (type form))
+                    (= clojure.lang.Cons (type form)))) 
+      rm-attr (fn [[tag attrs & children] attr]
+                (list* tag (dissoc attrs attr) children))
+      sub-ids (fn [form]
+                (walk/postwalk
+                  #(if (and (listy? %) (= 'clojure.core/unquote (first %)))
+                     (list jQuery (apply str ["#" (second %)])) 
+                     %)
+                  form))
+      do-1    (fn [[tag maybe-attrs & children :as form]]
+                (let [{dostr :do} (if (map? maybe-attrs) maybe-attrs {})
+                      exprs       (if (seq dostr)
+                                    (sub-ids (read-string (str "(" dostr ")"))))]
+                  (if exprs
+                    `(~deref*
+                       (let [f# (~clone ~(rm-attr form :do))]
+                         (~cell (doto f# ~@exprs))))
+                    form)))]
+  (defmacro reactive-attributes [form]
+    (walk/postwalk #(if (listy? %) (do-1 %) %) form)))
