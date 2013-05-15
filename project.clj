@@ -7,7 +7,7 @@
   :dependencies       [[org.clojure/clojure         "1.5.1"]
                        [fipp                        "0.3.0-SNAPSHOT"]
                        [digest                      "1.3.0"]
-                       [tailrecursion/hlisp-macros  "1.0.0"]
                        [criterium                   "0.3.0"]
                        [clj-tagsoup                 "0.3.0"]
+                       [org.clojure/core.incubator  "0.1.2"]
                        [org.clojure/clojurescript   "0.0-1552"]])
