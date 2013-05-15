@@ -1,5 +1,5 @@
-(defproject tailrecursion/lein-hoplon "2.0.3-SNAPSHOT"
-  :description        "Hlisp compiler."
+(defproject tailrecursion/lein-hoplon "0.1.0-SNAPSHOT"
+  :description        "Hoplon web development compiler plugin."
   :url                "http://github.com/tailrecursion/lein-hoplon"
   :license            {:name "Eclipse Public License"
                        :url "http://www.eclipse.org/legal/epl-v10.html"}
