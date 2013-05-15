@@ -1,9 +1,9 @@
-(ns hlisp.tagsoup
+(ns tailrecursion.hoplon.compiler.tagsoup
   (:require
-    [clojure.walk :as walk :refer [postwalk]]
-    [hlisp.pprint :as pp]
+    [clojure.walk           :as walk :refer [postwalk]]
+    [tailrecursion.hoplon.compiler.pprint :as pp]
     [pl.danieljanus.tagsoup :as ts]
-    [clojure.string :as string]))
+    [clojure.string         :as string]))
 
 (def parse ts/parse)
 (def parse-string ts/parse-string)
@@ -13,27 +13,27 @@
   [form]
   (and (vector? form) (= :script (first form))))
 
-(defn hlisp-script?
+(defn hoplon-script?
   [form]
-  (and (script? form) (= "text/hlisp" (:type (second form)))))
+  (and (script? form) (= "text/hoplon" (:type (second form)))))
 
-(def hlisp-script-include (comp :include second))
+(def hoplon-script-include (comp :include second))
 
-(defn tagsoup->hlisp
+(defn tagsoup->hoplon
   "Given a tagsoup/hiccup data structure elem, returns the corresponding list
-  of hlisp forms."
+  of hoplon forms."
   [elem]
   (cond
     (string? elem)
     (list (list '$text elem)) 
 
-    (hlisp-script? elem)
+    (hoplon-script? elem)
     (read-string (str "(" (nth elem 2) ")"))
     
     :else
     (let [[t attrs & kids] elem
           tag   (symbol (name t)) 
-          kids  (apply concat (map tagsoup->hlisp kids)) 
+          kids  (apply concat (map tagsoup->hoplon kids)) 
           expr  (concat (list tag) (when (seq attrs) (list attrs)) kids)]
       (list (if (< 1 (count expr)) expr (first expr))))))
 

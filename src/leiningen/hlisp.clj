@@ -1,16 +1,16 @@
-(ns leiningen.hlisp
+(ns leiningen.hoplon
   (:import
     [java.util.jar JarFile]
     [java.util.zip ZipFile])
   (:require
-    [hlisp.util.kahnsort        :refer [topo-sort]]
-    [hlisp.util.re-map          :refer [re-map]]
-    [clojure.java.io            :refer [file input-stream make-parents]]
-    [clojure.pprint             :refer [pprint]]
-    [leiningen.core.classpath   :as cp]
-    [hlisp.util.file            :as f]
-    [hlisp.core                 :as hl]
-    [hlisp.compiler             :as hlc]))
+    [clojure.java.io                          :refer [file input-stream make-parents]]
+    [clojure.pprint                           :refer [pprint]]
+    [tailrecursion.hoplon.compiler.kahnsort   :refer [topo-sort]]
+    [tailrecursion.hoplon.compiler.re-map     :refer [re-map]]
+    [tailrecursion.hoplon.compiler.file       :as f]
+    [tailrecursion.hoplon.compiler.core       :as hl]
+    [tailrecursion.hoplon.compiler.compiler   :as hlc]
+    [leiningen.core.classpath                 :as cp]))
 
 (defn deep-merge-with [f & maps]
   (apply
@@ -33,7 +33,7 @@
    :static-src    "src/static"
    :include-src   "src/include"
    :cljs-src      "src/cljs"
-   :work-dir      ".hlisp-work-dir"
+   :work-dir      ".hoplon-work-dir"
    :html-out      "resources/public"
    :outdir-out    "out"
    :pre-script    "pre-compile"
@@ -57,10 +57,10 @@
                 :ext-dep       (work "dep" "ext")
                 :cljs-dep      (work "dep" "cljs"))))
 
-(defn hlisp-dep-jar? [jar]
+(defn hoplon-dep-jar? [jar]
   (let [attrs (-> (.getManifest jar) (.getMainAttributes))]
     (and (-> (zipmap (mapv str (keys attrs)) (vals attrs))
-           (get "hlisp-provides"))
+           (get "hoplon-provides"))
          jar)))
 
 (defn extract-jar! [jar entry dir filename]
@@ -86,10 +86,10 @@
 (defn process-dep! [dep opts]
   (let [f (:file (meta dep))]
     (when-let [jar (and (re-find #"\.jar$" (.getName f))
-                        (hlisp-dep-jar? (JarFile. f)))]
+                        (hoplon-dep-jar? (JarFile. f)))]
       (process-jar! jar opts))))
 
-(defn install-hlisp-deps! [project opts]
+(defn install-hoplon-deps! [project opts]
   (let [deps (#'cp/get-dependencies :dependencies project)] 
     (when (count deps)
       (if-let [sorted (topo-sort deps)]
@@ -97,21 +97,23 @@
         (throw (Exception. (str "Circular dependency: " (pr-str deps))))))))
 
 (defn start-compiler [project auto]
-  (if (f/lockfile ".hlisp-lock")
-    (let [opts (process-opts (:hlisp project))]
+  (if (f/lockfile ".hoplon-lock")
+    (let [opts (process-opts (:hoplon project))]
       (hl/prepare opts)
-      (install-hlisp-deps! project opts)
+      (install-hoplon-deps! project opts)
       (binding [hlc/*printer* (if (:pretty-print opts) pprint prn)]
         (hl/start opts :auto auto)))
-    (println "HLisp compiler is already running.")))
+    (println (str "Hoplon compiler is already running in JVM '"
+                  (slurp ".hoplon-lock")
+                  "'."))))
   
-(defn hlisp
-  "Hlisp compiler.
+(defn hoplon
+  "Hoplon compiler.
   
-  USAGE: lein hlisp
+  USAGE: lein hoplon
   Compile once.
   
-  USAGE: lein hlisp auto
+  USAGE: lein hoplon auto
   Watch source dirs and compile when necessary."
   ([project] (start-compiler project false))
   ([project auto] (start-compiler project true)))

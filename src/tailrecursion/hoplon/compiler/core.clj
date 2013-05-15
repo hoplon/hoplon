@@ -1,16 +1,16 @@
-(ns hlisp.core
+(ns tailrecursion.hoplon.compiler.core
   (:use
-    [hlisp.colors             :only [style pr-ok print println]]
-    [criterium.core           :only [time-body]]
-    [clojure.java.io          :only [copy file make-parents reader resource]]
-    [clojure.stacktrace       :only [print-stack-trace]])
+    [tailrecursion.hoplon.compiler.colors   :only [style pr-ok print println]]
+    [criterium.core                         :only [time-body]]
+    [clojure.java.io                        :only [copy file make-parents reader resource]]
+    [clojure.stacktrace                     :only [print-stack-trace]])
   (:require
-    [clojure.java.shell       :as shell]
-    [hlisp.util.file          :as f]
-    [hlisp.compiler           :as hlc]
-    [hlisp.tagsoup            :as ts]
-    [clojure.string           :as string]
-    [cljs.closure             :as closure])
+    [clojure.java.shell                     :as shell]
+    [clojure.string                         :as string]
+    [cljs.closure                           :as closure]
+    [tailrecursion.hoplon.compiler.file     :as f]
+    [tailrecursion.hoplon.compiler.compiler :as hlc]
+    [tailrecursion.hoplon.compiler.tagsoup  :as ts])
   (:refer-clojure :exclude [print println]))
 
 (def CWD      (System/getProperty "user.dir"))
@@ -50,7 +50,7 @@
       (spit html-file (:html compiled)) 
       (spit cljs-file (:cljs compiled)))))
 
-(defn hlisp-compile
+(defn hoplon-compile
   [{:keys [html-out   outdir-out  base-dir      includes    cljsc-opts
            html-work  cljs-work   include-work  out-work    stage-work
            cljs-dep   inc-dep     ext-dep       lib-dep     flib-dep
@@ -69,9 +69,9 @@
         incs        (mapv #(.getPath %) (filter is-file? (file-seq (file inc-dep)))) 
         exts        (mapv #(.getPath %) (filter is-file? (file-seq (file ext-dep)))) 
         libs        (mapv #(.getPath %) (filter is-file? (file-seq (file lib-dep))))
-        env-str     (slurp (reader (resource "env.cljs")))
+        env-str     (slurp (reader (resource "tailrecursion/hoplon/env.cljs")))
         env-tmp     (file cljs-work "____env.cljs")
-        js-tmp      (f/tmpfile "____hlisp_" ".js")
+        js-tmp      (f/tmpfile "____hoplon_" ".js")
         js-tmp-path (.getPath js-tmp)
         js-uris     (mapv #(f/up-parents % html-work "main.js") page-files) 
         js-out      (file stage-work "main.js")
@@ -102,7 +102,7 @@
     (print (style (str (java.util.Date.) " << ") :blue))
     (print (style "compiling" :bold-blue))
     (println (style " >> " :blue))
-    (let [t (elapsed-sec hlisp-compile opts)]
+    (let [t (elapsed-sec hoplon-compile opts)]
       (print (style (str (java.util.Date.) " << ") :blue))
       (print (-> (format "%.3f sec." t) (style :green)))
       (println (style " >> " :blue))) 

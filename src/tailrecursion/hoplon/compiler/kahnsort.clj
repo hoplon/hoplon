@@ -1,4 +1,4 @@
-(ns hlisp.util.kahnsort
+(ns tailrecursion.hoplon.compiler.kahnsort
   (:use
     [clojure.set :only [difference union intersection]]))
 

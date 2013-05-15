@@ -1,4 +1,4 @@
-(ns hlisp.env
+(ns tailrecursion.hoplon.env
   (:require
     [goog.dom         :as gdom]
     [clojure.zip      :as zip])

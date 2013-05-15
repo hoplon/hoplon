@@ -1,4 +1,4 @@
-(ns hlisp.colors
+(ns tailrecursion.hoplon.compiler.colors
   (:refer-clojure :exclude [print println]))
 
 (def ANSI-CODES
@@ -29,8 +29,7 @@
    :under-blue      "[4;34m"
    :under-yellow    "[4;33m"
    :under-magenta   "[4;35m"
-   :under-cyan      "[4;36m"
-   })
+   :under-cyan      "[4;36m"})
 
 (defn ansi
   [code]

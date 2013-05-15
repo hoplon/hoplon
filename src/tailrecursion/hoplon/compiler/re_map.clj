@@ -1,4 +1,4 @@
-(ns hlisp.util.re-map)
+(ns tailrecursion.hoplon.compiler.re-map)
 
 (defn re-map
   "re-vals is an even number of regexes/values.  Returns a map-like

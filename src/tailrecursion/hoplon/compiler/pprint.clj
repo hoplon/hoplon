@@ -1,7 +1,7 @@
-(ns hlisp.pprint
+(ns tailrecursion.hoplon.compiler.pprint
   (:require
     [clojure.string :as string]
-    [fipp.printer :as printer :refer [defprinter]]))
+    [fipp.printer   :as printer :refer [defprinter]]))
 
 (def void-elems
   #{'area     'base     'br       'col      'embed    'hr       'img    'input

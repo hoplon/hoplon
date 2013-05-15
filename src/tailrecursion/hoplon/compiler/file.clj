@@ -1,4 +1,4 @@
-(ns hlisp.util.file
+(ns tailrecursion.hoplon.compiler.file
   (:require
     [digest           :as d]
     [clojure.data     :as data]

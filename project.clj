@@ -1,6 +1,6 @@
-(defproject tailrecursion/lein-hlisp "2.0.3-SNAPSHOT"
+(defproject tailrecursion/lein-hoplon "2.0.3-SNAPSHOT"
   :description        "Hlisp compiler."
-  :url                "http://github.com/tailrecursion/lein-hlisp"
+  :url                "http://github.com/tailrecursion/lein-hoplon"
   :license            {:name "Eclipse Public License"
                        :url "http://www.eclipse.org/legal/epl-v10.html"}
   :eval-in-leiningen  true

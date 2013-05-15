@@ -1,12 +1,12 @@
-(ns hlisp.compiler
+(ns tailrecursion.hoplon.compiler.compiler
   (:require
-    [clojure.walk       :refer  [stringify-keys]]
-    [hlisp.util.re-map  :refer  [re-map]]
-    [clojure.java.io    :refer  [file]]
-    [clojure.pprint     :refer  [pprint]]
-    [clojure.zip        :as     zip]
-    [clojure.string     :as     string]
-    [hlisp.tagsoup      :as     ts]))
+    [clojure.walk                           :refer  [stringify-keys]]
+    [tailrecursion.hoplon.compiler.re-map   :refer  [re-map]]
+    [clojure.java.io                        :refer  [file]]
+    [clojure.pprint                         :refer  [pprint]]
+    [clojure.zip                            :as     zip]
+    [clojure.string                         :as     string]
+    [tailrecursion.hoplon.compiler.tagsoup  :as     ts]))
 
 (def ^:dynamic *current-file* nil)
 (def ^:dynamic *printer*      prn)
@@ -26,8 +26,8 @@
    'html-time 'title 'tr 'track 'tt 'u 'ul 'html-var 'video 'wbr '$text
    '$comment])
 
-(def hlisp-exports
-  ['hlisp.env :only
+(def hoplon-exports
+  ['tailrecursion.hoplon.env :only
    (into html-tags
          ['text 'pr-node 'tag 'attrs 'branch? 'children 'make-node 'dom
           'node-zip 'clone])])
@@ -108,17 +108,17 @@
           (let [[tag attr & _] x]
             (when (map? attr)
               (let [{:keys [type src]} attr]
-                (and (= 'include tag) (= "text/hlisp" type) (string? src)))))))
+                (and (= 'include tag) (= "text/hoplon" type) (string? src)))))))
       (fn [[_ {:keys [src]} & _]]
         (let [inc-file          (.getCanonicalFile (file cur-dir src))
               [nsdecl & forms]  (read-string (str "(" (slurp inc-file) ")"))
               do-expr           (list* 'do (concat forms (list 'nil)))] 
           (list nsdecl do-expr))))))
 
-(defn add-hlisp-uses
+(defn add-hoplon-uses
   [[_ nm & forms]]
   (let [parts (group-by #(= :use (first %)) forms)
-        uses  (concat (or (first (get parts true)) (list :use)) (list hlisp-exports)) 
+        uses  (concat (or (first (get parts true)) (list :use)) (list hoplon-exports)) 
         other (get parts false)] 
     (list* 'ns nm uses other)))
 
@@ -130,7 +130,7 @@
         body    (first (filter-tag 'body html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
-        nsdecl  (add-hlisp-uses (first forms)) 
+        nsdecl  (add-hoplon-uses (first forms)) 
         nsname  (second nsdecl)
         emptyjs (str "(function(node) {"
                      " while (node.hasChildNodes())"
@@ -144,7 +144,7 @@
         s-goog  (list 'script {:type "text/javascript"}
                       (str "goog.require('" nsname "');"))
         s-init  (list 'script {:type "text/javascript"}
-                      (str nsname ".hlispinit();"))
+                      (str nsname ".hoploninit();"))
         scripts (if base-uri
                   (list s-empty s-base s-main s-goog s-init)
                   (list s-empty s-nodep s-main s-init))
@@ -152,8 +152,8 @@
         cljs    (concat
                   (list nsdecl)
                   (list
-                    (list 'defn (symbol "^:export") 'hlispinit []
-                          (list (symbol "hlisp.env/init") (vec (drop 1 forms)))))) 
+                    (list 'defn (symbol "^:export") 'hoploninit []
+                          (list (symbol "tailrecursion.hoplon.env/init") (vec (drop 1 forms)))))) 
         cljsstr  (string/join "\n" (map #(with-out-str (*printer* %)) cljs))
         html    (replace {body bnew} html-forms)
         htmlstr (ts/pp-forms "html" html)]
@@ -174,7 +174,7 @@
     (throw (Exception. "First tag is not HTML or namespace declaration."))))
 
 (defn compile-ts [html-ts js-uri base-uri]
-  (compile-forms process-includes (first (ts/tagsoup->hlisp html-ts)) js-uri base-uri))
+  (compile-forms process-includes (first (ts/tagsoup->hoplon html-ts)) js-uri base-uri))
 
 (defn compile-string [html-str js-uri base-uri]
   (compile-ts (ts/parse-string html-str) js-uri base-uri))
