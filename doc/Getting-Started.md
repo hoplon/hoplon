@@ -59,8 +59,7 @@ Create a _src/html/sexp.cljs_ file.
     (title "Hello S-Expressions"))
   (body
     (ns hello.sexp)
-    (h1 {:style "color:red"}
-      "Hello S-Expressions")))
+    (h1 {:style "color:red"} "Hello S-Expressions")))
 ```
 
 Recompile and check out _resources/public/sexp.html_ in your browser.
