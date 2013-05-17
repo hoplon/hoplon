@@ -40,3 +40,7 @@ $ lein hoplon
 ```
 
 HTML and JavaScript files will be created in the _resources/public_ directory.
+
+### Review
+
+The only unusual thing here is the `<script>` tag in _index.html_.
