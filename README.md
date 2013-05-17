@@ -46,11 +46,15 @@ Put this in your _project.clj_:
 * here
 * and here
 
-## Getting Started
+### Getting Started
 
 Here we go.
 
-## License
+### Documentation
+
+Here we go.
+
+### License
 
 Copyright © 2012 The Tailrecursion Collective
 
