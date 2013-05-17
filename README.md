@@ -1,16 +1,22 @@
 # Hoplon
 
-The Hoplon web development environment.
+Hoplon is a set of tools and libraries for making web application front ends. 
 
-## Usage
+### Example
 
-Hoplon artifacts are [published on Clojars](http://clojars.org:8002/tailrecursion/hoplon).
+```html
+<some/><code/><here/>
+```
 
-Add the following to your `:plugins` _and_ `:dependencies` in your
-_project.clj_ file:
+### Dependency
+
+Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon). 
+Put this in your _project.clj_:
 
 ```clojure
-[tailrecursion/hoplon "0.1.0-SNAPSHOT"]
+(defproject my-project "0.1.0-SNAPSHOT"
+  :plugins      [[thinkminimo/hoplon "0.1.0-SNAPSHOT"]]
+  :dependencies [[thinkminimo/hoplon "0.1.0-SNAPSHOT"]])
 ```
 
 ## License
