@@ -6,6 +6,7 @@
     [clojure.pprint                         :refer  [pprint]]
     [clojure.zip                            :as     zip]
     [clojure.string                         :as     string]
+    [cljs.compiler                          :as     cljsc]
     [tailrecursion.hoplon.compiler.tagsoup  :as     ts]))
 
 (def ^:dynamic *current-file* nil)
@@ -131,7 +132,7 @@
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
         nsdecl  (add-hoplon-uses (first forms)) 
-        nsname  (second nsdecl)
+        nsname  (cljsc/munge (second nsdecl)) 
         emptyjs (str "(function(node) {"
                      " while (node.hasChildNodes())"
                      " node.removeChild(node.lastChild)"
