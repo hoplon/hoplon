@@ -5,7 +5,22 @@ Hoplon is a set of tools and libraries for making web application front ends.
 ### Example
 
 ```html
-<some/><code/><here/>
+<html>
+  <head>
+    <title>example page</title>
+  </head>
+  <body>
+    <script type="text/hoplon">
+      (ns example.index)
+      
+      (defn my-fn [x y]
+        (div {:class "foo"}
+          (ul
+            (li x)
+            (li y))))
+    </script>
+  </body>
+</html>
 ```
 
 ### Dependency
