@@ -15,9 +15,8 @@ Hoplon is a set of tools and libraries for making web application front ends.
       
       (defn myfn [x y]
         (div {:class "foo"}
-          (ul
-            (li x)
-            (li y))))
+          (ul (li x)
+              (li y))))
     </script>
     
     <h1>Hello, Hoplon</h1>
@@ -40,6 +39,11 @@ Put this in your _project.clj_:
   :plugins      [[thinkminimo/hoplon "0.1.0-SNAPSHOT"]]
   :dependencies [[thinkminimo/hoplon "0.1.0-SNAPSHOT"]])
 ```
+
+### Demos and Examples
+
+* here
+* and here
 
 ## License
 
