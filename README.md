@@ -46,13 +46,9 @@ Put this in your _project.clj_:
 * here
 * and here
 
-### Getting Started
+## Documentation
 
-Here we go.
-
-### Documentation
-
-Here we go.
+* [Getting Started](https://github.com/tailrecursion/hoplon/wiki/Getting-Started)
 
 ### License
 
