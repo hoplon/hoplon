@@ -39,6 +39,13 @@ Compile application.
 $ lein hoplon
 ```
 
+Alternatively, watche-based compilation can be started to automatically
+recompile the application whenever source files are modified:
+
+```bash
+$ lein hoplon auto
+```
+
 HTML and JavaScript files will be created in the _resources/public_ directory.
 
 ### Review
