@@ -1,4 +1,4 @@
-# Getting Started With Hoplon
+# Getting Started
 
 Get started with Hoplon by making some small, progressively more complex applications.
 
