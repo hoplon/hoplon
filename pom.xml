@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>tailrecursion</groupId>
-  <artifactId>lein-hlisp</artifactId>
+  <artifactId>hoplon</artifactId>
   <packaging>jar</packaging>
-  <version>2.0.3-SNAPSHOT</version>
-  <name>lein-hlisp</name>
-  <description>Hlisp compiler.</description>
-  <url>http://github.com/tailrecursion/lein-hlisp</url>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>hoplon</name>
+  <description>Hoplon web development environment.</description>
+  <url>http://github.com/tailrecursion/hoplon</url>
   <licenses>
     <license>
       <name>Eclipse Public License</name>
@@ -14,10 +14,10 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git://github.com/tailrecursion/lein-hlisp.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hlisp.git</developerConnection>
-    <tag>b791cdd9934d76327463fff8056a1abb063003c7</tag>
-    <url>https://github.com/tailrecursion/lein-hlisp</url>
+    <connection>scm:git:git://github.com/tailrecursion/lein-hoplon.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hoplon.git</developerConnection>
+    <tag>dda82a4c23318a9a1f58595635b573cd9711cd8d</tag>
+    <url>https://github.com/tailrecursion/lein-hoplon</url>
   </scm>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -67,6 +67,11 @@
       <version>1.5.1</version>
     </dependency>
     <dependency>
+      <groupId>tailrecursion</groupId>
+      <artifactId>javelin</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>fipp</groupId>
       <artifactId>fipp</artifactId>
       <version>0.3.0-SNAPSHOT</version>
@@ -77,11 +82,6 @@
       <version>1.3.0</version>
     </dependency>
     <dependency>
-      <groupId>tailrecursion</groupId>
-      <artifactId>hlisp-macros</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
       <groupId>criterium</groupId>
       <artifactId>criterium</artifactId>
       <version>0.3.0</version>
@@ -90,12 +90,11 @@
       <groupId>clj-tagsoup</groupId>
       <artifactId>clj-tagsoup</artifactId>
       <version>0.3.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>core.incubator</artifactId>
+      <version>0.1.2</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>

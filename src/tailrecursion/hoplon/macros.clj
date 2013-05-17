@@ -1,4 +1,4 @@
-(ns hlisp.macros
+(ns tailrecursion.hoplon.macros
   (:require
     [clojure.walk         :as walk    :refer [postwalk]]
     [clojure.string       :as string  :refer [blank? split]]

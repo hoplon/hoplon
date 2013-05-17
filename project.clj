@@ -6,6 +6,7 @@
   :eval-in-leiningen  true
   :manifest           {"hoplon-provides"            "hoplon"}
   :dependencies       [[org.clojure/clojure         "1.5.1"]
+                       [tailrecursion/javelin       "1.0.0-SNAPSHOT"]
                        [fipp                        "0.3.0-SNAPSHOT"]
                        [digest                      "1.3.0"]
                        [criterium                   "0.3.0"]

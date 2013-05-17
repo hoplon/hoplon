@@ -98,7 +98,7 @@
 
 (defn start-compiler [project auto]
   (if (f/lockfile ".hoplon-lock")
-    (let [opts (process-opts (:hoplon project))]
+    (let [opts (process-opts (or (:hoplon project) {}))]
       (hl/prepare opts)
       (install-hoplon-deps! project opts)
       (binding [hlc/*printer* (if (:pretty-print opts) pprint prn)]
