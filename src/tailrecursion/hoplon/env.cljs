@@ -78,7 +78,7 @@
     (Spliced. (.-tag n) (into (.-children n) (vec args)))))
 
 (defn splice [forms]
-  (vec (mapcat #(if (instance? Spliced %) (splice (.-children %)) [%]) forms)))
+  (mapcat #(if (instance? Spliced %) (splice (.-children %)) [%]) forms))
 
 (deftype ElemNode [tag attrs children ids mymeta]
   Object
