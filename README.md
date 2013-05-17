@@ -48,9 +48,9 @@ Put this in your _project.clj_:
 
 ## Documentation
 
-* [Getting Started](https://github.com/tailrecursion/hoplon/wiki/Getting-Started)
-* [Configuration](https://github.com/tailrecursion/hoplon/wiki/Configuration)
-* [API Documentation](https://github.com/tailrecursion/hoplon/wiki/API-Documentation)
+* [Getting Started](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
+* [Configuration](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
+* [API Documentation](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
 
 ## License
 
