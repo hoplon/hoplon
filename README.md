@@ -13,7 +13,7 @@ Hoplon is a set of tools and libraries for making web application front ends.
     <script type="text/hoplon">
       (ns example.index)
       
-      (defn my-fn [x y]
+      (defn myfn [x y]
         (div {:class "foo"}
           (ul
             (li x)
@@ -21,10 +21,10 @@ Hoplon is a set of tools and libraries for making web application front ends.
     </script>
     
     <h1>Hello, Hoplon</h1>
-    <my-fn>
+    <myfn>
       <div>first thing</div>
       <div>second thing</div>
-    </my-fn>
+    </myfn>
   </body>
 </html>
 ```
