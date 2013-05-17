@@ -19,6 +19,12 @@ Hoplon is a set of tools and libraries for making web application front ends.
             (li x)
             (li y))))
     </script>
+    
+    <h1>Hello, Hoplon</h1>
+    <my-fn>
+      <div>first thing</div>
+      <div>second thing</div>
+    </my-fn>
   </body>
 </html>
 ```
