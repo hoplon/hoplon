@@ -52,7 +52,7 @@ Put this in your _project.clj_:
 * [Configuration](https://github.com/tailrecursion/hoplon/wiki/Configuration)
 * [API Documentation](https://github.com/tailrecursion/hoplon/wiki/API-Documentation)
 
-### License
+## License
 
 Copyright © 2012 The Tailrecursion Collective
 
