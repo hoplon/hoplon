@@ -42,7 +42,7 @@
 
 (defn dom-get
   [elem]
-  (if (satisfies? hlisp.env/IDomNode elem)
+  (if (satisfies? tailrecursion.hoplon.env/IDomNode elem)
     (find-id (id elem))
     (js/jQuery elem)))
 
