@@ -23,6 +23,7 @@ Create a _src/html/index.html_ file.
 ```html
 <html>
   <head>
+    <title>Hello World</title>
   </head>
   <body>
     <script type="text/hoplon">
@@ -47,5 +48,21 @@ $ lein hoplon auto
 ```
 
 HTML and JavaScript files will be created in the _resources/public_ directory.
+
+## S-Expression Syntax
+
+Create a _src/html/sexp.cljs_ file.
+
+```clojure
+(html
+  (head
+    (title "Hello S-Expressions"))
+  (body
+    (ns hello.sexp)
+    (h1 {:style "color:red"}
+      "Hello S-Expressions")))
+```
+
+Recompile and check out _resources/public/sexp.html_ in your browser.
 
 
