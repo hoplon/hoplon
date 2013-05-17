@@ -1,6 +1,8 @@
 # Hoplon
 
-Hoplon is a set of tools and libraries for making web application front ends. 
+Hoplon is a set of tools and libraries for making web application front ends.
+Hoplon runs entirely on the client and makes no assumptions about the back end
+(server side) setup.
 
 ### Example
 
