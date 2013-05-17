@@ -72,6 +72,14 @@
 (defn make-comment-node [text]
   (TextNode. "$comment" text nil))
 
+(deftype Spliced [tag children]
+  IFn
+  (-invoke [n & args]
+    (Spliced. (.-tag n) (into (.-children n) (vec args)))))
+
+(defn splice [forms]
+  (vec (mapcat #(if (instance? Spliced %) (splice (.-children %)) [%]) forms)))
+
 (deftype ElemNode [tag attrs children ids mymeta]
   Object
   (toString [n] (pr-node n))
@@ -83,7 +91,7 @@
           nchildren (.-children n)
           nids      (.-ids n)
           nmeta     (.-mymeta n)
-          nargs     (map #(if (string? %) (make-text-node %) %) args)
+          nargs     (map #(if (string? %) (make-text-node %) %) (splice args))
           cleanup   (fn [nodes] (vec (filter #(satisfies? IDomNode %) nodes)))]
       (if (seq nargs)
         (let [[head & tail] nargs]
@@ -384,6 +392,8 @@
 (def video          (make-elem-node "video"))
 (def wbr            (make-elem-node "wbr"))
 
+(def spliced        (Spliced. "spliced" []))
+
 (def $text          make-text-node)
 (def $comment       make-comment-node)
 
@@ -395,8 +405,8 @@
   (swap! *initfns* into [f]))
 
 (defn init [forms]
-  (let [body (.-body js/document)]
+  (let [body  (.-body js/document)]
     (gdom/removeChildren body)
-    (mapv #(append-child body (dom %)) forms)
+    (mapv #(append-child body (dom %)) (splice forms))
     (mapv (fn [f] (f)) @*initfns*)))
 

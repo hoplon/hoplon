@@ -55,6 +55,7 @@
 
 (let [jQuery  (symbol "js" "jQuery")
       clone   (symbol "tailrecursion.hoplon.env" "clone")
+      spliced (symbol "tailrecursion.hoplon.env" "spliced")
       cell    (symbol "tailrecursion.javelin.macros" "cell")
       deref*  (symbol "tailrecursion.javelin.core" "deref*")
       listy?  (fn [form]
@@ -77,6 +78,7 @@
                     `(~deref*
                        (let [f# (~clone ~(rm-attr form :do))]
                          (~cell (doto f# ~@exprs))))
-                    form)))]
-  (defmacro reactive-attributes [form]
-    (walk/postwalk #(if (listy? %) (do-1 %) %) form)))
+                    form)))
+      walk-1  #(if (listy? %) (do-1 %) %)]
+  (defmacro reactive-attributes [& forms]
+    `(~spliced ~@(map #(walk/postwalk walk-1 %) forms))))
