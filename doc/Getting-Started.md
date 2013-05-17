@@ -1,3 +1,5 @@
+# Getting Started With Hoplon
+
 Get started with Hoplon by making some small, progressively more complex applications.
 
 ## Hello World
