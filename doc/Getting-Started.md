@@ -80,6 +80,18 @@ is syntactically equivalent to this s-expression
 (form (input) (input))
 ```
 
+Conversely, the s-expression
+
+```clojure
+(map identity coll)
+```
+
+could be represented equivalently in HTML markup
+
+```html
+<map><identity/><coll/></map>
+```
+
 With that in mind, the Hello World example can be translated into s-expression
 syntax. The Hoplon compiler can compile HTML source in this format, as well.
 
