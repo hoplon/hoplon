@@ -57,7 +57,7 @@ _src/html/index.html_:
     <script type="text/hoplon">
       (ns hello.index)
     </script>   
-    <h1 style="color:red">Hello world</h1>
+    <h1 id="main" style="color:red">Hello world</h1>
   </body>
 </html>
 ```
@@ -90,13 +90,14 @@ _src/html/sexp.cljs_
   head
   (body
     (ns hello.index)
-    (h1 {:style "color:red"} "Hello world")))
+    (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
 
 When the application is compiled the output file _resources/public/sexp.html_
-is produced. Notice the semantic convention:
+is produced. Notice the syntactic convention:
 
-* Element attributes are represented as a map of keyword keys to string values.
+* Attribute nodes and values are represented as a map of keyword keys to string
+  values immediately following the tag name.
 * Text nodes are represented as strings.
 * Parentheses may be omitted around elements which have no children or attributes.
 
