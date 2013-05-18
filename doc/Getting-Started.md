@@ -120,4 +120,4 @@ HTML markup because ClojureScript source code is not strictly s-expressions; it
 is made up of lists, maps, vectors, reader macros, etc., and names which are
 valid in ClojureScript may contain characters which would crash a sane HTML
 parser (the function `clj->js`, for example, which cannot be represented in
-HTML markup as `<clj->js>`).
+HTML markup as `<clj->js/>`).
