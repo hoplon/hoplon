@@ -96,8 +96,8 @@ _src/html/sexp.cljs_
 When the application is compiled the output file _resources/public/sexp.html_
 is produced. Notice the syntactic convention:
 
-* Attribute nodes and values are represented as a map of keyword keys to string
-  values immediately following the tag name.
+* Attribute nodes are represented as a map of keyword keys to string values
+  immediately following the tag name.
 * Text nodes are represented as strings.
 * Parentheses may be omitted around elements which have no children or attributes.
 
