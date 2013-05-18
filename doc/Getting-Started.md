@@ -48,18 +48,15 @@ declaration. All HTML source files in a Hoplon application must declare a namesp
 This is because the HTML contained in the document body is going to be _evaluated_
 as ClojureScript in the browser.
 
-Source file _src/html/index.html_:
+_src/html/index.html_:
 
 ```html
 <html>
-  <head>
-    <title>Hello</title>
-  </head>
+  <head></head>
   <body>
     <script type="text/hoplon">
       (ns hello.index)
-    </script>
-    
+    </script>   
     <h1>Hello world</h1>
   </body>
 </html>
