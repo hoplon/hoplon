@@ -1,67 +1,38 @@
 # Getting Started
 
-Get started with Hoplon by making some small, progressively more complex applications.
-
-## Hello World
-
-Create a new project directory.
+Hoplon projects require [leiningen](https://raw.github.com/technomancy/leiningen/stable/bin/lein).
+You can create a skeleton project using the leiningen Hoplon template:
 
 ```bash
-$ mkdir -p hello/src/html && cd hello
+$ lein new hoplon hello
 ```
 
-Create a _project.clj_ file.
+### Compiling The Application
 
-```clojure
-(defproject hello-hoplon "0.1.0-SNAPSHOT"
-  :plugins      [[tailrecursion/hoplon "0.1.0-SNAPSHOT"]]
-  :dependencies [[tailrecursion/hoplon "0.1.0-SNAPSHOT"]])
-```
-
-Create a _src/html/index.html_ file.
-
-```html
-<html>
-  <head>
-    <title>Hello World</title>
-  </head>
-  <body>
-    <script type="text/hoplon">
-      (ns hello.index)
-    </script>
-    <h1>Hello World</h1>
-  </body>
-</html>
-```
-
-Compile application.
+The Hoplon leiningen plugin compiles source HTML files and ClojureScript libraries
+into a HTML and JavaScript application. The compiler is provided as a leiningen
+plugin. In the project directory run the compiler:
 
 ```bash
 $ lein hoplon
 ```
 
-Alternatively, watcher-based compilation can be started to automatically
-recompile the application whenever source files are modified:
+There is also a watcher-based operating mode that will continuously recompile the
+application as source files are modified:
 
 ```bash
 $ lein hoplon auto
 ```
 
-HTML and JavaScript files will be created in the _resources/public_ directory.
+### Compiler Output Directory
 
-## S-Expression Syntax
+The HTML and JavaScript files are created in the _resources/public_ directory by
+default.
 
-Create a _src/html/sexp.cljs_ file.
+## Hello World
 
-```clojure
-(html
-  (head
-    (title "Hello S-Expressions"))
-  (body
-    (ns hello.sexp)
-    (h1 {:style "color:red"} "Hello S-Expressions")))
-```
-
-Recompile and check out _resources/public/sexp.html_ in your browser.
-
-
+The simplest example application looks almost exactly like a standard HTML web
+page, with the exception of an unfamiliar script tag containing a namespace
+declaration. All HTML source files in a Hoplon application must declare a namespace.
+This is because the HTML contained in the document body is going to be _evaluated_
+as ClojureScript in the browser.
