@@ -124,7 +124,9 @@ HTML markup as `<clj->js/>`).
 
 In order to facilitate the HTML-as-ClojureScript s-expression representation
 the compiler will reorder expressions such that the above program can also be
-represented like this:
+represented in a format that works well with ClojureScript editors and tools:
+
+_src/html/sexp.cljs_
 
 ```clojure
 (ns hello.index)
@@ -133,6 +135,23 @@ represented like this:
 
 (html
   head
+  (body
+    (h1 {:id "main" :style "color:red"} "Hello world")))
+```
+
+Note that the `<html>` element must be the last expression in the file.
+
+When editing HTML as s-expressions the compiler will also parse `<style>`
+elements containing ClojureScript forms:
+
+```clojure
+(ns hello.index)
+
+(html
+  (head
+    (style
+      [body > h1], [div p span], [:#main]
+      {:border "1px solid blue"}))
   (body
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
