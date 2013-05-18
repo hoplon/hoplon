@@ -121,3 +121,18 @@ is made up of lists, maps, vectors, reader macros, etc., and names which are
 valid in ClojureScript may contain characters which would crash a sane HTML
 parser (the function `clj->js`, for example, which cannot be represented in
 HTML markup as `<clj->js/>`).
+
+In order to facilitate the HTML-as-ClojureScript s-expression representation
+the compiler will reorder expressions such that the above program can also be
+represented like this:
+
+```clojure
+(ns hello.index)
+
+; definitions and initialization expressions can go here
+
+(html
+  head
+  (body
+    (h1 {:id "main" :style "color:red"} "Hello world")))
+```
