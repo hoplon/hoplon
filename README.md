@@ -12,8 +12,10 @@ has no server side component but can be used with any back end available.
   </head>
   <body>
     <script type="text/hoplon">
+      ;; namespace declaration is required
       (ns example.index)
       
+      ;; definitions in this file are optional
       (defn myfn [x y]
         (div {:class "foo"}
           (ul (li x)
@@ -22,6 +24,7 @@ has no server side component but can be used with any back end available.
     
     <h1>Hello, Hoplon</h1>
     
+    <!-- an HTML syntax call to the myfn function -->
     <myfn>
       <div>first thing</div>
       <div>second thing</div>
