@@ -167,5 +167,23 @@ The ClojureScript CSS syntax follows the following conventions:
 The equivalence of HTML and s-expression syntax allows the representation
 of HTML documents as s-expressions, and the representation of ClojureScript
 s-expression source code as HTML documents, as shown above. The further
-step of adding HTML primitives to the 
+step of adding HTML primitives to the ClojureScript environment in which
+the page is evaluated provides the semantics of HTML, as well.
 
+HTML primitives are implemented as ClojureScript text and element node types.
+Each of the HTML5 elements is defined, i.e. `a`, `div`, `span`, `p`, etc.
+The ClojureScript element node type has the following properties:
+
+* *They are self-evaluating.* There is no `render` function.
+* *They are immutable.* Operations on a node return a new node and do not alter
+  the original.
+* *They can be applied as functions.* Applying a HTML node to arguments appends
+  those arguments to the node as children, returning a new immutable node.
+* *Attributes can be accessed via map functions.* Use `get`, `assoc`, etc. to
+  access element attributes.
+* *Children can be accessed via vector functions.* Use `nth`, `peek`, `into`, etc.
+  to access child nodes.
+
+Implementing map and vector protocols for different purposes presents a slightly
+inconsistent interface in that ClojureScript maps are designed to present a
+sequential interface, and this is not supported for attribute access here.
