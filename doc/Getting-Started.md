@@ -164,10 +164,8 @@ The ClojureScript CSS syntax follows the following conventions:
 
 ## HTML-As-ClojureScript-As-HTML
 
-The syntactic equivalence of HTML and S-Expressions can be extended to
-semantics by constructing a ClojureScript environment containing HTML
-primitives that combine in the way HTML elements do. This is accomplished
-by the use of ClojureScript element and text node types implementing the
-`IFn` protocol such that applying an element node to arguments appends
-those arguments as children of that node.
+The equivalence of HTML and s-expression syntax allows the representation
+of HTML documents as s-expressions, and the representation of ClojureScript
+s-expression source code as HTML documents, as shown above. The further
+step of adding HTML primitives to the 
 
