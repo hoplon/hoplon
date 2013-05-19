@@ -8,6 +8,7 @@
   :dependencies       [[org.clojure/clojure         "1.5.1"]
                        [tailrecursion/javelin       "1.0.0-SNAPSHOT"]
                        [fipp                        "0.3.0-SNAPSHOT"]
+                       [net.cgrand/parsley          "0.9.2"]
                        [digest                      "1.3.0"]
                        [criterium                   "0.3.0"]
                        [clj-tagsoup                 "0.3.0"]

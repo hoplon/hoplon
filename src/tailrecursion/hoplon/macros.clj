@@ -58,26 +58,21 @@
       spliced (symbol "tailrecursion.hoplon.env" "spliced")
       cell    (symbol "tailrecursion.javelin.macros" "cell")
       deref*  (symbol "tailrecursion.javelin.core" "deref*")
-      listy?  (fn [form]
-                (or (list? form)
-                    (= clojure.lang.LazySeq (type form))
-                    (= clojure.lang.Cons (type form)))) 
+      readstr #(if-not (blank? %) (read-string (str "(" % ")")))
+      listy?  #(or (list? %)
+                   (= clojure.lang.LazySeq (type %))
+                   (= clojure.lang.Cons (type %))) 
       rm-attr (fn [[tag attrs & children] attr]
                 (list* tag (dissoc attrs attr) children))
-      sub-ids (fn [form]
-                (walk/postwalk
-                  #(if (and (listy? %) (= 'clojure.core/unquote (first %)))
-                     (list jQuery (apply str ["#" (second %)])) 
-                     %)
-                  form))
+      uquote? #(and (listy? %) (= 'clojure.core/unquote (first %)))
+      sub-id  #(if (uquote? %) (list jQuery (str "#" (second %))) %)
+      sub-ids #(walk/postwalk sub-id %)
+      doread  #(cond (string? %) (readstr %) (vector? %) %)
       do-1    (fn [[tag maybe-attrs & children :as form]]
-                (let [{dostr :do} (if (map? maybe-attrs) maybe-attrs {})
-                      exprs       (if (seq dostr)
-                                    (sub-ids (read-string (str "(" dostr ")"))))]
-                  (if exprs
-                    `(~deref*
-                       (let [f# (~clone ~(rm-attr form :do))]
-                         (~cell (doto f# ~@exprs))))
+                (let [{dostr :do} (if (map? maybe-attrs) maybe-attrs {})] 
+                  (if-let [exprs (sub-ids (doread dostr))]
+                    `(~deref* (let [f# (~clone ~(rm-attr form :do))]
+                                (~cell (doto f# ~@exprs))))
                     form)))
       walk-1  #(if (listy? %) (do-1 %) %)]
   (defmacro reactive-attributes [& forms]
