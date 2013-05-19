@@ -43,8 +43,7 @@ Put this in your _project.clj_:
 
 ### Demos and Examples
 
-* here
-* and here
+* [Hoplon demo applications repository](https://github.com/tailrecursion/hoplon-demos)
 
 ## Documentation
 
