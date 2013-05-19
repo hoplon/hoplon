@@ -108,6 +108,8 @@ _src/html/sexp.cljs_
 When the application is compiled the output file _resources/public/sexp.html_
 is produced.
 
+The ClojureScript HTML syntax follows the following conventions:
+
 * Attribute nodes are represented as a map of keyword keys to string values
   immediately following the tag name.
 * Text nodes are represented as strings.
@@ -154,7 +156,7 @@ elements containing ClojureScript CSS definition syntax:
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
 
-The ClojureScript CSS syntax applies the following conventions:
+The ClojureScript CSS syntax follows the following conventions:
 
 * Selectors are vectors of symbols and/or keywords, the names of which will
   be used in the output.
