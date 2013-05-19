@@ -248,7 +248,7 @@
                         attrs-noid)
           children    (mapv dom (.-children n))]
       (gdom/setProperties elem (clj->js attrs))
-      (mapv #(.setAttribute elem (name (first %)) (second %)) (vec attrs))
+      (mapv #(.setAttribute elem (name (first %)) (str (second %))) attrs)
       (mapv #(append-child elem %) children)
       elem)))
 

@@ -58,7 +58,9 @@
       spliced (symbol "tailrecursion.hoplon.env" "spliced")
       cell    (symbol "tailrecursion.javelin.macros" "cell")
       deref*  (symbol "tailrecursion.javelin.core" "deref*")
-      readstr #(if-not (blank? %) (read-string (str "(" % ")")))
+      readstr #(if-not (blank? %)
+                 (let [[v & _ :as forms] (read-string (str "(" % ")"))]
+                   (if (vector? v) v forms)))
       listy?  #(or (list? %)
                    (= clojure.lang.LazySeq (type %))
                    (= clojure.lang.Cons (type %))) 

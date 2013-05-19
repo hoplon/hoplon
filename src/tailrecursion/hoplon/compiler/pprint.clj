@@ -57,9 +57,10 @@
           void?   (contains? void-elems tag)
           attr    (or attr? {})
           kids    (if attr? (rest tail) tail)
+          to-str  #(if (string? %) % (pr-str %))
           pp-attr (fn [m]
                     (->> m
-                      (map (fn [[k v]] (str (name k) "=" (pr-str v))))
+                      (map (fn [[k v]] (str (name k) "=" (pr-str (to-str v)))))
                       (interpose :line)))
           open    (if (seq attr)
                     [:group (str "<" tag) " " [:align (pp-attr attr)] ">"]
