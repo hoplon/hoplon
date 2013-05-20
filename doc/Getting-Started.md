@@ -160,7 +160,9 @@ parsing HTML syntax, too:
 ```
 
 In general, Hoplon programs can be represented equivalently in either
-HTML or ClojureScript syntax.
+HTML or ClojureScript syntax. This is an important point for designers
+and developers who rely on development tools to get the maximum level
+of productivity.
 
 ### ClojureScript CSS Literal Syntax
 
