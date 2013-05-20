@@ -244,6 +244,12 @@ _src/html/func2.html_
 </html>
 ```
 
+For brevity's sake the rest of the documentation will present examples as
+either HTML or s-expressions, with the implication that either can be
+easily represented in the other syntax if desired. Of course some care
+must be taken when using HTML syntax that tag names do not contain invalid
+characters, etc.
+
 ## Reactive Attributes
 
 An example of how macros can be used to advantage is the `reactive-attributes`
