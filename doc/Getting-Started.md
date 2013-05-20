@@ -205,12 +205,44 @@ _src/html/func.cljs_
   (body
     (h1 "Hello Functions")
     (ul
-      (fancy-item "Item 1" "This is the first item.")
-      (fancy-item "Item 2" "This is the second item."))))
+      (fancy-item (span "Item 1") (span "This is the first item."))
+      (fancy-item (span "Item 2") (span "This is the second item.")))))
 ```
 
 When _resources/public/func.html_ is loaded the list items, headings, and
-paragraphs will be seen in the resulting HTML.
+paragraphs will be seen in the resulting HTML. As always, the same page can
+be represented as HTML markup:
+
+_src/html/func2.html_
+
+```html
+<html>
+  <head>
+    <title>Hello Functions</title>
+  </head>
+  <body>
+    <script type="text/hoplon">
+      (ns hello.func2)
+      
+      (defn fancy-item [heading body]
+        (li
+          (h2 heading)
+          (p body)))
+    </script>
+    <h1>Hello Functions</h1>
+    <ul>
+      <fancy-item>
+        <span>Item 1</span>
+        <span>This is the first item.</span>  
+      </fancy-item>
+      <fancy-item>
+        <span>Item 2</span>
+        <span>This is the second item.</span>  
+      </fancy-item>
+    </ul>
+  </body>
+</html>
+```
 
 ## Reactive Attributes
 
