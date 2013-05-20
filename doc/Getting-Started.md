@@ -194,7 +194,7 @@ _src/html/func.cljs_
 ```clojure
 (ns hello.func)
 
-(defn fancy-item [heading body]
+(defn fancyitem [heading body]
   (li
     (h2 heading)
     (p body)))
@@ -205,8 +205,8 @@ _src/html/func.cljs_
   (body
     (h1 "Hello Functions")
     (ul
-      (fancy-item (span "Item 1") (span "This is the first item."))
-      (fancy-item (span "Item 2") (span "This is the second item.")))))
+      (fancyitem (span "Item 1") (span "This is the first item."))
+      (fancyitem (span "Item 2") (span "This is the second item.")))))
 ```
 
 When _resources/public/func.html_ is loaded the list items, headings, and
@@ -224,21 +224,21 @@ _src/html/func2.html_
     <script type="text/hoplon">
       (ns hello.func2)
       
-      (defn fancy-item [heading body]
+      (defn fancyitem [heading body]
         (li
           (h2 heading)
           (p body)))
     </script>
     <h1>Hello Functions</h1>
     <ul>
-      <fancy-item>
+      <fancyitem>
         <span>Item 1</span>
         <span>This is the first item.</span>  
-      </fancy-item>
-      <fancy-item>
+      </fancyitem>
+      <fancyitem>
         <span>Item 2</span>
         <span>This is the second item.</span>  
-      </fancy-item>
+      </fancyitem>
     </ul>
   </body>
 </html>
