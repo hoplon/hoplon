@@ -124,13 +124,15 @@ is produced.
 
 The ClojureScript HTML syntax follows the following conventions:
 
-* An element is represented as a list enclosed in parentheses, where the first
-  item is the tag name, the second item is a map of attributes, and the rest
-  are child nodes.
-* The attribute map is a map of keyword keys to printable values.
-* Text nodes are represented as strings.
-* Parentheses and/or attribute maps may be omitted for elements which have no
-  children or attributes.
+* An element is represented as a list enclosed in parentheses.
+* The first item in the list must be the element's tag name.
+* The second item may be an attribute map with keyword keys if the element
+  has attribute nodes.
+* The rest of the items are the element's children and may be text or element
+  nodes.
+* Text nodes are represented as strings or `($text "Value")`.
+* Parentheses may be omitted around elements which have no children or
+  attributes.
 
 Note that the script element has been removed in the sexp version. The script
 element in the HTML version serves simply to splice the lisp expressions it
