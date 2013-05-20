@@ -162,7 +162,7 @@ The ClojureScript CSS syntax follows the following conventions:
   be used in the output.
 * Declaration blocks are maps with keyword keys and string values.
 
-## HTML-As-ClojureScript-As-HTML
+### HTML-As-ClojureScript-As-HTML
 
 The equivalence of HTML and s-expression syntax allows the representation
 of HTML documents as s-expressions, and the representation of ClojureScript
