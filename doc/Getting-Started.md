@@ -184,6 +184,12 @@ The ClojureScript element node type has the following properties:
 * Children can be accessed via vector functions. Use `nth`, `peek`, `into`, etc.
   to access child nodes.
 
-Implementing map and vector protocols for different purposes presents a slightly
-inconsistent interface in that ClojureScript maps are designed to present a
-sequential interface, and this is not supported for attribute access here.
+This implementation provides a literal representation of HTML as code, and of
+code as HTML. This allows the use of macros in HTML documents, and seamless
+templating as templates in this environment are simply functions that return
+nodes.
+
+## Reactive Attributes
+
+An example of how macros can be used to advantage is the `reactive-attributes`
+macro that ships with Hoplon.
