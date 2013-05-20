@@ -124,11 +124,11 @@ valid in ClojureScript may contain characters which would crash a sane HTML
 parser (the function `clj->js`, for example, which cannot be represented in
 HTML markup as `<clj->js/>`).
 
+### Document Structure
+
 In order to facilitate the HTML-as-ClojureScript s-expression representation
 the compiler will reorder expressions such that the above program can also be
 represented in a format that works well with ClojureScript editors and tools:
-
-_src/html/sexp.cljs_
 
 ```clojure
 (ns hello.index)
@@ -160,7 +160,9 @@ parsing HTML syntax, too:
 
 This flexibility makes it easier to edit source files in whichever
 editor or IDE is preferred, although editing mixed-syntax files is
-always more difficult than editing straight ClojureScript or pure HTML.
+always more difficult than editing pure ClojureScript or HTML.
+
+### ClojureScript CSS Literal Syntax
 
 When editing HTML as s-expressions the compiler will also parse `<style>`
 elements containing ClojureScript CSS definition syntax:
