@@ -162,12 +162,95 @@ The ClojureScript CSS syntax follows the following conventions:
   be used in the output.
 * Declaration blocks are maps with keyword keys and string values.
 
-## HTML-As-ClojureScript-As-HTML
+### HTML-As-ClojureScript-As-HTML
 
-The syntactic equivalence of HTML and S-Expressions can be extended to
-semantics by constructing a ClojureScript environment containing HTML
-primitives that combine in the way HTML elements do. This is accomplished
-by the use of ClojureScript element and text node types implementing the
-`IFn` protocol such that applying an element node to arguments appends
-those arguments as children of that node.
+The equivalence of HTML and s-expression syntax allows the representation
+of HTML documents as s-expressions, and the representation of ClojureScript
+s-expression source code as HTML documents, as shown above. The further
+step of adding HTML primitives to the ClojureScript environment in which
+the page is evaluated provides the semantics of HTML, as well.
 
+HTML primitives are implemented as ClojureScript text and element node types.
+Each of the HTML5 elements is defined, i.e. `a`, `div`, `span`, `p`, etc.
+The ClojureScript element node type has the following properties:
+
+* They are self-evaluating. There is no `render` function.
+* They are immutable. Operations on a node return a new node and do not alter
+  the original.
+* They can be applied as functions. Applying a HTML node to arguments appends
+  those arguments to the node as children, returning a new immutable node.
+* Attributes can be accessed via map functions. Use `get`, `assoc`, etc. to
+  access element attributes.
+* Children can be accessed via vector functions. Use `nth`, `peek`, `into`, etc.
+  to access child nodes.
+
+This implementation provides a literal representation of HTML as code, and of
+code as HTML. This allows the use of macros in HTML documents, and seamless
+templating as templates in this environment are simply functions that return
+nodes.
+
+_src/html/func.cljs_
+
+```clojure
+(ns hello.func)
+
+(defn fancyitem [heading body]
+  (li
+    (h2 heading)
+    (p body)))
+    
+(html
+  (head
+    (title "Hello Functions"))
+  (body
+    (h1 "Hello Functions")
+    (ul
+      (fancyitem (span "Item 1") (span "This is the first item."))
+      (fancyitem (span "Item 2") (span "This is the second item.")))))
+```
+
+When _resources/public/func.html_ is loaded the list items, headings, and
+paragraphs will be seen in the resulting HTML. As always, the same page can
+be represented as HTML markup:
+
+_src/html/func2.html_
+
+```html
+<html>
+  <head>
+    <title>Hello Functions</title>
+  </head>
+  <body>
+    <script type="text/hoplon">
+      (ns hello.func2)
+      
+      (defn fancyitem [heading body]
+        (li
+          (h2 heading)
+          (p body)))
+    </script>
+    <h1>Hello Functions</h1>
+    <ul>
+      <fancyitem>
+        <span>Item 1</span>
+        <span>This is the first item.</span>  
+      </fancyitem>
+      <fancyitem>
+        <span>Item 2</span>
+        <span>This is the second item.</span>  
+      </fancyitem>
+    </ul>
+  </body>
+</html>
+```
+
+For brevity's sake the rest of the documentation will present examples as
+either HTML or s-expressions, with the implication that either can be
+easily represented in the other syntax if desired. Of course some care
+must be taken when using HTML syntax that tag names do not contain invalid
+characters, etc.
+
+## Reactive Attributes
+
+An example of how macros can be used to advantage is the `reactive-attributes`
+macro that ships with Hoplon.
