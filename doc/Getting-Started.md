@@ -48,9 +48,8 @@ can be any of the following:
 * Clojure namespaces (ClojureScript macros are written in Clojure).
 * ClojureScript namespaces to be used in the project.
 * Raw JavaScript source files to be prepended (in dependency order) to the _main.js_
-  compiler output file.
-* Google Closure Compiler ready JavaScript and extern files which will be
-  included in the ClojureScript compilation of the project.
+  output file.
+* Google Closure Compiler ready JavaScript source and extern files.
 
 Note that JavaScript dependency jar files must be prepared a certain way, described
 [here](#).
