@@ -189,6 +189,29 @@ code as HTML. This allows the use of macros in HTML documents, and seamless
 templating as templates in this environment are simply functions that return
 nodes.
 
+_src/html/func.cljs_
+
+```clojure
+(ns hello.func)
+
+(defn fancy-item [heading body]
+  (li
+    (h2 heading)
+    (p body)))
+    
+(html
+  (head
+    (title "Hello Functions"))
+  (body
+    (h1 "Hello Functions")
+    (ul
+      (fancy-item "Item 1" "This is the first item.")
+      (fancy-item "Item 2" "This is the second item."))))
+```
+
+When _resources/public/func.html_ is loaded the list items, headings, and
+paragraphs will be seen in the resulting HTML.
+
 ## Reactive Attributes
 
 An example of how macros can be used to advantage is the `reactive-attributes`
