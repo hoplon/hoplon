@@ -141,6 +141,27 @@ _src/html/sexp.cljs_
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
 
+Of course, the compiler will also accept "out-of-body" script tags when
+parsing HTML syntax, too:
+
+```html
+<script type="text/hoplon">
+  (ns hello.index)
+  
+  ; definitions and initialization expressions can go here
+</script>
+<html>
+  <head></head>
+  <body>
+    <h1 id="main" style="color:red">Hello world</h1>
+  </body>
+</html>
+```
+
+This flexibility makes it easier to edit source files in whichever
+editor or IDE is preferred, although editing mixed-syntax files is
+always more difficult than editing straight ClojureScript or pure HTML.
+
 When editing HTML as s-expressions the compiler will also parse `<style>`
 elements containing ClojureScript CSS definition syntax:
 
