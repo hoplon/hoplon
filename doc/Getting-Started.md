@@ -159,9 +159,8 @@ parsing HTML syntax, too:
 </html>
 ```
 
-This flexibility makes it easier to edit source files in whichever
-editor or IDE is preferred, although editing mixed-syntax files is
-always more difficult than editing pure ClojureScript or HTML.
+In general, Hoplon programs can be represented equivalently in either
+HTML or ClojureScript syntax.
 
 ### ClojureScript CSS Literal Syntax
 
