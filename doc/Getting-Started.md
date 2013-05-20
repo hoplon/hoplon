@@ -210,8 +210,9 @@ step of adding HTML primitives to the ClojureScript environment in which
 the page is evaluated provides the semantics of HTML, as well.
 
 HTML primitives are implemented as ClojureScript text and element node types.
-Each of the HTML5 elements is defined, i.e. `a`, `div`, `span`, `p`, etc.
-The ClojureScript element node type has the following properties:
+Each of the [HTML5 elements](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list)
+is defined, i.e. `a`, `div`, `span`, `p`, etc. The ClojureScript element node
+type has the following properties:
 
 * They are self-evaluating. There is no `render` function.
 * They are immutable. Operations on a node return a new node and do not alter
