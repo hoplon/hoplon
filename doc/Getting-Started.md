@@ -150,6 +150,7 @@ parsing HTML syntax, too:
   
   ; definitions and initialization expressions can go here
 </script>
+
 <html>
   <head></head>
   <body>
@@ -239,19 +240,20 @@ be represented as HTML markup:
 _src/html/func2.html_
 
 ```html
+<script type="text/hoplon">
+  (ns hello.func2)
+      
+  (defn fancyitem [heading body]
+    (li
+      (h2 heading)
+      (p body)))
+</script>
+
 <html>
   <head>
     <title>Hello Functions</title>
   </head>
   <body>
-    <script type="text/hoplon">
-      (ns hello.func2)
-      
-      (defn fancyitem [heading body]
-        (li
-          (h2 heading)
-          (p body)))
-    </script>
     <h1>Hello Functions</h1>
     <ul>
       <fancyitem>
