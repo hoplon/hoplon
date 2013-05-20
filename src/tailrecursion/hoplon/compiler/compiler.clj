@@ -175,7 +175,10 @@
     (throw (Exception. "First tag is not HTML or namespace declaration."))))
 
 (defn compile-ts [html-ts js-uri base-uri]
-  (compile-forms process-includes (first (ts/tagsoup->hoplon html-ts)) js-uri base-uri))
+  (compile-forms process-includes
+                 (move-cljs-to-body (ts/tagsoup->hoplon html-ts))
+                 js-uri
+                 base-uri))
 
 (defn compile-string [html-str js-uri base-uri]
   (compile-ts (ts/parse-string html-str) js-uri base-uri))

@@ -19,7 +19,7 @@
 
 (def hoplon-script-include (comp :include second))
 
-(defn tagsoup->hoplon
+(defn tagsoup->hoplon-1
   "Given a tagsoup/hiccup data structure elem, returns the corresponding list
   of hoplon forms."
   [elem]
@@ -33,9 +33,18 @@
     :else
     (let [[t attrs & kids] elem
           tag   (symbol (name t)) 
-          kids  (apply concat (map tagsoup->hoplon kids)) 
+          kids  (apply concat (map tagsoup->hoplon-1 kids)) 
           expr  (concat (list tag) (when (seq attrs) (list attrs)) kids)]
       (list (if (< 1 (count expr)) expr (first expr))))))
+
+(defn tagsoup->hoplon [elem]
+  (let [first* #(if (seq? %) (first %))
+        last*  #(if (seq? %) (last %))
+        rest*  #(drop-while (fn [x] (or (= 'html x) (map? x))) %)
+        forms  (tagsoup->hoplon-1 elem)]
+    (if (= 'html (first* (last* (first* forms))))
+      (rest* (first forms))
+      forms)))
 
 (defn pedanticize
   [form]
