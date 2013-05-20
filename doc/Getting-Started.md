@@ -167,7 +167,7 @@ of productivity.
 ### ClojureScript CSS Literal Syntax
 
 When editing HTML as s-expressions the compiler will also parse `<style>`
-elements containing ClojureScript CSS definition syntax:
+elements containing a simple ClojureScript CSS literal syntax:
 
 ```clojure
 (ns hello.index)
