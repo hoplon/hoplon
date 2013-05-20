@@ -40,6 +40,21 @@ so that the pages end up at the right URLs when the application is deployed.
 * _resources/public_ HTML and JavaScript output files, subdirectories, and static
   content.
 
+### Library And Package Management
+
+Hoplon projects can have dependencies in the _project.clj_ file. These dependencies
+can be any of the following:
+
+* Clojure namespaces (ClojureScript macros are written in Clojure).
+* ClojureScript namespaces to be used in the project.
+* Raw JavaScript source files to be prepended (in dependency order) to the _main.js_
+  compiler output file.
+* Google Closure Compiler ready JavaScript and extern files which will be
+  included in the ClojureScript compilation of the project.
+
+Note that JavaScript dependency jar files must be prepared a certain way, described
+[here](#).
+
 ## Hello World
 
 The simplest example application looks almost exactly like a standard HTML web
