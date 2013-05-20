@@ -300,3 +300,39 @@ characters, etc.
 
 An example of how macros can be used to advantage is the `reactive-attributes`
 macro that ships with Hoplon.
+
+_src/html/react1.html_
+
+```html
+<script type="text/hoplon">
+  (ns hello.react1
+    (:require-macros
+      [tailrecursion.javelin.macros   :refer [cell]]
+      [tailrecursion.hoplon.macros    :refer [reactive-attributes]])
+    (:require
+      [tailrecursion.javelin          :as j]
+      [tailrecursion.hoplon.util      :as u]
+      [tailrecursion.hoplon.reactive  :as r]))
+  
+  (def clicks (cell 0))
+</script>
+
+<html>
+  <head>
+    <title>Reactive Attributes: Example 1</title>
+  </head>
+  <body>
+    <reactive-attributes>
+      <h1 do="(r/on! :click #(swap! clicks inc))">
+        Click Me
+      </h1>
+      <ul>
+        <li>
+          You clicked
+          <span do='(r/text! (format " %s %s " clicks (u/pluralize "time" clicks)))'/>
+          so far.
+        </li>
+      </ul>
+    </reactive-attributes>
+  </body>
+</html>
