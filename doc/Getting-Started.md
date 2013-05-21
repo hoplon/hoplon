@@ -40,6 +40,20 @@ so that the pages end up at the right URLs when the application is deployed.
 * _resources/public_ HTML and JavaScript output files, subdirectories, and static
   content.
 
+### Library And Package Management
+
+Hoplon projects can have dependencies in the _project.clj_ file. These dependencies
+can be any of the following:
+
+* Clojure namespaces (ClojureScript macros are written in Clojure).
+* ClojureScript namespaces to be used in the project.
+* Raw JavaScript source files to be prepended (in dependency order) to the _main.js_
+  output file.
+* Google Closure Compiler ready JavaScript source and extern files.
+
+Note that JavaScript dependency jar files must be prepared a certain way, described
+[here](#).
+
 ## Hello World
 
 The simplest example application looks almost exactly like a standard HTML web
@@ -110,10 +124,15 @@ is produced.
 
 The ClojureScript HTML syntax follows the following conventions:
 
-* Attribute nodes are represented as a map of keyword keys to string values
-  immediately following the tag name.
-* Text nodes are represented as strings.
-* Parentheses may be omitted around elements which have no children or attributes.
+* An element is represented as a list enclosed in parentheses.
+* The first item in the list must be the element's tag name.
+* The second item may be an attribute map with keyword keys if the element
+  has attribute nodes.
+* The rest of the items are the element's children and may be text or element
+  nodes.
+* Text nodes are represented as strings or `($text "Value")`.
+* Parentheses may be omitted around elements which have no children or
+  attributes.
 
 Note that the script element has been removed in the sexp version. The script
 element in the HTML version serves simply to splice the lisp expressions it
@@ -124,11 +143,11 @@ valid in ClojureScript may contain characters which would crash a sane HTML
 parser (the function `clj->js`, for example, which cannot be represented in
 HTML markup as `<clj->js/>`).
 
+### Document Structure
+
 In order to facilitate the HTML-as-ClojureScript s-expression representation
 the compiler will reorder expressions such that the above program can also be
 represented in a format that works well with ClojureScript editors and tools:
-
-_src/html/sexp.cljs_
 
 ```clojure
 (ns hello.index)
@@ -141,8 +160,33 @@ _src/html/sexp.cljs_
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
 
+Of course, the compiler will also accept "out-of-body" script tags when
+parsing HTML syntax, too:
+
+```html
+<script type="text/hoplon">
+  (ns hello.index)
+  
+  ; definitions and initialization expressions can go here
+</script>
+
+<html>
+  <head></head>
+  <body>
+    <h1 id="main" style="color:red">Hello world</h1>
+  </body>
+</html>
+```
+
+In general, Hoplon programs can be represented equivalently in either
+HTML or ClojureScript syntax. This is an important point for designers
+and developers who rely on development tools to get the maximum level
+of productivity.
+
+### ClojureScript CSS Literal Syntax
+
 When editing HTML as s-expressions the compiler will also parse `<style>`
-elements containing ClojureScript CSS definition syntax:
+elements containing a simple ClojureScript CSS literal syntax:
 
 ```clojure
 (ns hello.index)
@@ -171,8 +215,9 @@ step of adding HTML primitives to the ClojureScript environment in which
 the page is evaluated provides the semantics of HTML, as well.
 
 HTML primitives are implemented as ClojureScript text and element node types.
-Each of the HTML5 elements is defined, i.e. `a`, `div`, `span`, `p`, etc.
-The ClojureScript element node type has the following properties:
+Each of the [HTML5 elements](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list)
+is defined, i.e. `a`, `div`, `span`, `p`, etc. The ClojureScript element node
+type has the following properties:
 
 * They are self-evaluating. There is no `render` function.
 * They are immutable. Operations on a node return a new node and do not alter
@@ -216,19 +261,20 @@ be represented as HTML markup:
 _src/html/func2.html_
 
 ```html
+<script type="text/hoplon">
+  (ns hello.func2)
+      
+  (defn fancyitem [heading body]
+    (li
+      (h2 heading)
+      (p body)))
+</script>
+
 <html>
   <head>
     <title>Hello Functions</title>
   </head>
   <body>
-    <script type="text/hoplon">
-      (ns hello.func2)
-      
-      (defn fancyitem [heading body]
-        (li
-          (h2 heading)
-          (p body)))
-    </script>
     <h1>Hello Functions</h1>
     <ul>
       <fancyitem>
@@ -254,3 +300,39 @@ characters, etc.
 
 An example of how macros can be used to advantage is the `reactive-attributes`
 macro that ships with Hoplon.
+
+_src/html/react1.html_
+
+```html
+<script type="text/hoplon">
+  (ns hello.react1
+    (:require-macros
+      [tailrecursion.javelin.macros   :refer [cell]]
+      [tailrecursion.hoplon.macros    :refer [reactive-attributes]])
+    (:require
+      [tailrecursion.javelin          :as j]
+      [tailrecursion.hoplon.util      :as u]
+      [tailrecursion.hoplon.reactive  :as r]))
+  
+  (def clicks (cell 0))
+</script>
+
+<html>
+  <head>
+    <title>Reactive Attributes: Example 1</title>
+  </head>
+  <body>
+    <reactive-attributes>
+      <h1 do="(r/on! :click #(swap! clicks inc))">
+        Click Me
+      </h1>
+      <ul>
+        <li>
+          You clicked
+          <span do='(r/text! (format " %s %s " clicks (u/pluralize "time" clicks)))'/>
+          so far.
+        </li>
+      </ul>
+    </reactive-attributes>
+  </body>
+</html>
