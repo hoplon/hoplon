@@ -37,6 +37,11 @@
 (defn node-zip [root]
   (zip/zipper branch? children make-node root))
 
+(let [cache (atom {})]
+  (defn node-cache
+    ([id] (get @cache id))
+    ([id e] (swap! cache assoc id e)))) 
+
 (deftype TextNode [tag text mymeta]
   Object
   (toString [n] (.-text n))
@@ -250,6 +255,7 @@
       (gdom/setProperties elem (clj->js attrs))
       (mapv #(.setAttribute elem (name (first %)) (str (second %))) attrs)
       (mapv #(append-child elem %) children)
+      (if (seq ids) (node-cache (peek ids) elem))
       elem)))
 
 
