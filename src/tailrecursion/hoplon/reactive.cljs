@@ -43,7 +43,7 @@
 (defn dom-get
   [elem]
   (if (satisfies? tailrecursion.hoplon.env/IDomNode elem)
-    (js/jQuery (hl/node-cache (id elem))) 
+    (find-id (id elem))
     (js/jQuery elem)))
 
 (defn rel

@@ -1,7 +1,14 @@
 (ns tailrecursion.hoplon.util
   (:require
-    [cljs.reader      :refer [read-string]]
-    [clojure.string   :as string]))
+    [goog.debug.Console   :as console] 
+    [goog.debug.Logger    :as logger] 
+    [cljs.reader          :refer [read-string]]
+    [clojure.string       :as string]))
+
+(defn logger
+  [name]
+  (console/autoInstall)
+  (logger/getLogger name))
 
 (defn safe-name
   [x]

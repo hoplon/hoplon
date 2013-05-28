@@ -3,6 +3,7 @@
     [clojure.walk         :as walk    :refer [postwalk]]
     [clojure.string       :as string  :refer [blank? split]]
     [clojure.set          :as s       :refer [union intersection]]
+    [cljs.analyzer        :as a]
     [clojure.core.strint  :as i]))
 
 (let [add-docstring (fn [docstring pair]
@@ -23,6 +24,8 @@
      (do-def-values nil bindings values))
     ([docstring bindings values]
      (do-def-values docstring bindings values))))
+
+(defmacro cljs-ns [] (name a/*cljs-ns*))
 
 (defmacro def-elem
   [param body]

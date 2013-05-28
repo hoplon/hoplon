@@ -3,7 +3,6 @@
   :url                "http://github.com/tailrecursion/hoplon"
   :license            {:name "Eclipse Public License"
                        :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :eval-in-leiningen  true
   :manifest           {"hoplon-provides"            "hoplon"}
   :dependencies       [[org.clojure/clojure         "1.5.1"]
                        [tailrecursion/javelin       "1.0.0-SNAPSHOT"]
