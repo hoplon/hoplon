@@ -4,6 +4,8 @@
     [clojure.data     :as data]
     [clojure.java.io  :refer [copy file make-parents reader resource]]
     [clojure.set      :refer [union intersection difference]])
+  (:import
+    java.lang.management.ManagementFactory)
   (:refer-clojure :exclude [sync]))
 
 (defn relative-to
@@ -31,7 +33,7 @@
     (when (.createNewFile f)
       (doto f
         .deleteOnExit
-        (spit (.getName (java.lang.management.ManagementFactory/getRuntimeMXBean)))))))
+        (spit (.getName (ManagementFactory/getRuntimeMXBean)))))))
 
 (defn tmpfile
   [prefix postfix]
