@@ -296,10 +296,12 @@ easily represented in the other syntax if desired. Of course some care
 must be taken when using HTML syntax that tag names do not contain invalid
 characters, etc.
 
-## Reactive Attributes
+## Functional Reactive Programming
 
 An example of how macros can be used to advantage is the `reactive-attributes`
-macro that ships with Hoplon.
+macro that ships with Hoplon. The `tailrecursion.hoplon.reactive` library
+ties FRP data structures from [Javelin](http://github.com/tailrecursion/javelin)
+to the DOM. Consider the following program:
 
 _src/html/react1.html_
 
@@ -336,3 +338,13 @@ _src/html/react1.html_
     </reactive-attributes>
   </body>
 </html>
+```
+
+Clicking on the "click me" element causes the span to update, its text
+reflecting the number of times the user has clicked so far. This reactive
+
+
+### Reactive Library
+
+The reactive library, `tailrecursion.hoplon.reactive`, provides a number
+of DOM manipulation functions that can be 
