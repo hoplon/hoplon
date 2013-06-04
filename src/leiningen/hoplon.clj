@@ -4,13 +4,9 @@
     [java.util.zip ZipFile])
   (:require
     [clojure.java.io                          :refer [file input-stream make-parents]]
-    [clojure.pprint                           :refer [pprint]]
-    [tailrecursion.hoplon.compiler.kahnsort   :refer [topo-sort]]
-    [tailrecursion.hoplon.compiler.re-map     :refer [re-map]]
     [tailrecursion.hoplon.compiler.file       :as f]
     [tailrecursion.hoplon.compiler.core       :as hl]
-    [tailrecursion.hoplon.compiler.compiler   :as hlc]
-    [leiningen.core.classpath                 :as cp]))
+    [leiningen.core.eval                      :as le]))
 
 (defn deep-merge-with [f & maps]
   (apply
@@ -19,14 +15,6 @@
         (apply merge-with m maps)
         (apply f maps)))
     maps))
-
-(defn make-counter []
-  (let [counter (ref 0)]
-    (fn [] (dosync (alter counter inc)))))
-
-(def counter (make-counter))
-
-(def trans (partial apply map vector))
 
 (def default-opts
   {:html-src      "src/html"
@@ -57,56 +45,24 @@
                 :ext-dep       (work "dep" "ext")
                 :cljs-dep      (work "dep" "cljs"))))
 
-(defn hoplon-dep-jar? [jar]
-  (let [attrs (-> (.getManifest jar) (.getMainAttributes))]
-    (and (-> (zipmap (mapv str (keys attrs)) (vals attrs))
-           (get "hoplon-provides"))
-         jar)))
-
-(defn extract-jar! [jar entry dir filename]
-  (let [dest (file dir filename)]
-    (make-parents dest)
-    (spit dest (slurp (.getInputStream jar entry)))))
-
-(defn munge-name [f]
-  (str "________" (format "%010d" (counter)) "_" f))
-
-(defn process-jar! [jar opts]
-  (let [dirmap    (re-map #"\.inc\.js$"   (:inc-dep opts) 
-                          #"\.ext\.js$"   (:ext-dep opts) 
-                          #"\.lib\.js$"   (:lib-dep opts) 
-                          #"\.flib\.js$"  (:flib-dep opts) 
-                          #"\.cljs$"      (:cljs-dep opts))
-        entries   (enumeration-seq (.entries jar))
-        names     (map #(munge-name (.getName %)) entries)
-        dirs      (map dirmap names)
-        depfiles  (filter second (trans [entries dirs names]))]
-    (mapv (partial apply extract-jar! jar) depfiles)))
-
-(defn process-dep! [dep opts]
-  (let [f (:file (meta dep))]
-    (when-let [jar (and (re-find #"\.jar$" (.getName f))
-                        (hoplon-dep-jar? (JarFile. f)))]
-      (process-jar! jar opts))))
-
-(defn install-hoplon-deps! [project opts]
-  (let [deps (#'cp/get-dependencies :dependencies project)] 
-    (when (count deps)
-      (if-let [sorted (topo-sort deps)]
-        (mapv #(process-dep! % opts) sorted)
-        (throw (Exception. (str "Circular dependency: " (pr-str deps))))))))
-
 (defn start-compiler [project auto]
   (if (f/lockfile ".hoplon-lock")
-    (let [opts (process-opts (or (:hoplon project) {}))]
-      (hl/prepare opts)
-      (install-hoplon-deps! project opts)
-      (binding [hlc/*printer* (if (:pretty-print opts) pprint prn)]
-        (hl/start opts :auto auto)))
+    (let [opts  (process-opts (or (:hoplon project) {}))
+          dep   (->> (:plugins project)
+                  (filter #(= 'tailrecursion/hoplon (first %))) 
+                  (into '[[leiningen "2.2.0"]]))
+          proj  (update-in project [:dependencies] into dep)]
+      (le/eval-in-project proj
+        (tailrecursion.hoplon.compiler.core/start proj opts :auto auto)
+        '(require '[tailrecursion.hoplon.compiler.core])))
     (println (str "Hoplon compiler is already running in JVM '"
                   (slurp ".hoplon-lock")
                   "'."))))
   
+(def subtasks
+  {nil    #(start-compiler % false)
+   :auto  #(start-compiler % true)})
+
 (defn hoplon
   "Hoplon compiler.
   
@@ -115,5 +71,7 @@
   
   USAGE: lein hoplon auto
   Watch source dirs and compile when necessary."
-  ([project] (start-compiler project false))
-  ([project auto] (start-compiler project true)))
+  [project & [subtask & _]]
+  (if-let [f (subtasks (keyword subtask))]
+    (f project)
+    (throw (Exception. (format "Unknown subtask: '%s'" subtask)))))

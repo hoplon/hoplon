@@ -3,14 +3,16 @@
     [tailrecursion.hoplon.compiler.colors   :only [style pr-ok print println]]
     [criterium.core                         :only [time-body]]
     [clojure.java.io                        :only [copy file make-parents reader resource]]
-    [clojure.stacktrace                     :only [print-stack-trace]])
+    [clojure.stacktrace                     :only [print-stack-trace]]
+    [clojure.pprint                         :only [pprint]])
   (:require
     [clojure.java.shell                     :as shell]
     [clojure.string                         :as string]
     [cljs.closure                           :as closure]
     [tailrecursion.hoplon.compiler.file     :as f]
+    [tailrecursion.hoplon.compiler.tagsoup  :as ts]
     [tailrecursion.hoplon.compiler.compiler :as hlc]
-    [tailrecursion.hoplon.compiler.tagsoup  :as ts])
+    [tailrecursion.hoplon.compiler.deps     :as hld])
   (:refer-clojure :exclude [print println]))
 
 (def CWD      (System/getProperty "user.dir"))
@@ -112,24 +114,29 @@
       (print (style (with-out-str (print-stack-trace e)) :red)))))
 
 (defn prepare
-  [{:keys [work-dir html-out outdir-out html-work cljs-work
-           include-work stage-work] :as opts}]
+  [project {:keys [work-dir   html-out      outdir-out  html-work
+                   cljs-work  include-work  stage-work] :as opts}]
   (f/delete-all work-dir)
   (mapv #(make-parents (file % "foo"))
         [html-out html-work cljs-work include-work stage-work outdir-out])
   (f/delete-all html-out)
-  (f/delete-all outdir-out))
+  (f/delete-all outdir-out)
+  (hld/install-deps! project opts))
 
 (defn start
-  [{:keys [html-work  cljs-work   include-work  stage-work
+  [project
+   {:keys [html-work  cljs-work   include-work  stage-work
            static-src html-src    cljs-src      include-src
-           work-dir   outdir-out  html-out] :as opts} & {:keys [auto]}]
-  (let [dirs    [html-src cljs-src include-src]
-        exts    #{".cljs" ".html"}
-        mods    #(apply f/dir-map-ext exts %)
-        changes #(reduce into #{} (f/what-changed %1 %2))]
-    (loop [before {} now (mods dirs)]
-      (when (seq (changes before now)) (compile-fancy opts))
-      (f/sync html-out stage-work static-src)
-      (Thread/sleep 100)
-      (when auto (recur now (mods dirs))))))
+           work-dir   outdir-out  html-out      pretty-print] :as opts}
+   & {:keys [auto]}]
+  (binding [hlc/*printer* (if pretty-print pprint prn)]
+    (prepare project opts)
+    (let [dirs    [html-src cljs-src include-src]
+          exts    #{".cljs" ".html"}
+          mods    #(apply f/dir-map-ext exts %)
+          changes #(reduce into #{} (f/what-changed %1 %2))]
+      (loop [before {} now (mods dirs)]
+        (when (seq (changes before now)) (compile-fancy opts))
+        (f/sync html-out stage-work static-src)
+        (Thread/sleep 100)
+        (when auto (recur now (mods dirs)))))))
