@@ -36,10 +36,16 @@ has no server side component but can be used with any back end available.
 ### Dependency
 
 Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon). 
-Add this to the `:plugins` key in the project's _project.clj_ file:
+Add the following to the `:plugins` key in the project's _project.clj_ file:
 
 ```clojure
 [thinkminimo/hoplon "0.1.0-SNAPSHOT"]
+```
+
+There is also a leiningen project template:
+
+```bash
+$ lein new hoplon
 ```
 
 ### Demos and Examples
