@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/tailrecursion/lein-hoplon.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hoplon.git</developerConnection>
-    <tag>d045046e259a703fdc3f8474d5f67a6ede4a9fe9</tag>
+    <tag>aacc13ef11d435688a20ec37eacade02b1a4b9be</tag>
     <url>https://github.com/tailrecursion/lein-hoplon</url>
   </scm>
   <build>

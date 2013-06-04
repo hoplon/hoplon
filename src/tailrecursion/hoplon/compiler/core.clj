@@ -118,9 +118,8 @@
                    cljs-work  include-work  stage-work] :as opts}]
   (f/delete-all work-dir)
   (mapv #(make-parents (file % "foo"))
-        [html-out html-work cljs-work include-work stage-work outdir-out])
+        [html-out html-work cljs-work include-work stage-work])
   (f/delete-all html-out)
-  (f/delete-all outdir-out)
   (hld/install-deps! project opts))
 
 (defn start
