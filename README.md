@@ -36,12 +36,10 @@ has no server side component but can be used with any back end available.
 ### Dependency
 
 Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon). 
-Put this in your _project.clj_:
+Add this to the `:plugins` key in the project's _project.clj_ file:
 
 ```clojure
-(defproject my-project "0.1.0-SNAPSHOT"
-  :plugins      [[thinkminimo/hoplon "0.1.0-SNAPSHOT"]]
-  :dependencies [[thinkminimo/hoplon "0.1.0-SNAPSHOT"]])
+[thinkminimo/hoplon "0.1.0-SNAPSHOT"]
 ```
 
 ### Demos and Examples
