@@ -341,7 +341,7 @@ _src/html/react1.html_
 ```
 
 Clicking on the "click me" element causes the span to update, its text
-reflecting the number of times the user has clicked so far. This reactive
+reflecting the number of times the user has clicked so far.
 
 
 ### Reactive Library
