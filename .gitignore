@@ -12,3 +12,4 @@ target/
 .hlisp-work-dir/
 .lein-repl-history
 test/src/
+pom.xml
