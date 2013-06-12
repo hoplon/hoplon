@@ -3,10 +3,10 @@
     [java.util.jar JarFile]
     [java.util.zip ZipFile])
   (:require
-    [clojure.java.io                          :refer [file input-stream make-parents]]
-    [tailrecursion.hoplon.compiler.file       :as f]
-    [tailrecursion.hoplon.compiler.core       :as hl]
-    [leiningen.core.eval                      :as le]))
+    [clojure.java.io                    :refer [file input-stream make-parents]]
+    [tailrecursion.hoplon.compiler.file :as f]
+    [tailrecursion.hoplon.compiler.core :as hl]
+    [leiningen.core.eval                :as le]))
 
 (defn deep-merge-with [f & maps]
   (apply
@@ -46,18 +46,12 @@
                 :cljs-dep      (work "dep" "cljs"))))
 
 (defn start-compiler [project auto]
-  (if (f/lockfile ".hoplon-lock")
-    (let [opts  (process-opts (or (:hoplon project) {}))
-          dep   (->> (:plugins project)
-                  (filter #(= 'tailrecursion/hoplon (first %))) 
-                  (into '[[leiningen "2.2.0"]]))
-          proj  (update-in project [:dependencies] into dep)]
-      (le/eval-in-project proj
-        (tailrecursion.hoplon.compiler.core/start proj opts :auto auto)
-        '(require '[tailrecursion.hoplon.compiler.core])))
-    (println (str "Hoplon compiler is already running in JVM '"
-                  (slurp ".hoplon-lock")
-                  "'."))))
+  (let [lockf ".hoplon-lock"
+        opts    (process-opts (:hoplon project {}))
+        start   #(hl/start project opts :auto auto)
+        errfmt  "Hoplon compiler already running in JVM '%s'."
+        lockerr #(println (format errfmt (slurp lockf)))]
+    (if (f/lockfile lockf) (start) (lockerr))))
   
 (def subtasks
   {nil    #(start-compiler % false)
