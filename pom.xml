@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/tailrecursion/lein-hoplon.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hoplon.git</developerConnection>
-    <tag>75cc05f1cf66ec11d9201435abb32132c8b2003f</tag>
+    <tag>0efab39027d72ab550d9c9f1faee06a8c93412a3</tag>
     <url>https://github.com/tailrecursion/lein-hoplon</url>
   </scm>
   <build>
@@ -67,6 +67,11 @@
       <version>1.5.1</version>
     </dependency>
     <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojurescript</artifactId>
+      <version>0.0-1820</version>
+    </dependency>
+    <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>javelin</artifactId>
       <version>1.0.0-SNAPSHOT</version>
@@ -95,11 +100,6 @@
       <groupId>org.clojure</groupId>
       <artifactId>core.incubator</artifactId>
       <version>0.1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojurescript</artifactId>
-      <version>0.0-1552</version>
     </dependency>
   </dependencies>
 </project>
