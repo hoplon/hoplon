@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/tailrecursion/lein-hoplon.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hoplon.git</developerConnection>
-    <tag>0efab39027d72ab550d9c9f1faee06a8c93412a3</tag>
+    <tag>5a2b673caa20991719ed151b01e6bf65643fa57a</tag>
     <url>https://github.com/tailrecursion/lein-hoplon</url>
   </scm>
   <build>
@@ -75,6 +75,11 @@
       <groupId>tailrecursion</groupId>
       <artifactId>javelin</artifactId>
       <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jsr166-mirror</groupId>
+      <artifactId>jsr166y</artifactId>
+      <version>1.7.0</version>
     </dependency>
     <dependency>
       <groupId>fipp</groupId>
