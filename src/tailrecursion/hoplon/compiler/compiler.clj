@@ -1,8 +1,7 @@
 (ns tailrecursion.hoplon.compiler.compiler
   (:require
     [clojure.walk                           :refer  [stringify-keys]]
-    [tailrecursion.hoplon.compiler.re-map   :refer  [re-map]]
-    [clojure.java.io                        :refer  [file]]
+    [clojure.java.io                        :refer  [file make-parents]]
     [clojure.pprint                         :refer  [pprint]]
     [clojure.zip                            :as     zip]
     [clojure.string                         :as     string]
@@ -26,6 +25,28 @@
    'style 'sub 'summary 'sup 'table 'tbody 'td 'textarea 'tfoot 'th 'thead
    'html-time 'title 'tr 'track 'tt 'u 'ul 'html-var 'video 'wbr '$text
    '$comment])
+
+(defn relative-to [base f] (.relativize (.toURI base) (.toURI f)))
+
+(defn up-parents [f base & parts]
+  (->> (file f)
+    (relative-to (file base))
+    .getPath
+    file
+    (iterate #(.getParentFile %))
+    (take-while identity)
+    butlast
+    (map (constantly ".."))
+    (concat (reverse parts))
+    reverse
+    (apply file)
+    .getPath))
+
+(defn srcdir->outdir [fname srcdir outdir]
+  (.getPath (file outdir (.getPath (relative-to (file srcdir) (file fname))))))
+
+(defn munge-path [path]
+  (-> (str "__" path) (string/replace "_" "__") (string/replace "/" "_")))
 
 (def hoplon-exports
   ['tailrecursion.hoplon.env :only
@@ -99,23 +120,6 @@
                  (list* a (concat newkids (rest tail)))
                  (list* {} (concat newkids tail))))))
 
-(defn process-includes
-  [root]
-  (let [cur-dir (.getParentFile *current-file*)]
-    (tree-update-splicing
-      root
-      (fn [x]
-        (when (and (seq? x) (< 1 (count x)))
-          (let [[tag attr & _] x]
-            (when (map? attr)
-              (let [{:keys [type src]} attr]
-                (and (= 'include tag) (= "text/hoplon" type) (string? src)))))))
-      (fn [[_ {:keys [src]} & _]]
-        (let [inc-file          (.getCanonicalFile (file cur-dir src))
-              [nsdecl & forms]  (read-string (str "(" (slurp inc-file) ")"))
-              do-expr           (list* 'do (concat forms (list 'nil)))] 
-          (list nsdecl do-expr))))))
-
 (defn add-hoplon-uses
   [[_ nm & forms]]
   (let [parts (group-by #(= :use (first %)) forms)
@@ -123,11 +127,10 @@
         other (get parts false)] 
     (list* 'ns nm uses other)))
 
-(defn compile-forms [proc html-forms js-uri base-uri]
+(defn compile-forms [html-forms js-uri]
   (let [body-noinc    (first (filter-tag 'body html-forms))
         forms-noinc   (drop (if (map? (second body-noinc)) 2 1) body-noinc) 
         bhtml         (map ts/pedanticize (rest forms-noinc))
-        html-forms    (proc html-forms)
         body    (first (filter-tag 'body html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
@@ -138,7 +141,6 @@
                      " node.removeChild(node.lastChild)"
                      " })(document.body);")
         s-empty (list 'script {:type "text/javascript"} emptyjs)
-        s-base  (list 'script {:type "text/javascript" :src base-uri})
         s-main  (list 'script {:type "text/javascript" :src js-uri})
         s-nodep (list 'script {:type "text/javascript"}
                       "var CLOSURE_NO_DEPS = true;")
@@ -146,9 +148,7 @@
                       (str "goog.require('" nsname "');"))
         s-init  (list 'script {:type "text/javascript"}
                       (str nsname ".hoploninit();"))
-        scripts (if base-uri
-                  (list s-empty s-base s-main s-goog s-init)
-                  (list s-empty s-nodep s-main s-init))
+        scripts (list s-empty s-nodep s-main s-init)
         bnew    (list* 'body battr (concat bhtml scripts))
         cljs    (concat
                   (list nsdecl)
@@ -174,26 +174,53 @@
     html  first-form
     (throw (Exception. "First tag is not HTML or namespace declaration."))))
 
-(defn compile-ts [html-ts js-uri base-uri]
-  (compile-forms process-includes
-                 (move-cljs-to-body (ts/tagsoup->hoplon html-ts))
-                 js-uri
-                 base-uri))
+(defn compile-ts [html-ts js-uri]
+  (compile-forms (move-cljs-to-body (ts/tagsoup->hoplon html-ts)) js-uri))
 
-(defn compile-string [html-str js-uri base-uri]
-  (compile-ts (ts/parse-string html-str) js-uri base-uri))
+(defn compile-string [html-str js-uri]
+  (compile-ts (ts/parse-string html-str) js-uri))
 
 (defn compile-file
-  [f js-uri base-uri]
-  (let [doit
-        (re-map
-          #"\.html$" #(compile-string (slurp %) js-uri base-uri)
-          #"\.cljs$" #(compile-forms
-                        identity
-                        (move-cljs-to-body
-                          (read-string (str "(" (slurp %) ")")))
-                        js-uri
-                        base-uri)
-          #".*"      (constantly nil))]
-    (binding [*current-file* f]
-      ((doit (.getPath f)) f))))
+  [f js-uri]
+  (let [read-all  #(read-string (str "(" (slurp %) ")"))
+        do-move   #(move-cljs-to-body (read-all %))
+        do-html   #(compile-string (slurp %) js-uri)
+        do-cljs   #(compile-forms identity (do-move %) js-uri)
+        domap     {"html" do-html "cljs" do-cljs}
+        doit      #(domap (last (re-find #"[^.]+\.([^.]+)$" %)))]
+    (binding [*current-file* f] ((doit (.getPath f)) f))))
+
+(defn compile-dir
+  [srcdir cljsdir htmldir]
+  (let [to-html     #(let [path (.getPath %)]
+                       (if (.endsWith path ".cljs")
+                         (str (subs path 0 (- (count path) 5)) ".html")
+                         path))
+        ->htmldir   #(file (srcdir->outdir (to-html %) srcdir htmldir))
+        ->cljsdir   #(file cljsdir (str (munge-path (.getPath %)) ".cljs"))
+        src?        #(and (.isFile %) (re-find #"\.(html|cljs)$" (.getName %)))
+        srcs        (into [] (filter src? (file-seq (file srcdir)))) 
+        js-uris     (mapv #(up-parents % srcdir "main.js") srcs)
+        compiled    (mapv compile-file srcs js-uris)
+        html-outs   (mapv ->htmldir srcs)
+        cljs-outs   (mapv ->cljsdir srcs)
+        write       #(spit (doto %1 make-parents) %2)
+        write-files (fn [h c {:keys [html cljs]}] (write h html) (write c cljs))]
+    (doall (map write-files html-outs cljs-outs compiled))))
+
+(let [last-counter (atom 0)]
+  (def counter #(swap! last-counter inc)))
+
+(defn install-deps [jars incs exts libs flibs]
+  (let [name*   #(.getName (file %))
+        match   #(last (re-find #"[^.]+\.([^.]+)\.js$" %))
+        dirmap  {"inc" incs "ext" exts "lib" libs "flib" flibs}
+        outfile #(file %1 (str (format "%010d" (counter)) "_" (name* %2)))
+        write   #(if-let [d (dirmap (match %1))]
+                   (spit (doto (outfile d %1) make-parents) (slurp %2)))]
+    (doall (->> jars (map second) (mapcat identity) reverse (map (partial apply write))))))
+
+(comment
+  (binding [*printer* pprint]
+    (println (:cljs (-> (compile-file (file "test/index.html") "main.js"))))) 
+  )
