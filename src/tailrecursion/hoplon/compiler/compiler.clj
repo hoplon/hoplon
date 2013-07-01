@@ -12,19 +12,19 @@
 (def ^:dynamic *printer*      prn)
 
 (def html-tags
-  ['a 'abbr 'acronym 'address 'applet 'area 'article
-   'aside 'audio 'b 'base 'basefont 'bdi 'bdo 'big 'blockquote 'body 'br
-   'button 'canvas 'caption 'center 'cite 'code 'col 'colgroup 'command
-   'data 'datalist 'dd 'del 'details 'dfn 'dir 'div 'dl 'dt 'em 'embed
-   'eventsource 'fieldset 'figcaption 'figure 'font 'footer 'form 'frame
-   'frameset 'h1 'h2 'h3 'h4 'h5 'h6 'head 'header 'hgroup 'hr 'html 'i
-   'iframe 'img 'input 'ins 'isindex 'kbd 'keygen 'label 'legend 'li 'link
-   'html-map 'mark 'menu 'html-meta 'meter 'nav 'noframes 'noscript 'object
-   'ol 'optgroup 'option 'output 'p 'param 'pre 'progress 'q 'rp 'rt 'ruby
-   's 'samp 'script 'section 'select 'small 'source 'span 'strike 'strong
-   'style 'sub 'summary 'sup 'table 'tbody 'td 'textarea 'tfoot 'th 'thead
-   'html-time 'title 'tr 'track 'tt 'u 'ul 'html-var 'video 'wbr '$text
-   '$comment])
+  '[a abbr acronym address applet area article
+    aside audio b base basefont bdi bdo big blockquote body br
+    button canvas caption center cite code col colgroup command
+    data datalist dd del details dfn dir div dl dt em embed
+    eventsource fieldset figcaption figure font footer form frame
+    frameset h1 h2 h3 h4 h5 h6 head header hgroup hr html i
+    iframe img input ins isindex kbd keygen label legend li link
+    html-map mark menu html-meta meter nav noframes noscript object
+    ol optgroup option output p param pre progress q rp rt ruby
+    s samp script section select small source span strike strong
+    style sub summary sup table tbody td textarea tfoot th thead
+    html-time title tr track tt u ul html-var video wbr $text
+    $comment])
 
 (defn relative-to [base f] (.relativize (.toURI base) (.toURI f)))
 
@@ -50,9 +50,7 @@
 
 (def hoplon-exports
   ['tailrecursion.hoplon.env :only
-   (into html-tags
-         ['text 'pr-node 'tag 'attrs 'branch? 'children 'make-node 'dom
-          'node-zip 'clone])])
+   (into html-tags '[text pr-node tag attrs branch? children make-node dom node-zip clone])])
 
 (defn clj->css [forms]
   (let [[selectors properties]
@@ -67,10 +65,10 @@
                               (map (comp (partial str "  ")
                                          (partial string/join ": ")))
                               (string/join ";\n"))]
-                      (str " {\n" p ";\n}\n")))]
-    (->>
-      (map str (map sel-str selectors) (map prop-str properties))
-      (string/join "\n"))))
+                      (str " {\n" p ";\n}\n")))
+        sel-strs  (map sel-str selectors)
+        prop-strs (map prop-str properties)]
+    (->> (map str sel-strs prop-strs) (string/join "\n"))))
 
 (defn tree-update-in
   [root pred f]
@@ -83,22 +81,14 @@
         (zip/root loc)
         (recur (zip/next (update loc)))))))
 
-(defn tree-update-splicing
-  ([root pred f]
-   (apply concat (tree-update-splicing root pred f ::doit))) 
-  ([root pred f _]
-   (cond
-     (pred root)
-     (f root)
+(defn tree-update-splicing [root pred f]
+  (letfn [(t-u-s [r p f]
+            (cond (p r)     (f r)
+                  (seq? r)  (->> r (map #(t-u-s % p f)) (apply concat) list)
+                  :else     (list r)))]
+    (apply concat (t-u-s root pred f))))
 
-     (seq? root)
-     (list (apply concat (map #(tree-update-splicing % pred f ::doit) root)))
-
-     :else
-     (list root))))
-
-(defn style
-  [[_ & forms]]
+(defn style [[_ & forms]]
   (if (vector? (first forms))
     (list 'style {:type "text/css"} (clj->css forms))
     (list* 'style forms)))
@@ -191,7 +181,7 @@
     (binding [*current-file* f] ((doit (.getPath f)) f))))
 
 (defn compile-dir
-  [srcdir cljsdir htmldir]
+  [js-file srcdir cljsdir htmldir]
   (let [to-html     #(let [path (.getPath %)]
                        (if (.endsWith path ".cljs")
                          (str (subs path 0 (- (count path) 5)) ".html")
@@ -200,25 +190,13 @@
         ->cljsdir   #(file cljsdir (str (munge-path (.getPath %)) ".cljs"))
         src?        #(and (.isFile %) (re-find #"\.(html|cljs)$" (.getName %)))
         srcs        (into [] (filter src? (file-seq (file srcdir)))) 
-        js-uris     (mapv #(up-parents % srcdir "main.js") srcs)
+        js-uris     (mapv #(up-parents % srcdir (.getName js-file)) srcs)
         compiled    (mapv compile-file srcs js-uris)
         html-outs   (mapv ->htmldir srcs)
         cljs-outs   (mapv ->cljsdir srcs)
         write       #(spit (doto %1 make-parents) %2)
         write-files (fn [h c {:keys [html cljs]}] (write h html) (write c cljs))]
     (doall (map write-files html-outs cljs-outs compiled))))
-
-(let [last-counter (atom 0)]
-  (def counter #(swap! last-counter inc)))
-
-(defn install-deps [jars incs exts libs flibs]
-  (let [name*   #(.getName (file %))
-        match   #(last (re-find #"[^.]+\.([^.]+)\.js$" %))
-        dirmap  {"inc" incs "ext" exts "lib" libs "flib" flibs}
-        outfile #(file %1 (str (format "%010d" (counter)) "_" (name* %2)))
-        write   #(if-let [d (dirmap (match %1))]
-                   (spit (doto (outfile d %1) make-parents) (slurp %2)))]
-    (doall (->> jars (map second) (mapcat identity) reverse (map (partial apply write))))))
 
 (comment
   (binding [*printer* pprint]
