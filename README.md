@@ -39,7 +39,7 @@ Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon).
 Add the following to the `:plugins` key in the project's _project.clj_ file:
 
 ```clojure
-[thinkminimo/hoplon "0.1.0-SNAPSHOT"]
+[tailrecursion/hoplon "0.1.0-SNAPSHOT"]
 ```
 
 There is also a leiningen project template:
