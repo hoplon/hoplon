@@ -175,7 +175,8 @@
   (let [read-all  #(read-string (str "(" (slurp %) ")"))
         do-move   #(move-cljs-to-body (read-all %))
         do-html   #(compile-string (slurp %) js-uri)
-        do-cljs   #(compile-forms identity (do-move %) js-uri)
+
+        do-cljs   #(compile-forms (do-move %) js-uri)
         domap     {"html" do-html "cljs" do-cljs}
         doit      #(domap (last (re-find #"[^.]+\.([^.]+)$" %)))]
     (binding [*current-file* f] ((doit (.getPath f)) f))))
