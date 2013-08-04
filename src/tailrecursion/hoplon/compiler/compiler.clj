@@ -24,7 +24,7 @@
     s samp script section select small source span strike strong
     style sub summary sup table tbody td textarea tfoot th thead
     html-time title tr track tt u ul html-var video wbr $text
-    $comment])
+    $comment spliced])
 
 (defn relative-to [base f] (.relativize (.toURI base) (.toURI f)))
 
@@ -175,7 +175,6 @@
   (let [read-all  #(read-string (str "(" (slurp %) ")"))
         do-move   #(move-cljs-to-body (read-all %))
         do-html   #(compile-string (slurp %) js-uri)
-
         do-cljs   #(compile-forms (do-move %) js-uri)
         domap     {"html" do-html "cljs" do-cljs}
         doit      #(domap (last (re-find #"[^.]+\.([^.]+)$" %)))]
