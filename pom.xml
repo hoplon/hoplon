@@ -14,10 +14,10 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git://github.com/tailrecursion/lein-hoplon.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hoplon.git</developerConnection>
-    <tag>2e38bb8ac1e404bf49ab68fd5c1da1df22f44a96</tag>
-    <url>https://github.com/tailrecursion/lein-hoplon</url>
+    <connection>scm:git:git://github.com//.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
+    <tag>df9590a35516cf0882d12ede0354a3756abba1a9</tag>
+    <url>https://github.com//</url>
   </scm>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -62,19 +62,14 @@
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <version>1.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojurescript</artifactId>
-      <version>0.0-1820</version>
-    </dependency>
-    <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>javelin</artifactId>
       <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>tailrecursion</groupId>
+      <artifactId>boot.task</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jsr166-mirror</groupId>

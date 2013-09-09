@@ -177,18 +177,19 @@
         do-html   #(compile-string (slurp %) js-uri)
         do-cljs   #(compile-forms (do-move %) js-uri)
         domap     {"html" do-html "cljs" do-cljs}
-        doit      #(domap (last (re-find #"[^.]+\.([^.]+)$" %)))]
+        doit      #(domap (last (re-find #"[^.]+\.([^.]+)\.hl$" %)))]
     (binding [*current-file* f] ((doit (.getPath f)) f))))
 
 (defn compile-dir
   [js-file srcdir cljsdir htmldir]
   (let [to-html     #(let [path (.getPath %)]
-                       (if (.endsWith path ".cljs")
-                         (str (subs path 0 (- (count path) 5)) ".html")
+                       (if (or (.endsWith path ".cljs.hl")
+                               (.endsWith path ".html.hl")) 
+                         (str (subs path 0 (- (count path) 8)) ".html")
                          path))
         ->htmldir   #(file (srcdir->outdir (to-html %) srcdir htmldir))
         ->cljsdir   #(file cljsdir (str (munge-path (.getPath %)) ".cljs"))
-        src?        #(and (.isFile %) (re-find #"\.(html|cljs)$" (.getName %)))
+        src?        #(and (.isFile %) (re-find #"\.(html|cljs)\.hl$" (.getName %)))
         srcs        (into [] (filter src? (file-seq (file srcdir)))) 
         js-uris     (mapv #(up-parents % srcdir (.getName js-file)) srcs)
         compiled    (mapv compile-file srcs js-uris)
@@ -197,6 +198,9 @@
         write       #(spit (doto %1 make-parents) %2)
         write-files (fn [h c {:keys [html cljs]}] (write h html) (write c cljs))]
     (doall (map write-files html-outs cljs-outs compiled))))
+
+(defn compile-dirs [js-file srcdirs cljsdir htmldir]
+  (doall (map #(compile-dir js-file % cljsdir htmldir) srcdirs)))
 
 (comment
   (binding [*printer* pprint]
