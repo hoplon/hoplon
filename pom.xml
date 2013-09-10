@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>eae8a8b369f7b465ef1fe65949b7ffc2e1d21758</tag>
+    <tag>c502f038dba286560ff35d7f8d926684d7de56cc</tag>
     <url>https://github.com//</url>
   </scm>
   <build>
@@ -69,6 +69,11 @@
     <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>boot.task</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>tailrecursion</groupId>
+      <artifactId>castra</artifactId>
       <version>0.1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
