@@ -6,6 +6,7 @@
   :manifest           {"hoplon-provides"            "hoplon"}
   :dependencies       [[tailrecursion/javelin       "1.0.0-SNAPSHOT"]
                        [tailrecursion/boot.task     "0.1.0-SNAPSHOT"]
+                       [tailrecursion/castra        "0.1.0-SNAPSHOT"]
                        ;; for fipp, jdk 1.6 compat
                        [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]
                        [fipp                        "0.3.0-SNAPSHOT"]
