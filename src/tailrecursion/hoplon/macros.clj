@@ -80,12 +80,13 @@
                                     (~cell (doto f# ~@exprs))))
                         form)))
       loop-1      (fn [[tag maybe-attrs & [tpl] :as form]]
-                    (let [attrs?  (map? maybe-attrs)
-                          tpl     (if attrs? tpl maybe-attrs)
-                          attrs   (if attrs? maybe-attrs {})
+                    (let [attrs?    (map? maybe-attrs)
+                          tpl       (if attrs? tpl maybe-attrs)
+                          attrs     (if attrs? maybe-attrs {})
+                          container (rm-attr [tag attrs] :loop)
                           {loopspec :loop} attrs]
                       (if-let [[looper & args] (doread loopspec)]
-                        `(~looper (fn ~(vec args) ~tpl) (~tag ~(dissoc attrs :loop)))
+                        `(~looper (fn ~(vec args) ~tpl) ~container)
                         form)))
       walk-1      (fn [f] #(if (listy? %) (f %) %))
       walk-all    (fn [f forms] (map #(walk/postwalk (walk-1 f) %) forms))]
