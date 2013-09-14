@@ -85,7 +85,7 @@
                           attrs   (if attrs? maybe-attrs {})
                           {loopspec :loop} attrs]
                       (if-let [[looper & args] (doread loopspec)]
-                        `(~looper (fn ~(vec args) ~tpl) (~tag ~attrs))
+                        `(~looper (fn ~(vec args) ~tpl) (~tag ~(dissoc attrs :loop)))
                         form)))
       walk-1      (fn [f] #(if (listy? %) (f %) %))
       walk-all    (fn [f forms] (map #(walk/postwalk (walk-1 f) %) forms))]
