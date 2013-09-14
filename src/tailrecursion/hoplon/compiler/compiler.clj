@@ -199,8 +199,9 @@
         write-files (fn [h c {:keys [html cljs]}] (write h html) (write c cljs))]
     (doall (map write-files html-outs cljs-outs compiled))))
 
-(defn compile-dirs [js-file srcdirs cljsdir htmldir]
-  (doall (map #(compile-dir js-file % cljsdir htmldir) srcdirs)))
+(defn compile-dirs [js-file srcdirs cljsdir htmldir & {:keys [opts]}]
+  (binding [*printer* (if (:pretty-print opts) pprint prn)]
+    (doall (map #(compile-dir js-file % cljsdir htmldir) srcdirs))))
 
 (comment
   (binding [*printer* pprint]
