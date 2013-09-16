@@ -114,6 +114,7 @@
                         form)))
       walk-1      (fn [f] #(if (listy? %) (f %) %))
       walk-all    (fn [f forms] (map #(walk/postwalk (walk-1 f) %) forms))]
-  (defmacro hatest [attrs] (hl-attr* attrs))
   (defmacro reactive-attributes [& forms]
+    `(~spliced ~@(->> forms (walk-all loop-1) (walk-all do-1))))
+  (defmacro with-frp [& forms]
     `(~spliced ~@(->> forms (walk-all loop-1) (walk-all do-1)))))

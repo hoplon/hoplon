@@ -141,7 +141,6 @@
        (.fadeIn (.hide (dom-get elem)) "fast")
        (.fadeOut (dom-get elem) "fast"))))
 
-
 (defmethod do! :focus
   [elem _ v]
   (js/jQuery #(if v (timeout (fn [] (.focus (dom-get elem))) 0)
@@ -150,6 +149,10 @@
 (defmethod do! :select
   [elem _ _]
   (js/jQuery #(.select (dom-get elem))))
+
+(defmethod do! :focus-select
+  [elem _ v]
+  (js/jQuery #(when v (do! elem :focus v) (do! elem :select v))))
 
 (defmethod do! :text
   [elem _ v]
