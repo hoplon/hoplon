@@ -325,13 +325,13 @@ _src/html/react1.html_
   </head>
   <body>
     <reactive-attributes>
-      <h1 do="(r/on! :click #(swap! clicks inc))">
+      <h1 on-click='#(swap! clicks inc)'>
         Click Me
       </h1>
       <ul>
         <li>
           You clicked
-          <span do='(r/text! (format " %s %s " clicks (u/pluralize "time" clicks)))'/>
+          <span do-text='(format " %s %s " clicks (u/pluralize "time" clicks))'/>
           so far.
         </li>
       </ul>
