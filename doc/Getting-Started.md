@@ -329,3 +329,8 @@ all start with the prefix `do-`.
 | `:do-select [expr]`       | Triggers the `select` event on the element when `expr` changes to a truthy value. |
 | `:do-focus-select [expr]` | Triggers the `focus` and `select` events on the element when `expr` changes to a truthy value. |
 | `:do-text [expr]`         | Sets the element's text to the value of `expr`. |
+
+#### Custom Reactive Attributes
+
+The output attributes can be extended by adding to the
+`tailrecursion.reactive/do!` multimethod. Look in the source file for examples.
