@@ -118,10 +118,11 @@ syntax. The Hoplon compiler can compile HTML source in this format, as well.
 _src/html/index.cljs.hl_
 
 ```clojure
+(ns hello.index)
+
 (html
   head
   (body
-    (ns hello.index)
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
 
@@ -148,41 +149,6 @@ is made up of lists, maps, vectors, reader macros, etc., and names which are
 valid in ClojureScript may contain characters which would crash a sane HTML
 parser (the function `clj->js`, for example, which cannot be represented in
 HTML markup as `<clj->js/>`).
-
-### Document Structure
-
-In order to facilitate the HTML-as-ClojureScript s-expression representation
-the compiler will reorder expressions such that the above program can also be
-represented in a format that works well with ClojureScript editors and tools:
-
-```clojure
-(ns hello.index)
-
-; definitions and initialization expressions can go here
-
-(html
-  head
-  (body
-    (h1 {:id "main" :style "color:red"} "Hello world")))
-```
-
-Of course, the compiler will also accept "out-of-body" script tags when
-parsing HTML syntax, too:
-
-```html
-<script type="text/hoplon">
-  (ns hello.index)
-  
-  ; definitions and initialization expressions can go here
-</script>
-
-<html>
-  <head></head>
-  <body>
-    <h1 id="main" style="color:red">Hello world</h1>
-  </body>
-</html>
-```
 
 In general, Hoplon programs can be represented equivalently in either
 HTML or ClojureScript syntax. This is an important point for designers
