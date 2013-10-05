@@ -1,7 +1,7 @@
 # Getting Started
 
 Hoplon applications are be built using the 
-(http://github.com/tailrecursion/boot)[boot]
+[boot](http://github.com/tailrecursion/boot)
 build tool. The following `boot.clj` file is a good starting point:
 
 ```clojure
