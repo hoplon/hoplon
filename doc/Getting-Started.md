@@ -289,7 +289,8 @@ _src/html/react1.cljs.hl_
 (def clicks (cell 0))
 
 (html
-  (head (title "Reactive Attributes: Example 1"))
+  (head
+    (title "Reactive Attributes: Example 1"))
   (body
     (with-frp
       (h1 {:on-click [#(swap! clicks inc)]} "click me")
