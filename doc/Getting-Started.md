@@ -4,7 +4,6 @@ Hoplon applications are be built using the
 [boot](http://github.com/tailrecursion/boot)
 build tool. The following `boot.clj` file is a good starting point:
 
-*boot.clj*
 ```clojure
 {:project       my-hoplon-project
  :version       "0.1.0-SNAPSHOT"
@@ -19,7 +18,6 @@ build tool. The following `boot.clj` file is a good starting point:
 When the project is built, HTML and JavaScript files will be created and put
 in the `resources/public` directory.
 
-*Terminal, in the project root directory*
 ```bash
 # build once and exit
 $ boot hoplon
@@ -30,19 +28,15 @@ $ boot watch hoplon
 
 ### Compiler Source and Output Directories
 
-By default the compiler looks in certain directories for source files. Since web
-applications are organized around URLs, the HTML source files that make up the 
-"pages" of the application are expected to be in a certain directory in the project.
-Subdirectories in this HTML source directory are reproduced in the output directory
-so that the pages end up at the right URLs when the application is deployed.
+For the purposes of this document (and as specified in the `boot.clj` file
+above) the source paths are organized as follows:
 
-* _src/html_ HTML source files and subdirectories.
-* _src/cljs_ ClojureScript source files for namespaces which can be required in the
-  HTML files.
-* _src/static_ Static content. Files and subdirectories here are overlayed on the
-  output directory.
-* _resources/public_ HTML and JavaScript output files, subdirectories, and static
-  content.
+| Directory    | Contents                                          |
+|--------------|---------------------------------------------------|
+| _src/hoplon_ | Hoplon source files, organized in directories
+                 reflecting the application's HTML page structure. |
+| _src/cljs_   | ClojureScript library source files.               |
+| _src/clj_    | Clojure source files.                             |
 
 ### Library And Package Management
 
