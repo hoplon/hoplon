@@ -10,7 +10,7 @@ build tool. The following `boot.clj` file is a good starting point:
  :dependencies  [[tailrecursion/boot.task "0.1.0-SNAPSHOT"]
                  [tailrecursion/hoplon "1.1.0-SNAPSHOT"]]
  :require-tasks #{[tailrecursion.boot.task :refer :all]}
- :src-paths     #{"src/hoplon" "src/clj" "src/cljs"}
+ :src-paths     #{"src/html" "src/clj" "src/cljs"}
  :src-static    #{"src/static"}
  :public        "resources/public"}
 ```
@@ -26,53 +26,61 @@ $ boot hoplon
 $ boot watch hoplon
 ```
 
-### Compiler Source and Output Directories
+### Compiler Source Directories
 
-For the purposes of this document (and as specified in the `boot.clj` file
-above) the source paths are organized as follows:
+For the purposes of this document (as specified in the `boot.clj` file above)
+the source paths are organized as follows:
 
 | Directory    | Contents                                          |
 |--------------|---------------------------------------------------|
-| _src/hoplon_ | Hoplon source files, organized in directories reflecting the application's HTML page structure. |
+| _src/html_   | Hoplon source files, organized in directories reflecting the application's HTML page structure. |
 | _src/static_ | Static content (CSS files, images, etc.), organized in directories reflecting the application's HTML page structure. |
 | _src/cljs_   | ClojureScript library source files.               |
 | _src/clj_    | Clojure source files.                             |
 
 ### Library And Package Management
 
-Hoplon projects can have dependencies in the _project.clj_ file. These dependencies
+Hoplon projects can have dependencies in the _boot.clj_ file. These dependencies
 can be any of the following:
 
 * Clojure namespaces (ClojureScript macros are written in Clojure).
 * ClojureScript namespaces to be used in the project.
-* Raw JavaScript source files to be prepended (in dependency order) to the _main.js_
-  output file.
+* Raw JavaScript source files to be prepended (in dependency order) to the
+  _main.js_ output file.
 * Google Closure Compiler ready JavaScript source and extern files.
 
-Note that JavaScript dependency jar files must be prepared a certain way, described
-[here](#).
+Note that JavaScript dependency jar files must be prepared a certain way,
+described [here](#).
 
 ## Hello World
 
 The simplest example application looks almost exactly like a standard HTML web
 page, with the exception of an unfamiliar script tag containing a namespace
-declaration. All HTML source files in a Hoplon application must declare a namespace.
-This is because the HTML contained in the document body is going to be _evaluated_
-as ClojureScript in the browser.
+declaration. All HTML source files in a Hoplon application must declare a
+namespace. This is because the HTML contained in the document body is going to
+be _evaluated_ as ClojureScript in the browser.
 
-_src/html/index.html_:
+_src/html/index.html.hl_:
 
 ```html
+<script type="text/hoplon">
+  (ns hello.index)
+</script>   
+
 <html>
   <head></head>
   <body>
-    <script type="text/hoplon">
-      (ns hello.index)
-    </script>   
     <h1 id="main" style="color:red">Hello world</h1>
   </body>
 </html>
 ```
+
+Note the `.html.hl` extension: all files ending in `.hl` will be compiled by
+the Hoplon compiler, and the `.html.hl` ending tells Hoplon that the source
+file format is HTML markup. Hoplon can also compile source files with the
+`.cljs.hl` extension, which indicates that the source file format is
+ClojureScript forms (s-expressions) instead of HTML markup. This is covered in
+detail below.
 
 ## S-Expression Syntax
 
