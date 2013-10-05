@@ -4,6 +4,8 @@ Hoplon applications are be built using the
 [boot](http://github.com/tailrecursion/boot)
 build tool. The following `boot.clj` file is a good starting point:
 
+*boot.clj*
+
 ```clojure
 {:project       my-hoplon-project
  :version       "0.1.0-SNAPSHOT"
@@ -17,6 +19,8 @@ build tool. The following `boot.clj` file is a good starting point:
 
 When the project is built, HTML and JavaScript files will be created and put
 in the `resources/public` directory.
+
+**Terminal, in the project root directory**
 
 ```bash
 # build once and exit
