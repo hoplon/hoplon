@@ -316,6 +316,7 @@ all start with the prefix `do-`.
 
 | Attribute                 | Description |
 |---------------------------|-------------|
+| `:loop [looper i & args]` | See the [thing-looper](#) section below. |
 | `:on-<event> [callback]`  | Adds handler `callback` to be called when _event_ is triggered on the element. Supported events are: _change_, _click_, _dblclick_, _error_, _focus_, _focusin_, _focusout_, _hover_, _keydown_, _keypress_, _keyup_, _load_, _mousedown_, _mouseenter_, _mouseleave_, _mousemove_, _mouseout_, _mouseover_, _mouseup_, _ready_, _scroll_, _select_, _submit_, and _unload_. The callback must be a function of one argument: the browser event object. |
 | `:do-value [expr]`        | Sets the `value` of the element to the value of `expr`. The special values `true` and `false` will check or uncheck checkboxes. |
 | `:do-attr [attr expr]`    | Sets the attribute `attr` to the value of `expr`. The special values `true` and `false` add or remove the attribute. |
@@ -324,3 +325,7 @@ all start with the prefix `do-`.
 | `:do-toggle [expr]`       | Toggles visibility of the element according to the truthiness of `expr`. |
 | `:do-slide-toggle [expr]` | Toggles visibility of the element according to the truthiness of `expr` using a sliding animation. |
 | `:do-fade-toggle [expr]`  | Toggles visibility of the element according to the truthiness of `expr` using a fading animation. |
+| `:do-focus [expr]`        | Triggers the `focus` event on the element when `expr` changes to a truthy value. |
+| `:do-select [expr]`       | Triggers the `select` event on the element when `expr` changes to a truthy value. |
+| `:do-focus-select [expr]` | Triggers the `focus` and `select` events on the element when `expr` changes to a truthy value. |
+| `:do-text [expr]`         | Sets the element's text to the value of `expr`. |
