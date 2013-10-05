@@ -60,7 +60,7 @@ declaration. All HTML source files in a Hoplon application must declare a
 namespace. This is because the HTML contained in the document body is going to
 be _evaluated_ as ClojureScript in the browser.
 
-_src/html/index.html.hl_:
+_src/html/index.html.hl_
 
 ```html
 <script type="text/hoplon">
