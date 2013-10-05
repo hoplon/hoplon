@@ -294,8 +294,7 @@ _src/html/react1.cljs.hl_
   (body
     (with-frp
       (h1 {:on-click [#(swap! clicks inc)]} "click me")
-      (ul
-        (li "Clicks = " (span {:do-text [clicks]}))))))
+      (p {:do-text [(format "You've clicked %s times, so far." clicks)]}))))
 ```
 
 Clicking on the "click me" element causes the span to update, its text
