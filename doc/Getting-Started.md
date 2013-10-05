@@ -332,4 +332,6 @@ all start with the prefix `do-`.
 #### Custom Reactive Attributes
 
 The output attributes can be extended by adding to the
-`tailrecursion.reactive/do!` multimethod. Look in the source file for examples.
+`tailrecursion.hoplon.reactive/do!` multimethod. For example, adding a `:foo`
+dispatch method will enable the use of the `:do-foo` attribute. Look in the
+source file for the `tailrecursion.hoplon.reactive` namespace for examples.
