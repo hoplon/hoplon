@@ -297,9 +297,9 @@ _src/html/react1.cljs.hl_
       (p {:do-text [(format "You've clicked %s times, so far." clicks)]}))))
 ```
 
-Clicking on the "click me" element causes the span to update, its text
+Clicking on the "click me" element causes the p element to update, its text
 reflecting the number of times the user has clicked so far. Note that the
-span's text updates _reactively_, responding automatically to the updated
+p element's text updates _reactively_, responding automatically to the updated
 value of the `clicks` cell.
 
 ### Reactive Attributes
