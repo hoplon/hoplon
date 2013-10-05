@@ -6,22 +6,22 @@ has no server side component but can be used with any back end available.
 ### Example
 
 ```html
+<script type="text/hoplon">
+  ;; namespace declaration is required
+  (ns example.index)
+  
+  ;; definitions in this file are optional
+  (defn myfn [x y]
+    (div {:class "foo"}
+      (ul (li x)
+          (li y))))
+</script>
+    
 <html>
   <head>
     <title>example page</title>
   </head>
   <body>
-    <script type="text/hoplon">
-      ;; namespace declaration is required
-      (ns example.index)
-      
-      ;; definitions in this file are optional
-      (defn myfn [x y]
-        (div {:class "foo"}
-          (ul (li x)
-              (li y))))
-    </script>
-    
     <h1>Hello, Hoplon</h1>
     
     <!-- an HTML syntax call to the myfn function -->
@@ -36,16 +36,9 @@ has no server side component but can be used with any back end available.
 ### Dependency
 
 Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon). 
-Add the following to the `:plugins` key in the project's _project.clj_ file:
 
 ```clojure
-[tailrecursion/hoplon "0.1.0-SNAPSHOT"]
-```
-
-There is also a leiningen project template:
-
-```bash
-$ lein new hoplon
+[tailrecursion/hoplon "1.1.0-SNAPSHOT"]
 ```
 
 ### Demos and Examples
