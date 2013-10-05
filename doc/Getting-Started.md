@@ -316,7 +316,7 @@ all start with the prefix `do-`.
 
 | Attribute                 | Description |
 |---------------------------|-------------|
-| _:on-<event> [callback]_  | Adds handler _callback_ to be called when _event_ is triggered on the element. Supported events are: _change_, _click_, _dblclick_, _error_, _focus_, _focusin_, _focusout_, _hover_, _keydown_, _keypress_, _keyup_, _load_, _mousedown_, _mouseenter_, _mouseleave_, _mousemove_, _mouseout_, _mouseover_, _mouseup_, _ready_, _scroll_, _select_, _submit_, and _unload_. The callback fn takes one argument: the browser event object. |
+| _:on-<event> [callback]_  | Adds handler `callback` to be called when _event_ is triggered on the element. Supported events are: _change_, _click_, _dblclick_, _error_, _focus_, _focusin_, _focusout_, _hover_, _keydown_, _keypress_, _keyup_, _load_, _mousedown_, _mouseenter_, _mouseleave_, _mousemove_, _mouseout_, _mouseover_, _mouseup_, _ready_, _scroll_, _select_, _submit_, and _unload_. The callback must be a function of one argument: the browser event object. |
 | `:do-value [expr]`        | Sets the `value` of the element to the value of `expr`. The special values `true` and `false` will check or uncheck checkboxes. |
 | `:do-attr [attr expr]`    | Sets the attribute `attr` to the value of `expr`. The special values `true` and `false` add or remove the attribute. |
 | `:do-class [class expr]`  | Adds or removes the CSS class `class` depending on whether `expr` is truthy or falsy. |
