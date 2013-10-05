@@ -303,7 +303,23 @@ reflecting the number of times the user has clicked so far. Note that the
 span's text updates _reactively_, responding automatically to the updated
 value of the `clicks` cell.
 
-### Reactive Library
+### Reactive Attributes
 
-The reactive library, `tailrecursion.hoplon.reactive`, provides a number
-of DOM manipulation functions that can be 
+In the example above the DOM was wired up to the underlying Javelin cells
+via the `:on-click` and `:do-text` attributes on DOM elements. In general,
+reactive attributes are divided into two categories: input and output.
+Input attributes connect user input events (click, keypress, mouseover, etc.)
+to cell values via a callback function. These attributes all start with the
+prefix `on-`. Output attributes link the state of DOM elements to the state
+of the underlying Javelin cells via ClojureScript expressions. These attributes
+all start with the prefix `do-`.
+
+| Attribute                 | Description |
+|---------------------------|-------------|
+| `:do-value [expr]`        | Sets the `value` of the element to the value of `expr`. The special values `true` and `false` will check or uncheck checkboxes. |
+| `:do-attr [attr expr]`    | Sets the attribute `attr` to the value of `expr`. The special values `true` and `false` add or remove the attribute. |
+| `:do-class [class expr]`  | Adds or removes the CSS class `class` depending on whether `expr` is truthy or falsy. |
+| `:do-css [prop expr]`     | Sets the css property `prop` to the value of `expr`. |
+| `:do-toggle [expr]`       | Toggles visibility of the element according to the truthiness of `expr`. |
+| `:do-slide-toggle [expr]` | Toggles visibility of the element according to the truthiness of `expr` using a sliding animation. |
+| `:do-fade-toggle [expr]`  | Toggles visibility of the element according to the truthiness of `expr` using a fading animation. |
