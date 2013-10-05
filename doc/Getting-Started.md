@@ -33,8 +33,7 @@ above) the source paths are organized as follows:
 
 | Directory    | Contents                                          |
 |--------------|---------------------------------------------------|
-| _src/hoplon_ | Hoplon source files, organized in directories
-                 reflecting the application's HTML page structure. |
+| _src/hoplon_ | Hoplon source files, organized in directories reflecting the application's HTML page structure. |
 | _src/cljs_   | ClojureScript library source files.               |
 | _src/clj_    | Clojure source files.                             |
 
