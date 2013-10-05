@@ -1,27 +1,29 @@
 # Getting Started
 
-Hoplon projects require [leiningen](https://raw.github.com/technomancy/leiningen/stable/bin/lein).
-You can create a skeleton project using the leiningen Hoplon template:
+Hoplon applications are be built using the 
+(http://github.com/tailrecursion/boot)[boot]
+build tool. The following `boot.clj` file is a good starting point:
 
-```bash
-$ lein new hoplon hello
+```clojure
+{:project       my-hoplon-project
+ :version       "0.1.0-SNAPSHOT"
+ :dependencies  [[tailrecursion/boot.task "0.1.0-SNAPSHOT"]
+                 [tailrecursion/hoplon "1.1.0-SNAPSHOT"]]
+ :require-tasks #{[tailrecursion.boot.task :refer :all]}
+ :src-paths     #{"src/hoplon" "src/clj" "src/cljs"}
+ :src-static    #{"src/static"}
+ :public        "resources/public"}
 ```
 
-### Compiling The Application
-
-The Hoplon leiningen plugin compiles source HTML files and ClojureScript libraries
-into a HTML and JavaScript application. The compiler is provided as a leiningen
-plugin. In the project directory run the compiler:
+When the project is built, HTML and JavaScript files will be created and put
+in the `resources/public` directory.
 
 ```bash
-$ lein hoplon
-```
+# build once and exit
+$ boot hoplon
 
-There is also a watcher-based operating mode that will continuously recompile the
-application as source files are modified:
-
-```bash
-$ lein hoplon auto
+# watch source paths for changes and rebuild as necessary
+$ boot watch hoplon
 ```
 
 ### Compiler Source and Output Directories
