@@ -1,9 +1,7 @@
 (ns tailrecursion.hoplon.compiler.tagsoup
   (:require
-    [clojure.walk           :as walk :refer [postwalk]]
-    [tailrecursion.hoplon.compiler.pprint :as pp]
-    [pl.danieljanus.tagsoup :as ts]
-    [clojure.string         :as string]))
+    [pl.danieljanus.tagsoup               :as ts]
+    [tailrecursion.hoplon.compiler.pprint :as pp]))
 
 (def parse ts/parse)
 (def parse-string ts/parse-string)

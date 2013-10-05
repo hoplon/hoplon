@@ -3,7 +3,7 @@
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
   <name>hoplon</name>
   <description>Hoplon web development environment.</description>
   <url>http://github.com/tailrecursion/hoplon</url>
@@ -14,10 +14,10 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git://github.com/tailrecursion/lein-hoplon.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/tailrecursion/lein-hoplon.git</developerConnection>
-    <tag>5a2b673caa20991719ed151b01e6bf65643fa57a</tag>
-    <url>https://github.com/tailrecursion/lein-hoplon</url>
+    <connection>scm:git:git://github.com//.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
+    <tag>15d1c856b4c5d3e9d84c8df9aa9c9241306cab20</tag>
+    <url>https://github.com//</url>
   </scm>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -62,19 +62,19 @@
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <version>1.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojurescript</artifactId>
-      <version>0.0-1820</version>
-    </dependency>
-    <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>javelin</artifactId>
       <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>tailrecursion</groupId>
+      <artifactId>boot.task</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>tailrecursion</groupId>
+      <artifactId>castra</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jsr166-mirror</groupId>

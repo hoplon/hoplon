@@ -29,13 +29,6 @@
            (.filter (str "[data-hl~='" x "']"))
            (.size)))))
 
-(defn filter-not-disabled
-  [v]
-  (->
-    (js/jQuery (.-target v))
-    (.is "[data-disabled]")
-    not))
-
 (defn find-id
   [x]
   (js/jQuery (str "[data-hl~='" x "']")))
@@ -84,8 +77,10 @@
      (.prop "checked" (boolean v))
      (.trigger "change"))))
 
-(defn value!
-  [elem & args] 
+(defmulti do! (fn [elem action & args] action))
+
+(defmethod do! :value
+  [elem _ & args] 
   (let [e (dom-get elem)]
     (case (.attr e "type")
       "checkbox" (apply check-val! e args)
@@ -94,10 +89,10 @@
 (defn- safe-name [x]
   (try (name x) (catch js/Error e)))
 
-(defn attr!
-  ([elem k]
+(defmethod do! :attr
+  ([elem _ k]
    (.attr (dom-get elem) (name k)))
-  ([elem k v & kvs]
+  ([elem _ k v & kvs]
    (js/jQuery
      #(let [e (dom-get elem)] 
         (mapv (fn [[k v]]
@@ -108,60 +103,60 @@
                     (.attr e k (str v)))))
               (partition 2 (list* k v kvs)))))))
 
-(defn class!
-  ([elem c] 
+(defmethod do! :class
+  ([elem _ c] 
    (when-let [c (safe-name c)]
      (js/jQuery #(.toggleClass (dom-get elem) c)))) 
-  ([elem c switch & cswitches] 
+  ([elem _ c switch & cswitches] 
    (js/jQuery
      (fn []
        (mapv (partial apply #(when-let [c (safe-name %1)]
                                (.toggleClass (dom-get elem) c (boolean %2)))) 
              (partition 2 (list* c switch cswitches)))))))
 
-(defn css! 
-  ([elem k]
+(defmethod do! :css
+  ([elem _ k]
    (js/jQuery #(.css (dom-get elem) (safe-name k))))
-  ([elem k v]
+  ([elem _ k v]
    (js/jQuery #(.css (dom-get elem) (safe-name k) v)))
-  ([elem k v & more]
-   (js/jQuery #(mapv (fn [[k v]] (css! elem k v))
+  ([elem _ k v & more]
+   (js/jQuery #(mapv (fn [[k v]] (do! elem :css k v))
                      (cons (list k v) (partition 2 more))))))
 
-(defn toggle!
-  [elem v]
+(defmethod do! :toggle
+  [elem _ v]
   (js/jQuery #(.toggle (dom-get elem) (boolean v))))
 
-(defn slide-toggle!
-  [elem v]
+(defmethod do! :slide-toggle
+  [elem _ v]
   (js/jQuery
     #(if v
        (.slideDown (.hide (dom-get elem)) "fast")
        (.slideUp (dom-get elem) "fast"))))
 
-(defn fade-toggle!
-  [elem v]
+(defmethod do! :fade-toggle
+  [elem _ v]
   (js/jQuery
     #(if v
        (.fadeIn (.hide (dom-get elem)) "fast")
        (.fadeOut (dom-get elem) "fast"))))
 
-(defn focus!
-  [elem v]
+(defmethod do! :focus
+  [elem _ v]
   (js/jQuery #(if v (timeout (fn [] (.focus (dom-get elem))) 0)
                     (timeout (fn [] (.focusout (dom-get elem))) 0))))
 
-(defn select!
-  [elem _]
+(defmethod do! :select
+  [elem _ _]
   (js/jQuery #(.select (dom-get elem))))
 
-(defn text!
-  [elem v]
-  (js/jQuery #(.text (dom-get elem) (str v))))
+(defmethod do! :focus-select
+  [elem _ v]
+  (js/jQuery #(when v (do! elem :focus v) (do! elem :select v))))
 
-(defn disabled?
-  [elem]
-  (.is (dom-get elem) "[data-disabled]"))
+(defmethod do! :text
+  [elem _ v]
+  (js/jQuery #(.text (dom-get elem) (str v))))
 
 (defn- delegate
   [atm event]
@@ -209,3 +204,16 @@
   (fn [f container]
     (into container (mapv #(apply f % (g things %))
                           (range 0 (count @things))))))
+
+;;; Deprecated api---these functions are here for backward compatibility.
+(defn make-deprecated [key] (fn [elem & args] (apply do! elem key args)))
+(def class!         (make-deprecated :class))
+(def attr!          (make-deprecated :attr))
+(def value!         (make-deprecated :value))
+(def css!           (make-deprecated :css))
+(def toggle!        (make-deprecated :toggle))
+(def slide-toggle!  (make-deprecated :slide-toggle))
+(def fade-toggle!   (make-deprecated :fade-toggle))
+(def focus!         (make-deprecated :focus))
+(def select!        (make-deprecated :select))
+(def text!          (make-deprecated :text))

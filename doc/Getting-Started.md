@@ -1,80 +1,86 @@
 # Getting Started
 
-Hoplon projects require [leiningen](https://raw.github.com/technomancy/leiningen/stable/bin/lein).
-You can create a skeleton project using the leiningen Hoplon template:
+Hoplon applications are be built using the 
+[boot](http://github.com/tailrecursion/boot)
+build tool. The following `boot.clj` file is a good starting point:
 
-```bash
-$ lein new hoplon hello
+```clojure
+{:project       my-hoplon-project
+ :version       "0.1.0-SNAPSHOT"
+ :dependencies  [[tailrecursion/boot.task "0.1.0-SNAPSHOT"]
+                 [tailrecursion/hoplon "1.1.0-SNAPSHOT"]]
+ :require-tasks #{[tailrecursion.boot.task :refer :all]}
+ :src-paths     #{"src/html" "src/clj" "src/cljs"}
+ :src-static    #{"src/static"}
+ :public        "resources/public"}
 ```
 
-### Compiling The Application
-
-The Hoplon leiningen plugin compiles source HTML files and ClojureScript libraries
-into a HTML and JavaScript application. The compiler is provided as a leiningen
-plugin. In the project directory run the compiler:
+When the project is built, HTML and JavaScript files will be created and put
+in the `resources/public` directory.
 
 ```bash
-$ lein hoplon
+# build once and exit
+$ boot hoplon
+
+# watch source paths for changes and rebuild as necessary
+$ boot watch hoplon
 ```
 
-There is also a watcher-based operating mode that will continuously recompile the
-application as source files are modified:
+### Compiler Source Directories
 
-```bash
-$ lein hoplon auto
-```
+For the purposes of this document (as specified in the `boot.clj` file above)
+the source paths are organized as follows:
 
-### Compiler Source and Output Directories
-
-By default the compiler looks in certain directories for source files. Since web
-applications are organized around URLs, the HTML source files that make up the 
-"pages" of the application are expected to be in a certain directory in the project.
-Subdirectories in this HTML source directory are reproduced in the output directory
-so that the pages end up at the right URLs when the application is deployed.
-
-* _src/html_ HTML source files and subdirectories.
-* _src/cljs_ ClojureScript source files for namespaces which can be required in the
-  HTML files.
-* _src/static_ Static content. Files and subdirectories here are overlayed on the
-  output directory.
-* _resources/public_ HTML and JavaScript output files, subdirectories, and static
-  content.
+| Directory    | Contents                                          |
+|--------------|---------------------------------------------------|
+| _src/html_   | Hoplon source files, organized in directories reflecting the application's HTML page structure. |
+| _src/static_ | Static content (CSS files, images, etc.), organized in directories reflecting the application's HTML page structure. |
+| _src/cljs_   | ClojureScript library source files.               |
+| _src/clj_    | Clojure source files.                             |
 
 ### Library And Package Management
 
-Hoplon projects can have dependencies in the _project.clj_ file. These dependencies
+Hoplon projects can have dependencies in the _boot.clj_ file. These dependencies
 can be any of the following:
 
 * Clojure namespaces (ClojureScript macros are written in Clojure).
 * ClojureScript namespaces to be used in the project.
-* Raw JavaScript source files to be prepended (in dependency order) to the _main.js_
-  output file.
+* Raw JavaScript source files to be prepended (in dependency order) to the
+  _main.js_ output file.
 * Google Closure Compiler ready JavaScript source and extern files.
 
-Note that JavaScript dependency jar files must be prepared a certain way, described
-[here](#).
+Note that JavaScript dependency jar files must be prepared a certain way,
+described [here](#).
 
 ## Hello World
 
 The simplest example application looks almost exactly like a standard HTML web
 page, with the exception of an unfamiliar script tag containing a namespace
-declaration. All HTML source files in a Hoplon application must declare a namespace.
-This is because the HTML contained in the document body is going to be _evaluated_
-as ClojureScript in the browser.
+declaration. All HTML source files in a Hoplon application must declare a
+namespace. This is because the HTML contained in the document body is going to
+be _evaluated_ as ClojureScript in the browser.
 
-_src/html/index.html_:
+_src/html/index.html.hl_
 
 ```html
+<script type="text/hoplon">
+  (ns hello.index)
+</script>   
+
 <html>
   <head></head>
   <body>
-    <script type="text/hoplon">
-      (ns hello.index)
-    </script>   
     <h1 id="main" style="color:red">Hello world</h1>
   </body>
 </html>
 ```
+
+Note the `.html.hl` extension: all files ending in `.hl` will be compiled by
+the Hoplon compiler, and the `.html.hl` ending tells Hoplon that the source
+file format is HTML markup. Hoplon can also compile source files with the
+`.cljs.hl` extension, which indicates that the source file format is
+ClojureScript forms (s-expressions) instead of HTML markup. This is covered in
+detail below.
 
 ## S-Expression Syntax
 
@@ -109,18 +115,19 @@ could be represented equivalently in HTML markup
 With that in mind, the Hello World example can be translated into s-expression
 syntax. The Hoplon compiler can compile HTML source in this format, as well.
 
-_src/html/sexp.cljs_
+_src/html/index.cljs.hl_
 
 ```clojure
+(ns hello.index)
+
 (html
   head
   (body
-    (ns hello.index)
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
 
-When the application is compiled the output file _resources/public/sexp.html_
-is produced.
+When the application is compiled the output files _resources/public/index.html_
+and _resources/public/main.js_ are produced.
 
 The ClojureScript HTML syntax follows the following conventions:
 
@@ -142,41 +149,6 @@ is made up of lists, maps, vectors, reader macros, etc., and names which are
 valid in ClojureScript may contain characters which would crash a sane HTML
 parser (the function `clj->js`, for example, which cannot be represented in
 HTML markup as `<clj->js/>`).
-
-### Document Structure
-
-In order to facilitate the HTML-as-ClojureScript s-expression representation
-the compiler will reorder expressions such that the above program can also be
-represented in a format that works well with ClojureScript editors and tools:
-
-```clojure
-(ns hello.index)
-
-; definitions and initialization expressions can go here
-
-(html
-  head
-  (body
-    (h1 {:id "main" :style "color:red"} "Hello world")))
-```
-
-Of course, the compiler will also accept "out-of-body" script tags when
-parsing HTML syntax, too:
-
-```html
-<script type="text/hoplon">
-  (ns hello.index)
-  
-  ; definitions and initialization expressions can go here
-</script>
-
-<html>
-  <head></head>
-  <body>
-    <h1 id="main" style="color:red">Hello world</h1>
-  </body>
-</html>
-```
 
 In general, Hoplon programs can be represented equivalently in either
 HTML or ClojureScript syntax. This is an important point for designers
@@ -234,7 +206,7 @@ code as HTML. This allows the use of macros in HTML documents, and seamless
 templating as templates in this environment are simply functions that return
 nodes.
 
-_src/html/func.cljs_
+_src/html/func.cljs.hl_
 
 ```clojure
 (ns hello.func)
@@ -254,9 +226,9 @@ _src/html/func.cljs_
       (fancyitem (span "Item 2") (span "This is the second item.")))))
 ```
 
-When _resources/public/func.html_ is loaded the list items, headings, and
-paragraphs will be seen in the resulting HTML. As always, the same page can
-be represented as HTML markup:
+When _resources/public/func.html_ is viewed in the browser the list items,
+headings, and paragraphs will be seen in the resulting HTML. As always, the
+same page can be represented as HTML markup:
 
 _src/html/func2.html_
 
@@ -298,53 +270,71 @@ characters, etc.
 
 ## Functional Reactive Programming
 
-An example of how macros can be used to advantage is the `reactive-attributes`
-macro that ships with Hoplon. The `tailrecursion.hoplon.reactive` library
-ties FRP data structures from [Javelin](http://github.com/tailrecursion/javelin)
-to the DOM. Consider the following program:
+An example of how macros can be used to advantage is the `with-frp` macro that
+ships with Hoplon. The `tailrecursion.hoplon.reactive` library ties FRP data
+structures from [Javelin](http://github.com/tailrecursion/javelin) to the DOM.
+Consider the following program:
 
-_src/html/react1.html_
+_src/html/react1.cljs.hl_
 
-```html
-<script type="text/hoplon">
-  (ns hello.react1
-    (:require-macros
-      [tailrecursion.javelin.macros   :refer [cell]]
-      [tailrecursion.hoplon.macros    :refer [reactive-attributes]])
-    (:require
-      [tailrecursion.javelin          :as j]
-      [tailrecursion.hoplon.util      :as u]
-      [tailrecursion.hoplon.reactive  :as r]))
-  
-  (def clicks (cell 0))
-</script>
+```clojure
+(ns hello.react1
+  (:require-macros
+    [tailrecursion.javelin.macros   :refer [cell]]
+    [tailrecursion.hoplon.macros    :refer [with-frp]])
+  (:require
+    [tailrecursion.javelin          :as j]
+    [tailrecursion.hoplon.reactive  :as r]))
 
-<html>
-  <head>
-    <title>Reactive Attributes: Example 1</title>
-  </head>
-  <body>
-    <reactive-attributes>
-      <h1 do="(r/on! :click #(swap! clicks inc))">
-        Click Me
-      </h1>
-      <ul>
-        <li>
-          You clicked
-          <span do='(r/text! (format " %s %s " clicks (u/pluralize "time" clicks)))'/>
-          so far.
-        </li>
-      </ul>
-    </reactive-attributes>
-  </body>
-</html>
+(def clicks (cell 0))
+
+(html
+  (head
+    (title "Reactive Attributes: Example 1"))
+  (body
+    (with-frp
+      (h1 {:on-click [#(swap! clicks inc)]} "click me")
+      (p {:do-text [(format "You've clicked %s times, so far." clicks)]}))))
 ```
 
-Clicking on the "click me" element causes the span to update, its text
-reflecting the number of times the user has clicked so far.
+Clicking on the "click me" element causes the p element to update, its text
+reflecting the number of times the user has clicked so far. Note that the
+p element's text updates _reactively_, responding automatically to the updated
+value of the `clicks` cell.
 
+### Reactive Attributes
 
-### Reactive Library
+In the example above the DOM was wired up to the underlying Javelin cells
+via the `:on-click` and `:do-text` attributes on DOM elements. In general,
+reactive attributes are divided into two categories: input and output.
+Input attributes connect user input events (click, keypress, mouseover, etc.)
+to cell values via a callback function. These attributes all start with the
+prefix `on-`. Output attributes link the state of DOM elements to the state
+of the underlying Javelin cells via ClojureScript expressions. These attributes
+all start with the prefix `do-`.
 
-The reactive library, `tailrecursion.hoplon.reactive`, provides a number
-of DOM manipulation functions that can be 
+| Attribute                 | Description |
+|---------------------------|-------------|
+| `:loop [looper i & args]` | See the [thing-looper](#) section below. |
+| `:on-<event> [callback]`  | Adds handler `callback` to be called when _event_ is triggered on the element. Supported events are: _change_, _click_, _dblclick_, _error_, _focus_, _focusin_, _focusout_, _hover_, _keydown_, _keypress_, _keyup_, _load_, _mousedown_, _mouseenter_, _mouseleave_, _mousemove_, _mouseout_, _mouseover_, _mouseup_, _ready_, _scroll_, _select_, _submit_, and _unload_. The callback must be a function of one argument: the browser event object. |
+| `:do-value [expr]`        | Sets the `value` of the element to the value of `expr`. The special values `true` and `false` will check or uncheck checkboxes. |
+| `:do-attr [attr expr]`    | Sets the attribute `attr` to the value of `expr`. The special values `true` and `false` add or remove the attribute. |
+| `:do-class [class expr]`  | Adds or removes the CSS class `class` depending on whether `expr` is truthy or falsy. |
+| `:do-css [prop expr]`     | Sets the css property `prop` to the value of `expr`. |
+| `:do-toggle [expr]`       | Toggles visibility of the element according to the truthiness of `expr`. |
+| `:do-slide-toggle [expr]` | Toggles visibility of the element according to the truthiness of `expr` using a sliding animation. |
+| `:do-fade-toggle [expr]`  | Toggles visibility of the element according to the truthiness of `expr` using a fading animation. |
+| `:do-focus [expr]`        | Triggers the `focus` event on the element when `expr` changes to a truthy value. |
+| `:do-select [expr]`       | Triggers the `select` event on the element when `expr` changes to a truthy value. |
+| `:do-focus-select [expr]` | Triggers the `focus` and `select` events on the element when `expr` changes to a truthy value. |
+| `:do-text [expr]`         | Sets the element's text to the value of `expr`. |
+
+#### Custom Reactive Attributes
+
+The output attributes can be extended by adding to the
+`tailrecursion.hoplon.reactive/do!` multimethod. For example, adding a `:foo`
+dispatch method will enable the use of the `:do-foo` attribute. Look at the
+implementations of the above attributes in the
+[source file](https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon/reactive.cljs)
+for examples and ideas.
+
