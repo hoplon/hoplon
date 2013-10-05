@@ -66,6 +66,7 @@ Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon).
 
 ## Documentation
 
+* [Design Document](https://github.com/tailrecursion/hoplon/blob/master/doc/Design.md)
 * [Getting Started](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
 * [Configuration](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
 * [API Documentation](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
