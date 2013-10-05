@@ -115,7 +115,7 @@ could be represented equivalently in HTML markup
 With that in mind, the Hello World example can be translated into s-expression
 syntax. The Hoplon compiler can compile HTML source in this format, as well.
 
-_src/html/sexp.cljs_
+_src/html/index.cljs.hl_
 
 ```clojure
 (html
@@ -125,8 +125,8 @@ _src/html/sexp.cljs_
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
 
-When the application is compiled the output file _resources/public/sexp.html_
-is produced.
+When the application is compiled the output files _resources/public/index.html_
+and _resources/public/main.js_ are produced.
 
 The ClojureScript HTML syntax follows the following conventions:
 
