@@ -206,7 +206,7 @@ code as HTML. This allows the use of macros in HTML documents, and seamless
 templating as templates in this environment are simply functions that return
 nodes.
 
-_src/html/func.cljs_
+_src/html/func.cljs.hl_
 
 ```clojure
 (ns hello.func)
@@ -226,9 +226,9 @@ _src/html/func.cljs_
       (fancyitem (span "Item 2") (span "This is the second item.")))))
 ```
 
-When _resources/public/func.html_ is loaded the list items, headings, and
-paragraphs will be seen in the resulting HTML. As always, the same page can
-be represented as HTML markup:
+When _resources/public/func.html_ is viewed in the browser the list items,
+headings, and paragraphs will be seen in the resulting HTML. As always, the
+same page can be represented as HTML markup:
 
 _src/html/func2.html_
 
@@ -270,51 +270,37 @@ characters, etc.
 
 ## Functional Reactive Programming
 
-An example of how macros can be used to advantage is the `reactive-attributes`
-macro that ships with Hoplon. The `tailrecursion.hoplon.reactive` library
-ties FRP data structures from [Javelin](http://github.com/tailrecursion/javelin)
-to the DOM. Consider the following program:
+An example of how macros can be used to advantage is the `with-frp` macro that
+ships with Hoplon. The `tailrecursion.hoplon.reactive` library ties FRP data
+structures from [Javelin](http://github.com/tailrecursion/javelin) to the DOM.
+Consider the following program:
 
-_src/html/react1.html_
+_src/html/react1.cljs.hl_
 
-```html
-<script type="text/hoplon">
-  (ns hello.react1
-    (:require-macros
-      [tailrecursion.javelin.macros   :refer [cell]]
-      [tailrecursion.hoplon.macros    :refer [reactive-attributes]])
-    (:require
-      [tailrecursion.javelin          :as j]
-      [tailrecursion.hoplon.util      :as u]
-      [tailrecursion.hoplon.reactive  :as r]))
-  
-  (def clicks (cell 0))
-</script>
+```clojure
+(ns hello.react1
+  (:require-macros
+    [tailrecursion.javelin.macros   :refer [cell]]
+    [tailrecursion.hoplon.macros    :refer [with-frp]])
+  (:require
+    [tailrecursion.javelin          :as j]
+    [tailrecursion.hoplon.reactive  :as r]))
 
-<html>
-  <head>
-    <title>Reactive Attributes: Example 1</title>
-  </head>
-  <body>
-    <reactive-attributes>
-      <h1 on-click='#(swap! clicks inc)'>
-        Click Me
-      </h1>
-      <ul>
-        <li>
-          You clicked
-          <span do-text='(format " %s %s " clicks (u/pluralize "time" clicks))'/>
-          so far.
-        </li>
-      </ul>
-    </reactive-attributes>
-  </body>
-</html>
+(def clicks (cell 0))
+
+(html
+  (head (title "Reactive Attributes: Example 1"))
+  (body
+    (with-frp
+      (h1 {:on-click [#(swap! clicks inc)]} "click me")
+      (ul
+        (li "Clicks = " (span {:do-text [clicks]}))))))
 ```
 
 Clicking on the "click me" element causes the span to update, its text
-reflecting the number of times the user has clicked so far.
-
+reflecting the number of times the user has clicked so far. Note that the
+span's text updates _reactively_, responding automatically to the updated
+value of the `clicks` cell.
 
 ### Reactive Library
 
