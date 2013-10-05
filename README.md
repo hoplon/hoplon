@@ -32,6 +32,26 @@ Hoplon is a set of tools and libraries for making web applications.
 </html>
 ```
 
+Or, equivalently:
+
+```clojure
+(ns example.index)
+
+(defn myfn [x y]
+  (div {:class "foo"}
+    (ul (li x)
+        (li y))))
+
+(html
+  (head
+    (title "example page"))
+  (body
+    (h1 "Hello, Hoplon")
+    (myfn
+      (div "first thing")
+      (div "second thing"))))
+```
+
 ### Dependency
 
 Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon). 
