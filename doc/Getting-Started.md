@@ -181,9 +181,10 @@ elements containing a simple ClojureScript CSS literal syntax:
 
 The ClojureScript CSS syntax follows the following conventions:
 
-* Selectors are vectors of symbols and/or keywords, the names of which will
-  be used in the output.
-* Declaration blocks are maps with keyword keys and string values.
+* **Selectors:** Selectors are vectors of symbols and/or keywords, the names
+  of which will be used in the output.
+* **Declaration blocks:** Declaration blocks are maps with keyword keys and
+  string values.
 
 ### HTML-As-ClojureScript-As-HTML
 
