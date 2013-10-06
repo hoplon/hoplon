@@ -334,7 +334,16 @@ value of the `clicks` cell. An alternative way to achieve the same effect:
 
 Comparing the two equivalent programs should help illustrate the relationship
 between the expression passed in as the value of the `:do-text` attribute and
-the Javelin cells that comprise the reactive data graph.
+the Javelin cells that comprise the reactive data graph. To see the
+`clicks-report` cell updating, add the following expression after its
+definition:
+
+```clojure
+(cell (.log js/console "[clicks-report]" clicks-report))
+```
+
+This is an anonymous cell that logs the value of the `clicks-report` cell
+whenever its value is updated.
 
 ### Javelin Cells
 
