@@ -197,15 +197,16 @@ Each of the [HTML5 elements](https://developer.mozilla.org/en-US/docs/Web/Guide/
 is defined, i.e. `a`, `div`, `span`, `p`, etc. The ClojureScript element node
 type has the following properties:
 
-* They are self-evaluating. There is no `render` function.
-* They are immutable. Operations on a node return a new node and do not alter
-  the original.
-* They can be applied as functions. Applying a HTML node to arguments appends
-  those arguments to the node as children, returning a new immutable node.
-* Attributes can be accessed via map functions. Use `get`, `assoc`, etc. to
+* **They are self-evaluating.** There is no `render` function.
+* **They are immutable.** Operations on a node return a new node and do not
+  alter the original.
+* **They can be applied as functions.** Applying a HTML node to arguments
+  appends those arguments to the node as children, returning a new immutable
+  node.
+* **Attributes can be accessed via map functions.** Use `get`, `assoc`, etc. to
   access element attributes.
-* Children can be accessed via vector functions. Use `nth`, `peek`, `into`, etc.
-  to access child nodes.
+* **Children can be accessed via vector functions.** Use `nth`, `peek`, `into`,
+  etc. to access child nodes.
 
 This implementation provides a literal representation of HTML as code, and of
 code as HTML. This allows the use of macros in HTML documents, and seamless
