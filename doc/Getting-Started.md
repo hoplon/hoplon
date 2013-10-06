@@ -40,8 +40,9 @@ the source paths are organized as follows:
 
 ### Library And Package Management
 
-Hoplon projects can have dependencies in the _boot.clj_ file. These dependencies
-can be any of the following:
+Hoplon projects can depend on maven artifacts, specified in the `:dependencies`
+key of the project _boot.clj_ file. These jar files may contain any of the
+following:
 
 * Clojure namespaces (ClojureScript macros are written in Clojure).
 * ClojureScript namespaces to be used in the project.
@@ -129,18 +130,6 @@ _src/html/index.cljs.hl_
 When the application is compiled the output files _resources/public/index.html_
 and _resources/public/main.js_ are produced.
 
-The ClojureScript HTML syntax follows the following conventions:
-
-* An element is represented as a list enclosed in parentheses.
-* The first item in the list must be the element's tag name.
-* The second item may be an attribute map with keyword keys if the element
-  has attribute nodes.
-* The rest of the items are the element's children and may be text or element
-  nodes.
-* Text nodes are represented as strings or `($text "Value")`.
-* Parentheses may be omitted around elements which have no children or
-  attributes.
-
 Note that the script element has been removed in the sexp version. The script
 element in the HTML version serves simply to splice the lisp expressions it
 contains into the surrounding HTML markup. This is necessary when working in
@@ -154,6 +143,19 @@ In general, Hoplon programs can be represented equivalently in either
 HTML or ClojureScript syntax. This is an important point for designers
 and developers who rely on development tools to get the maximum level
 of productivity.
+
+### HTML As S-Expression Syntax Rules
+
+* An element is represented as a list enclosed in parentheses.
+* The first item in the list must be the element's tag name.
+* The second item may be an attribute map with keyword keys if the element
+  has attribute nodes.
+* The rest of the items are the element's children and may be text or element
+  nodes.
+* Text nodes are represented as strings or `($text "Value")`.
+* Parentheses may be omitted around elements which have no children or
+  attributes.
+* Comment nodes are represented as `($comment "the comment")`.
 
 ### ClojureScript CSS Literal Syntax
 
