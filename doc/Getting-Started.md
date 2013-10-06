@@ -309,7 +309,32 @@ _src/html/react1.cljs.hl_
 Clicking on the "click me" element causes the p element to update, its text
 reflecting the number of times the user has clicked so far. Note that the
 p element's text updates _reactively_, responding automatically to the updated
-value of the `clicks` cell.
+value of the `clicks` cell. An alternative way to achieve the same effect:
+
+```clojure
+(ns hello.react1
+  (:require-macros
+    [tailrecursion.javelin.macros   :refer [cell]]
+    [tailrecursion.hoplon.macros    :refer [with-frp]])
+  (:require
+    [tailrecursion.javelin          :as j]
+    [tailrecursion.hoplon.reactive  :as r]))
+
+(def clicks (cell 0))
+(def clicks-report (format "You've clicked %s times, so far." clicks))
+
+(html
+  (head
+    (title "Reactive Attributes: Example 1"))
+  (body
+    (with-frp
+      (h1 {:on-click [#(swap! clicks inc)]} "click me")
+      (p {:do-text [clicks-report]}))))
+```
+
+Comparing the two equivalent programs should help illustrate the relationship
+between the expression passed in as the value of the `:do-text` attribute and
+the Javelin cells that comprise the reactive data graph.
 
 ### Javelin Cells
 
