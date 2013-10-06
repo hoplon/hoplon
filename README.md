@@ -1,6 +1,17 @@
 # Hoplon
 
-Hoplon is a set of tools and libraries for making web applications.
+Hoplon is a set of tools and libraries for making web applications. Hoplon
+provides a compiler for web application frontend development, and includes
+the following libraries as dependencies to complete the stack:
+
+* [Javelin](https://github.com/tailrecursion/javelin): a spreadsheet-like FRP
+  dataflow library for managing client state. Hoplon tightly integrates with
+  Javelin to reactively bind DOM elements to the underlying Javelin cell graph.
+* [Castra](https://github.com/tailrecursion/castra): a full-featured RPC
+  library for Clojure and ClojureScript, providing the serverside environment.
+* [Cljson](https://github.com/tailrecursion/cljson): an efficient method for
+  transferring Clojure/ClojureScript data between client and server. Castra
+  uses cljson as the underlying transport protocol.
 
 ### Example
 
@@ -66,10 +77,10 @@ Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon).
 
 ## Documentation
 
-* [Design Document](https://github.com/tailrecursion/hoplon/blob/master/doc/Design.md)
 * [Getting Started](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
 * [Configuration](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
 * [API Documentation](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
+* [Design Document](https://github.com/tailrecursion/hoplon/blob/master/doc/Design.md)
 
 ## License
 
