@@ -9,7 +9,8 @@ build tool. The following `boot.clj` file is a good starting point:
  :version       "0.1.0-SNAPSHOT"
  :dependencies  [[tailrecursion/boot.task "0.1.0-SNAPSHOT"]
                  [tailrecursion/hoplon "1.1.0-SNAPSHOT"]]
- :require-tasks #{[tailrecursion.boot.task :refer :all]}
+ :require-tasks #{[tailrecursion.boot.task :refer :all]
+                  [tailrecursion.hoplon.boot :refer :all]}
  :src-paths     #{"src/html" "src/clj" "src/cljs"}
  :src-static    #{"src/static"}
  :public        "resources/public"}
