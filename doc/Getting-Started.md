@@ -155,8 +155,8 @@ of productivity.
   * Parentheses **may be omitted** around elements which have no children or
     attributes.
 * **Text Nodes:** Text nodes are represented as strings or `($text "Value")`.
-* Comment nodes are represented as `($comment "the comment")`.
-* The special form `spliced` acts like a combination of Clojure's
+* **Comment Nodes:** Comment nodes are represented as `($comment "the comment")`.
+* **Splicing:** The special form `spliced` acts like a combination of Clojure's
   `unquote-splicing` and `apply` forms&mdash;children of the `spliced` form
   are appended to its parent. For example, `(div (spliced (p "1") (p "2")))`
   is equivalent to `(div (p "1") (p "2"))`.
