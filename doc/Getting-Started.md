@@ -320,8 +320,8 @@ value of the `clicks` cell. An alternative way to achieve the same effect:
     [tailrecursion.javelin          :as j]
     [tailrecursion.hoplon.reactive  :as r]))
 
-(def clicks (cell 0))
-(def clicks-report (format "You've clicked %s times, so far." clicks))
+(def clicks         (cell 0))
+(def clicks-report  (cell (format "You've clicked %s times, so far." clicks)))
 
 (html
   (head
