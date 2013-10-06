@@ -156,9 +156,10 @@ of productivity.
 * Parentheses may be omitted around elements which have no children or
   attributes.
 * Comment nodes are represented as `($comment "the comment")`.
-* The special form `spliced` acts like the Clojure `unquote-splicing` form;
-  children of the `spliced` form are appended to its parent. For example,
-  `(div (spliced (p "1") (p "2")))` is equivalent to `(div (p "1") (p "2"))`.
+* The special form `spliced` acts like a combination of Clojure's
+  `unquote-splicing` and `apply` forms&mdash;children of the `spliced` form
+  are appended to its parent. For example, `(div (spliced (p "1") (p "2")))`
+  is equivalent to `(div (p "1") (p "2"))`.
 
 ### ClojureScript CSS Literal Syntax
 
