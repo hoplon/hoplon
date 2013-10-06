@@ -144,7 +144,7 @@ HTML or ClojureScript syntax. This is an important point for designers
 and developers who rely on development tools to get the maximum level
 of productivity.
 
-### HTML As S-Expression Syntax Rules
+### ClojureScript HTML Syntax Rules
 
 * **Elements:** An element is represented as a list enclosed in parentheses.
   * The first item in the list must be the element's **tag name**.
