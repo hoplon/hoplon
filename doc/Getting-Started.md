@@ -147,14 +147,14 @@ of productivity.
 ### HTML As S-Expression Syntax Rules
 
 * **Elements:** An element is represented as a list enclosed in parentheses.
-  * The first item in the list must be the element's tag name.
-  * The second item may be an attribute map with keyword keys if the element
-    has attribute nodes.
-  * The rest of the items are the element's children and may be text or element
-    nodes.
-* Text nodes are represented as strings or `($text "Value")`.
-* Parentheses may be omitted around elements which have no children or
-  attributes.
+  * The first item in the list must be the element's **tag name**.
+  * The second item may be an **attribute map** with keyword keys if the
+    element has attribute nodes.
+  * The rest of the items are the element's **children** and may be text or
+    element nodes.
+  * Parentheses **may be omitted** around elements which have no children or
+    attributes.
+* **Text Nodes:** Text nodes are represented as strings or `($text "Value")`.
 * Comment nodes are represented as `($comment "the comment")`.
 * The special form `spliced` acts like a combination of Clojure's
   `unquote-splicing` and `apply` forms&mdash;children of the `spliced` form
