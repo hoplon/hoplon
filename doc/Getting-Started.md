@@ -147,11 +147,11 @@ of productivity.
 ### HTML As S-Expression Syntax Rules
 
 * **Elements:** An element is represented as a list enclosed in parentheses.
-* The first item in the list must be the element's tag name.
-* The second item may be an attribute map with keyword keys if the element
-  has attribute nodes.
-* The rest of the items are the element's children and may be text or element
-  nodes.
+  * The first item in the list must be the element's tag name.
+  * The second item may be an attribute map with keyword keys if the element
+    has attribute nodes.
+  * The rest of the items are the element's children and may be text or element
+    nodes.
 * Text nodes are represented as strings or `($text "Value")`.
 * Parentheses may be omitted around elements which have no children or
   attributes.
