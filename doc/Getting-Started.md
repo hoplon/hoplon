@@ -146,7 +146,7 @@ of productivity.
 
 ### HTML As S-Expression Syntax Rules
 
-* An element is represented as a list enclosed in parentheses.
+* **Elements** An element is represented as a list enclosed in parentheses.
 * The first item in the list must be the element's tag name.
 * The second item may be an attribute map with keyword keys if the element
   has attribute nodes.
