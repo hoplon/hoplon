@@ -359,7 +359,27 @@ formulas.
 #### Types Of Cells
 
 Javelin, like any spreadsheet, provides two types of cells: **input cells** and
-**formula cells**.
+**formula cells**. Cells are created with the `cell` macro.
+
+```clojure
+;;; A constant.
+(def foo 1337)
+
+;;; Examples of input cells:
+(def i1 (cell 42))
+(def i2 (cell \g))
+(def i3 (cell "qwerty"))
+(def i4 (cell foo))
+(def i5 (cell '[1 2 3]))
+(def i6 (cell '{:a 1, :b 2}))
+
+;;; Examples of formula cells:
+(def f1 (cell (+ i1 foo)))
+(def f2 (cell {:a i1 :b i2}))
+(def f3 (cell (merge {:c f1} f2)))
+
+;;; Update input cells
+```
 
 ### Reactive Attributes
 
