@@ -308,6 +308,22 @@ reflecting the number of times the user has clicked so far. Note that the
 p element's text updates _reactively_, responding automatically to the updated
 value of the `clicks` cell.
 
+### Javelin Cells
+
+The Javelin library provides a spreadsheet-like computing model. The core of
+this model is the **cell**. A cell is a reference type that can be dereferenced
+like an atom to retrieve its current value. Depending on the type of cell, the
+value may be updated either automatically via a formula provided when the cell
+was created, or directly via the `swap!` or `reset!` functions. Just like in a
+spreadsheet, changes to cells propagate to other cells whose formulas reference
+the changed cell and whose values are then recomputed according to these
+formulas.
+
+#### Types Of Cells
+
+Javelin, like any spreadsheet, provides two types of cells: **input cells** and
+**formula cells**.
+
 ### Reactive Attributes
 
 In the example above the DOM was wired up to the underlying Javelin cells
