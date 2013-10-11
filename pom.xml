@@ -3,7 +3,7 @@
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
   <packaging>jar</packaging>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.1.0</version>
   <name>hoplon</name>
   <description>Hoplon web development environment.</description>
   <url>http://github.com/tailrecursion/hoplon</url>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>4d62597a722d6ba25323b69abfd5201bf6bdfcde</tag>
+    <tag>5beb7d52b6a6aa5d6f8f13511e0292487fe41ba0</tag>
     <url>https://github.com//</url>
   </scm>
   <build>
@@ -64,17 +64,17 @@
     <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>javelin</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
+      <version>2.0.2</version>
     </dependency>
     <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>boot.task</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>castra</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jsr166-mirror</groupId>
@@ -84,7 +84,7 @@
     <dependency>
       <groupId>fipp</groupId>
       <artifactId>fipp</artifactId>
-      <version>0.3.0-SNAPSHOT</version>
+      <version>0.4.1</version>
     </dependency>
     <dependency>
       <groupId>digest</groupId>

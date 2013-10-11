@@ -1,30 +1,37 @@
+<img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.jpg">
+
 # Hoplon
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
 the following libraries as dependencies to complete the stack:
 
-* [Javelin](https://github.com/tailrecursion/javelin): a spreadsheet-like FRP
-  dataflow library for managing client state. Hoplon tightly integrates with
-  Javelin to reactively bind DOM elements to the underlying Javelin cell graph.
-* [Castra](https://github.com/tailrecursion/castra): a full-featured RPC
-  library for Clojure and ClojureScript, providing the serverside environment.
-* [Cljson](https://github.com/tailrecursion/cljson): an efficient method for
-  transferring Clojure/ClojureScript data between client and server. Castra
-  uses cljson as the underlying transport protocol.
+* [Javelin][1]: a spreadsheet-like FRP dataflow library for managing client
+  state. Hoplon tightly integrates with Javelin to reactively bind DOM elements
+  to the underlying Javelin cell graph.
+* [Castra][2]: a full-featured RPC library for Clojure and
+  ClojureScript, providing the serverside environment.
+* [Cljson][3]: an efficient method for transferring Clojure/ClojureScript data
+  between client and server. Castra uses cljson as the underlying transport
+  protocol.
 
 ### Example
 
-```html
+```xml
 <script type="text/hoplon">
   ;; namespace declaration is required
-  (ns example.index)
+  (ns example.index
+    (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
+    (:require-macros
+      [tailrecursion.hoplon.macros  :refer [with-frp]]
+      [tailrecursion.javelin.macros :refer [cell]]))
   
   ;; definitions in this file are optional
-  (defn myfn [x y]
-    (div {:class "foo"}
-      (ul (li x)
-          (li y))))
+  (defn my-list [& items]
+    (div {:class "my-list"}
+      (into ul (map #(li (div {:class "my-list-item"} %)) items))))
+
+  (def clicks (cell 0))
 </script>
     
 <html>
@@ -32,13 +39,19 @@ the following libraries as dependencies to complete the stack:
     <title>example page</title>
   </head>
   <body>
-    <h1>Hello, Hoplon</h1>
-    
-    <!-- an HTML syntax call to the myfn function -->
-    <myfn>
-      <div>first thing</div>
-      <div>second thing</div>
-    </myfn>
+    <with-frp>
+      <h1>Hello, Hoplon</h1>
+      
+      <!-- an HTML syntax call to the my-list function -->
+      <my-list>
+        <span>first thing</span>
+        <span>second thing</span>
+      </my-list>
+
+      <!-- using FRP to link DOM and Javelin cells -->
+      <p>You've clicked ~{clicks} times, so far.</p>
+      <button on-click="#(swap! clicks inc)">click me</button>
+    </with-frp>
   </body>
 </html>
 ```
@@ -46,41 +59,59 @@ the following libraries as dependencies to complete the stack:
 Or, equivalently:
 
 ```clojure
-(ns example.index)
+(ns example.index
+  (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
+  (:require-macros
+    [tailrecursion.hoplon.macros  :refer [with-frp]]
+    [tailrecursion.javelin.macros :refer [cell]]))
 
-(defn myfn [x y]
-  (div {:class "foo"}
-    (ul (li x)
-        (li y))))
+(defn my-list [& items]
+  (div {:class "my-list"}
+    (into ul (map #(li (div {:class "my-list-item"} %)) items))))
+
+(def clicks (cell 0))
 
 (html
   (head
     (title "example page"))
   (body
-    (h1 "Hello, Hoplon")
-    (myfn
-      (div "first thing")
-      (div "second thing"))))
+    (with-frp
+      (h1 "Hello, Hoplon")
+
+      (my-list
+        (span "first thing")
+        (span "second thing"))
+
+      (p "You've clicked ~{clicks} times, so far.")
+      (button {:on-click [#(swap! clicks inc)]} "click me"))))
 ```
 
 ### Dependency
 
-Artifacts are [published on Clojars](https://clojars.org/tailrecursion/hoplon). 
+Artifacts are published on [Clojars][4]. 
 
 ```clojure
 [tailrecursion/hoplon "1.1.0-SNAPSHOT"]
 ```
 
-### Demos and Examples
+```xml
+<dependency>
+  <groupId>tailrecursion</groupId>
+  <artifactId>hoplon</artifactId>
+  <version>1.1.0-SNAPSHOT</version>
+</dependency>
+```
 
-* [Hoplon demo applications repository](https://github.com/tailrecursion/hoplon-demos)
+### Demos
 
-## Documentation
+* [Hoplon demo applications repository][5]
 
-* [Getting Started](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
-* [Configuration](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
-* [API Documentation](https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md)
-* [Design Document](https://github.com/tailrecursion/hoplon/blob/master/doc/Design.md)
+### Documentation
+
+* [Getting Started][6]
+* [Configuration][7]
+* [API Documentation][8]
+* [Design Document][9]
 
 ## License
 
@@ -93,3 +124,13 @@ be found in the file epl-v10.html at the root of this distribution. By using
 this software in any fashion, you are agreeing to be bound by the terms of
 this license. You must not remove this notice, or any other, from this software.
 ```
+
+[1]: https://github.com/tailrecursion/javelin
+[2]: https://github.com/tailrecursion/castra
+[3]: https://github.com/tailrecursion/cljson
+[4]: https://clojars.org/tailrecursion/hoplon
+[5]: https://github.com/tailrecursion/hoplon-demos
+[6]: https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md
+[7]: https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md
+[8]: https://github.com/tailrecursion/hoplon/blob/master/doc/Getting-Started.md
+[9]: https://github.com/tailrecursion/hoplon/blob/master/doc/Design.md
