@@ -356,7 +356,8 @@ formulas.
 #### Types Of Cells
 
 Javelin, like any spreadsheet, provides two types of cells: **input cells** and
-**formula cells**. Cells are created with the `cell` macro.
+**formula cells**. Cells are created with the `cell` and `cell=` macros,
+respectively.
 
 ```clojure
 ;;; A constant.
@@ -367,15 +368,34 @@ Javelin, like any spreadsheet, provides two types of cells: **input cells** and
 (def i2 (cell \g))
 (def i3 (cell "qwerty"))
 (def i4 (cell foo))
-(def i5 (cell '[1 2 3]))
-(def i6 (cell '{:a 1, :b 2}))
+(def i5 (cell [1 2 3]))
+(def i6 (cell {:a 1, :b 2}))
 
 ;;; Examples of formula cells:
-(def f1 (cell (+ i1 foo)))
-(def f2 (cell {:a i1 :b i2}))
-(def f3 (cell (merge {:c f1} f2)))
+(def f1 (cell= (+ i1 foo)))
+(def f2 (cell= {:a i1 :b i2}))
+(def f3 (cell= (merge {:c f1} f2)))
 
-;;; Update input cells
+;;; Get the value of formula cells
+@f1 ;=> 1379
+@f2 ;=> {:a 42 :b \g}
+@f3 ;=> {:c 1379 :a 42 :b \g}
+
+;;; Update input cell
+(swap! i1 inc)
+
+;;; Formula cells update responsively
+@f1 ;=> 1380
+@f2 ;=> {:a 43 :b \g}
+@f3 ;=> {:c 1380 :a 43 :b \g}
+
+;;; Anonymous formula cell for side-effects
+(cell= (.log js/console (pr-str f2)))
+
+;;; Update input cell
+(swap! i1 inc)
+
+;;; {:a 44 :b \g} is printed to the console
 ```
 
 ### Reactive Attributes
@@ -412,8 +432,8 @@ multimethod. For example, adding a `:foo` dispatch method will enable the use
 of the `:do-foo` attribute. Look at the implementations of the above attributes
 in the [source file][5] for examples and ideas.
 
-[1]: http://github.com/tailrecursion/boot
+[1]: https://github.com/tailrecursion/boot
 [2]: http://en.wikipedia.org/wiki/S-expression
 [3]: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
-[4]: http://github.com/tailrecursion/javelin
+[4]: https://github.com/tailrecursion/javelin
 [5]: https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon/reactive.cljs
