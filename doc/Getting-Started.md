@@ -365,7 +365,7 @@ macro. For example:
 
 In the example above the DOM was wired up to the underlying Javelin cells
 via the `:on-click` and `:do-text` attributes on DOM elements. In general,
-reactive attributes are divided into two categories: input and output.
+reactive attributes are divided into two categories: **input** and **output**.
 Input attributes connect user input events (click, keypress, mouseover, etc.)
 to cell values via a callback function. These attributes all start with the
 prefix `on-`. Output attributes link the state of DOM elements to the state
