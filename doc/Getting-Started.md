@@ -278,8 +278,8 @@ characters, etc.
 ## Functional Reactive Programming
 
 An example of how macros can be used to advantage is the `with-frp` macro that
-ships with Hoplon. The `tailrecursion.hoplon.reactive` library ties FRP data
-structures from [Javelin][4] to the DOM. Consider the following program:
+ships with Hoplon. It ties FRP data structures from [Javelin][4] to the DOM.
+Consider the following program:
 
 ```clojure
 (ns hello.react1
