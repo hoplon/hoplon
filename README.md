@@ -93,6 +93,7 @@ be found in the file epl-v10.html at the root of this distribution. By using
 this software in any fashion, you are agreeing to be bound by the terms of
 this license. You must not remove this notice, or any other, from this software.
 ```
+
 [1]: https://github.com/tailrecursion/javelin
 [2]: https://github.com/tailrecursion/castra
 [3]: https://github.com/tailrecursion/cljson

@@ -1,8 +1,7 @@
 # Getting Started
 
-Hoplon applications are be built using the 
-[boot](http://github.com/tailrecursion/boot)
-build tool. The following `boot.clj` file is a good starting point:
+Hoplon applications are be built using the [boot][1] build tool. The following
+`boot.clj` file is a good starting point:
 
 ```clojure
 {:project       my-hoplon-project
@@ -86,8 +85,8 @@ detail below.
 
 ## S-Expression Syntax
 
-Since HTML markup is a tree structure it can be expressed as [s-expressions]
-(http://en.wikipedia.org/wiki/S-expression). For example, this HTML markup
+Since HTML markup is a tree structure it can be expressed as [s-expressions][2].
+For example, this HTML markup
 
 ```html
 <form>
@@ -195,9 +194,8 @@ step of adding HTML primitives to the ClojureScript environment in which
 the page is evaluated provides the semantics of HTML, as well.
 
 HTML primitives are implemented as ClojureScript text and element node types.
-Each of the [HTML5 elements](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list)
-is defined, i.e. `a`, `div`, `span`, `p`, etc. The ClojureScript element node
-type has the following properties:
+Each of the [HTML5 elements][3] is defined, i.e. `a`, `div`, `span`, `p`, etc.
+The ClojureScript element node type has the following properties:
 
 * **They are self-evaluating.** There is no `render` function.
 * **They are immutable.** Operations on a node return a new node and do not
@@ -281,8 +279,7 @@ characters, etc.
 
 An example of how macros can be used to advantage is the `with-frp` macro that
 ships with Hoplon. The `tailrecursion.hoplon.reactive` library ties FRP data
-structures from [Javelin](http://github.com/tailrecursion/javelin) to the DOM.
-Consider the following program:
+structures from [Javelin][4] to the DOM. Consider the following program:
 
 _src/html/react1.cljs.hl_
 
@@ -410,10 +407,13 @@ all start with the prefix `do-`.
 
 #### Custom Reactive Attributes
 
-The output attributes can be extended by adding to the
-`tailrecursion.hoplon.reactive/do!` multimethod. For example, adding a `:foo`
-dispatch method will enable the use of the `:do-foo` attribute. Look at the
-implementations of the above attributes in the
-[source file](https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon/reactive.cljs)
-for examples and ideas.
+The output attributes can be extended by adding to the `#'tailrecursion.hoplon.reactive/do!`
+multimethod. For example, adding a `:foo` dispatch method will enable the use
+of the `:do-foo` attribute. Look at the implementations of the above attributes
+in the [source file][5] for examples and ideas.
 
+[1]: http://github.com/tailrecursion/boot
+[2]: http://en.wikipedia.org/wiki/S-expression
+[3]: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
+[4]: http://github.com/tailrecursion/javelin
+[5]: https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon/reactive.cljs
