@@ -1,8 +1,9 @@
 (ns tailrecursion.hoplon.canvas
   (:require-macros
-    [tailrecursion.javelin.macros :refer [cell]])
+    [tailrecursion.javelin.macros :refer [cell cell=]])
   (:require
     [clojure.walk                   :as walk]
+    [tailrecursion.javelin          :as j]
     [tailrecursion.hoplon.env       :as h]
     [tailrecursion.hoplon.reactive  :as r]))
 
@@ -60,7 +61,7 @@
         add-hlr (fn [[e h]] (r/on! canvas e (r/rel-event canvas "canvas" h)))]
     (h/add-initfn!
       (fn []
-        (cell (canvas-do! (aget (r/dom-get canvas) 0) state)) 
+        (cell= (canvas-do! (aget (r/dom-get canvas) 0) state)) 
         (mapv add-hlr (partition 2 handlers)))) 
     canvas))
 

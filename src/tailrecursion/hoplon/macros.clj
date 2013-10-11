@@ -59,14 +59,14 @@
 (create-ns 'js)
 (create-ns 'tailrecursion.hoplon.env)
 (create-ns 'tailrecursion.hoplon.reactive)
+(create-ns 'tailrecursion.javelin)
 (create-ns 'tailrecursion.javelin.macros)
-(create-ns 'tailrecursion.javelin.core)
 
 (let [jQuery      (symbol "js" "jQuery")
-      clone       (symbol "tailrecursion.hoplon.env" "clone")
-      spliced     (symbol "tailrecursion.hoplon.env" "spliced")
-      cell        (symbol "tailrecursion.javelin.macros" "cell")
-      deref*      (symbol "tailrecursion.javelin.core" "deref*")
+      clone       (symbol "tailrecursion.hoplon.env"      "clone")
+      spliced     (symbol "tailrecursion.hoplon.env"      "spliced")
+      cell=       (symbol "tailrecursion.javelin.macros"  "cell=")
+      deref*      (symbol "tailrecursion.javelin"         "deref*")
       do!         (symbol "tailrecursion.hoplon.reactive" "do!")
       on!         (symbol "tailrecursion.hoplon.reactive" "on!")
       readstr     #(if-not (blank? %)
@@ -100,7 +100,7 @@
                           dostr     (:do attrs)]
                       (if-let [exprs (sub-ids (doread dostr))]
                         `(~deref* (let [f# (~clone ~form)]
-                                    (~cell (doto f# ~@exprs))))
+                                    (~cell= (doto f# ~@exprs))))
                         form)))
       loop-1      (fn [[tag maybe-attrs & [tpl] :as form]]
                     (let [

@@ -1,10 +1,5 @@
 (ns tailrecursion.hoplon.reactive
-  (:require-macros
-    [tailrecursion.javelin.macros :refer [cell]])
-  (:require
-    [tailrecursion.javelin        :as j]
-    [tailrecursion.hoplon.env     :as hl]
-    [tailrecursion.hoplon.util    :as hu]))
+  (:require [tailrecursion.hoplon.env :as h :refer [clone]]))
 
 (declare ids)
 
@@ -12,7 +7,7 @@
 
 (defn id      [e] (peek (ids e)))
 (defn ids     [e] (.-ids e))
-(defn id!     [e] (if-not (seq (ids e)) (hl/clone e) e))
+(defn id!     [e] (if-not (seq (ids e)) (clone e) e))
 (defn is-jq?  [e] (string? (.-jquery e)))
 
 (->
@@ -191,8 +186,7 @@
 
 (defn- do-on!
   [elem event callback]
-  (let [c       (cell nil)
-        event   (get events (keyword event))
+  (let [event   (get events (keyword event))
         update  #(if (and (not= %3 %4) ((filter-id (id elem)) %4)) (callback %4))]
     (add-watch event (gensym) update)))
 
