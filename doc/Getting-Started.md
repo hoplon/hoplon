@@ -368,8 +368,8 @@ via the `:on-click` and `:do-text` attributes on DOM elements. In general,
 reactive attributes are divided into two categories: **input** and **output**.
 
 **Input Attributes**
-  * connect user input events (click, keypress, mouseover, etc.) to cell values
-    via a callback function.
+  * connect DOM events (click, keypress, mouseover, etc.) to cell values via a
+    callback function.
   * start with the prefix `on-`.
   
 **Output Attributes**
