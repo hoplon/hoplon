@@ -367,12 +367,12 @@ In the example above the DOM was wired up to the underlying Javelin cells
 via the `:on-click` and `:do-text` attributes on DOM elements. In general,
 reactive attributes are divided into two categories: **input** and **output**.
 
-##### Input Attributes
+#### Input Attributes
   * connect DOM events (click, keypress, mouseover, etc.) to cell values via a
     callback function.
   * start with the prefix `on-`.
   
-##### Output Attributes
+#### Output Attributes
   * link the state of DOM elements to the state of the underlying Javelin cells
     via formulas.
   * start with the prefix `do-`.
