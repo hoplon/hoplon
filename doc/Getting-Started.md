@@ -317,11 +317,10 @@ spreadsheet, changes to cells propagate to other cells whose formulas reference
 the changed cell and whose values are then recomputed according to these
 formulas.
 
-#### Types Of Cells
-
-Javelin, like any spreadsheet, provides two types of cells: **input cells** and
-**formula cells**. Cells are created with the `cell` and `cell=` macros,
-respectively.
+Javelin, like any spreadsheet, provides two types of cells: **input cells**
+which are updated explicitly and created with the `cell` macro, and **formula
+cells** which are updated according to a formula and created with the `cell=`
+macro. For example:
 
 ```clojure
 ;;; A constant.
