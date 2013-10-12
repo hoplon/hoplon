@@ -40,16 +40,19 @@ the following libraries as dependencies to complete the stack:
     <title>example page</title>
   </head>
   <body>
-    <h1>Hello, Hoplon</h1>
-    
-    <!-- an HTML syntax call to the my-list function -->
-    <my-list>
-      <span>first thing</span>
-      <span>second thing</span>
-    </myfn>
+    <with-frp>
+      <h1>Hello, Hoplon</h1>
+      
+      <!-- an HTML syntax call to the my-list function -->
+      <my-list>
+        <span>first thing</span>
+        <span>second thing</span>
+      </myfn>
 
-    <p>You've clicked <span do-text="clicks"/> times, so far.</p>
-    <button on-click="#(swap! clicks inc)">click me</button>
+      <!-- using FRP to link DOM and Javelin cells -->
+      <p>You've clicked <span do-text="clicks"/> times, so far.</p>
+      <button on-click="#(swap! clicks inc)">click me</button>
+    </with-frp>
   </body>
 </html>
 ```
@@ -74,14 +77,15 @@ Or, equivalently:
   (head
     (title "example page"))
   (body
-    (h1 "Hello, Hoplon")
+    (with-frp
+      (h1 "Hello, Hoplon")
 
-    (my-list
-      (span "first thing")
-      (span "second thing"))
+      (my-list
+        (span "first thing")
+        (span "second thing"))
 
-    (p "You've clicked " (span {:do-text [clicks]}) " times, so far.")
-    (button {:on-click [#(swap! clicks inc)]} "click me")))
+      (p "You've clicked " (span {:do-text [clicks]}) " times, so far.")
+      (button {:on-click [#(swap! clicks inc)]} "click me"))))
 ```
 
 ### Dependency
