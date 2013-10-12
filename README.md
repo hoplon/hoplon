@@ -25,7 +25,7 @@ the following libraries as dependencies to complete the stack:
     (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
     (:require-macros
       [tailrecursion.hoplon.macros  :refer [with-frp]]
-      [tailrecursion.javelin.macros :refer [cell cell=]]))
+      [tailrecursion.javelin.macros :refer [cell]]))
   
   ;; definitions in this file are optional
   (defn my-list [& items]
@@ -64,7 +64,7 @@ Or, equivalently:
   (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
   (:require-macros
     [tailrecursion.hoplon.macros  :refer [with-frp]]
-    [tailrecursion.javelin.macros :refer [cell cell=]]))
+    [tailrecursion.javelin.macros :refer [cell]]))
 
 ;; definitions in this file are optional
 (defn my-list [& items]
