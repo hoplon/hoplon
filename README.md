@@ -66,7 +66,6 @@ Or, equivalently:
     [tailrecursion.hoplon.macros  :refer [with-frp]]
     [tailrecursion.javelin.macros :refer [cell]]))
 
-;; definitions in this file are optional
 (defn my-list [& items]
   (div {:class "my-list"}
     (into ul (map #(li (div {:class "my-list-item"} %)) items))))
