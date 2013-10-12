@@ -1,7 +1,3 @@
-<img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.png"
-alt="tailrecursion/hoplon logo" title="tailrecursion/hoplon logo"
-align="right"/>
-
 # Getting Started
 
 Hoplon applications are be built using the [boot][1] build tool. The following
