@@ -76,7 +76,7 @@ Or, equivalently:
   (body
     (h1 "Hello, Hoplon")
     (my-list
-      (span "first thing)
+      (span "first thing")
       (span "second thing"))
 
     (p "You've clicked " (span {:do-text [clicks]}) " times, so far.")
