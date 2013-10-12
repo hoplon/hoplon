@@ -21,13 +21,18 @@ the following libraries as dependencies to complete the stack:
 ```html
 <script type="text/hoplon">
   ;; namespace declaration is required
-  (ns example.index)
+  (ns example.index
+    (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
+    (:require-macros
+      [tailrecursion.hoplon.macros  :refer [with-frp]]
+      [tailrecursion.javelin.macros :refer [cell cell=]]))
   
   ;; definitions in this file are optional
-  (defn myfn [x y]
-    (div {:class "foo"}
-      (ul (li x)
-          (li y))))
+  (defn my-list [& items]
+    (div {:class "my-list"}
+      (into ul (map #(li (div {:class "my-list-item"} %)) items))))
+
+  (def clicks (cell 0))
 </script>
     
 <html>
@@ -37,11 +42,14 @@ the following libraries as dependencies to complete the stack:
   <body>
     <h1>Hello, Hoplon</h1>
     
-    <!-- an HTML syntax call to the myfn function -->
-    <myfn>
-      <div>first thing</div>
-      <div>second thing</div>
+    <!-- an HTML syntax call to the my-list function -->
+    <my-list>
+      <span>first thing</span>
+      <span>second thing</span>
     </myfn>
+
+    <p>You've clicked <span do-text="clicks"/> times, so far.</p>
+    <button on-click="#(swap! clicks inc)">click me</button>
   </body>
 </html>
 ```
@@ -49,21 +57,30 @@ the following libraries as dependencies to complete the stack:
 Or, equivalently:
 
 ```clojure
-(ns example.index)
+(ns example.index
+  (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
+  (:require-macros
+    [tailrecursion.hoplon.macros  :refer [with-frp]]
+    [tailrecursion.javelin.macros :refer [cell cell=]]))
 
-(defn myfn [x y]
-  (div {:class "foo"}
-    (ul (li x)
-        (li y))))
+;; definitions in this file are optional
+(defn my-list [& items]
+  (div {:class "my-list"}
+    (into ul (map #(li (div {:class "my-list-item"} %)) items))))
+
+(def clicks (cell 0))
 
 (html
   (head
     (title "example page"))
   (body
     (h1 "Hello, Hoplon")
-    (myfn
-      (div "first thing")
-      (div "second thing"))))
+    (my-list
+      (span "first thing)
+      (span "second thing"))
+
+    (p "You've clicked " (span {:do-text [clicks]}) " times, so far.")
+    (button {:on-click [#(swap! clicks inc)]} "click me")))
 ```
 
 ### Dependency
