@@ -1,8 +1,8 @@
+# Hoplon
+
 <img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.jpg"
 alt="tailrecursion/hoplon logo" title="tailrecursion/hoplon logo"
 height="300px" align="right"/>
-
-# Hoplon
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
