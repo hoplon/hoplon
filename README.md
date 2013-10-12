@@ -1,6 +1,6 @@
 <img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.jpg"
 alt="tailrecursion/hoplon logo" title="tailrecursion/hoplon logo"
-align="right"/>
+height="500px" align="right"/>
 
 # Hoplon
 
