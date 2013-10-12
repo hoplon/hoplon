@@ -75,6 +75,7 @@ Or, equivalently:
     (title "example page"))
   (body
     (h1 "Hello, Hoplon")
+
     (my-list
       (span "first thing")
       (span "second thing"))
