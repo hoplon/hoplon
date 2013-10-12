@@ -1,4 +1,4 @@
-<img src="https://raw.github.com/tailrecursion/hoplon/master/img/Hoplite.png?login=micha&token=b172f1b97acb55c16867dc106e30c646"
+<img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.png"
 alt="tailrecursion/hoplon logo" title="tailrecursion/hoplon logo"
 align="right"/>
 
