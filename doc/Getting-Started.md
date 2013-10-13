@@ -317,44 +317,44 @@ macros, respectively.
 
 ```clojure
 ;;; A constant.
-(def foo 1337)
+(def foo 1337)                        ;=> #'user/foo
 
 ;;; Example input cells:
-(def i1 (cell 42))
-(def i2 (cell \g))
-(def i3 (cell "qwerty"))
-(def i4 (cell foo))
-(def i5 (cell [1 2 3]))
-(def i6 (cell {:a 1, :b 2}))
+(def i1 (cell 42))                    ;=> #'user/i1
+(def i2 (cell \g))                    ;=> #'user/i2
+(def i3 (cell "qwerty"))              ;=> #'user/i3
+(def i4 (cell foo))                   ;=> #'user/i4
+(def i5 (cell [1 2 3]))               ;=> #'user/i5
+(def i6 (cell {:a 1, :b 2}))          ;=> #'user/i6
 
 ;;; Example formula cells:
-(def f1 (cell= (+ i1 foo)))
-(def f2 (cell= {:a i1 :b i2}))
-(def f3 (cell= (merge {:c f1} f2)))
+(def f1 (cell= (+ i1 foo)))           ;=> #'user/f1
+(def f2 (cell= {:a i1 :b i2}))        ;=> #'user/f2
+(def f3 (cell= (merge {:c f1} f2)))   ;=> #'user/f3
 
 ;;; Get the values contained in cells:
-@i1 ;=> 42
-@f1 ;=> 1379
-@f2 ;=> {:a 42 :b \g}
-@f3 ;=> {:c 1379 :a 42 :b \g}
+@i1                                   ;=> 42
+@f1                                   ;=> 1379
+@f2                                   ;=> {:a 42 :b \g}
+@f3                                   ;=> {:c 1379 :a 42 :b \g}
 
 ;;; Update input cell
-(swap! i1 inc) ;=> 43
+(swap! i1 inc)                        ;=> 43
 
 ;;; Formula cells were updated automatically
-@f1 ;=> 1380
-@f2 ;=> {:a 43 :b \g}
-@f3 ;=> {:c 1380 :a 43 :b \g}
+@f1                                   ;=> 1380
+@f2                                   ;=> {:a 43 :b \g}
+@f3                                   ;=> {:c 1380 :a 43 :b \g}
 
 ;;; Anonymous formula cell for side-effects
 (cell= (.log js/console (pr-str f2))) ;=> #<Cell: nil>
 
-;;; {:a 43 :b \g} is printed to the console
+;;; console log: {:a 43 :b \g}
 
 ;;; Update input cell
-(swap! i1 inc) ;=> 44
+(swap! i1 inc)                        ;=> 44
 
-;;; {:a 44 :b \g} is printed to the console
+;;; console log: {:a 44 :b \g}
 ```
 
 ### Reactive Attributes
