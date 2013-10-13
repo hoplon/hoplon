@@ -9,7 +9,7 @@ from a web server's document root.
 
 #### Hoplon Source File Extensions
 
-Hoplon pages can be written using either the familiar HTML markup or using the
+Hoplon pages can be written using either the familiar HTML markup or the
 Clojure [s-expression][2] syntax. Use the file extension to indicate which
 syntax the source file contains:
 
