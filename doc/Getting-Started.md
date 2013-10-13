@@ -150,14 +150,14 @@ _src/html/index.cljs.hl_
 When the application is compiled the output files _resources/public/index.html_
 and _resources/public/main.js_ are produced.
 
-Note that the script element has been removed in the sexp version. The script
-element in the HTML version serves simply to splice the lisp expressions it
-contains into the surrounding HTML markup. This is necessary when working in
-HTML markup because ClojureScript source code is not strictly s-expressions; it
-is made up of lists, maps, vectors, reader macros, etc., and names which are
-valid in ClojureScript may contain characters which would crash a sane HTML
-parser (the function `clj->js`, for example, which cannot be represented in
-HTML markup as `<clj->js/>`).
+> Note that the script element has been removed in the sexp version. The script
+> element in the HTML version serves simply to splice the lisp expressions it
+> contains into the surrounding HTML markup. This is necessary when working in
+> HTML markup because ClojureScript source code is not strictly s-expressions; it
+> is made up of lists, maps, vectors, reader macros, etc., and names which are
+> valid in ClojureScript may contain characters which would crash a sane HTML
+> parser (the function `clj->js`, for example, which cannot be represented in
+> HTML markup as `<clj->js/>`).
 
 In general, Hoplon programs can be represented equivalently in either
 HTML or ClojureScript syntax. This is an important point for designers
