@@ -9,9 +9,8 @@ from a web server's document root.
 
 #### Hoplon Source File Extensions
 
-The Hoplon compiler accepts source files containing pages in the familiar HTML
-markup syntax (the `.html.hl` files) or in an [s-expression][2] syntax (the
-`.cljs.hl` files).
+* `.html.hl`: the familiar HTML markup syntax
+* `.cljs.hl`: [s-expression][2] syntax
 
 ## Building a Hoplon Application
 
