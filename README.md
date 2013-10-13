@@ -86,7 +86,7 @@ Or, equivalently:
       (button {:on-click [#(swap! clicks inc)]} "click me"))))
 ```
 
-### Dependency
+## Installation
 
 Artifacts are published on [Clojars][4]. 
 
@@ -102,7 +102,7 @@ Artifacts are published on [Clojars][4].
 </dependency>
 ```
 
-### Demos and Examples
+## Demos and Examples
 
 * [Hoplon demo applications repository][5]
 
