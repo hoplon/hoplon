@@ -4,7 +4,7 @@ Hoplon web application frontends are built from source files by the Hoplon
 compiler. The Hoplon compiler compiles source files with the `.html.hl` and
 `.cljs.hl` extensions, emitting static HTML pages and ClojureScript source
 files. The ClojureScript sources are then compiled into a `main.js` file that
-is loaded in the HTML pages. The resulting output files can then be served
+is loaded from the HTML pages. The resulting output files can then be served
 from a web server's document root.
 
 The Hoplon compiler accepts source files containing pages in the familiar HTML
