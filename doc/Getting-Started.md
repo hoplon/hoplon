@@ -220,9 +220,7 @@ nodes.
       (fancyitem (span "Item 2") (span "This is the second item.")))))
 ```
 
-When _resources/public/func.html_ is viewed in the browser the list items,
-headings, and paragraphs will be seen in the resulting HTML. As always, the
-same page can be represented as HTML markup:
+As always, the same page can be represented as HTML markup:
 
 ```html
 <script type="text/hoplon">
