@@ -308,25 +308,18 @@ automatically to the updated value of the `clicks` cell.
 
 ### Javelin Cells
 
-The Javelin library provides a spreadsheet-like computing model. The core of
-this model is the **cell**. A cell is a reference type that can be dereferenced
-like an atom to retrieve its current value. Depending on the type of cell, the
-value may be updated either automatically via a formula provided when the cell
-was created, or directly via the `swap!` or `reset!` functions. Just like in a
-spreadsheet, changes to cells propagate to other cells whose formulas reference
-the changed cell and whose values are then recomputed according to these
-formulas.
-
-Javelin, like any spreadsheet, provides two types of cells: **input cells**
-which are updated explicitly and created with the `cell` macro, and **formula
-cells** which are updated according to a formula and created with the `cell=`
-macro. For example:
+The [Javelin][4] library provides a spreadsheet-like computing model. The core
+of this model is the **cell**. Like any spreadsheet, cells can either contain a
+value that is entered directly or have a **formula** that determines its value
+_reactively_ based on the values of other cells in the spreadsheet. These are
+called **input cells** and **formula cells**, created by the `cell` and `cell=`
+macros, respectively.
 
 ```clojure
 ;;; A constant.
 (def foo 1337)
 
-;;; Examples of input cells:
+;;; Example input cells:
 (def i1 (cell 42))
 (def i2 (cell \g))
 (def i3 (cell "qwerty"))
@@ -334,12 +327,13 @@ macro. For example:
 (def i5 (cell [1 2 3]))
 (def i6 (cell {:a 1, :b 2}))
 
-;;; Examples of formula cells:
+;;; Example formula cells:
 (def f1 (cell= (+ i1 foo)))
 (def f2 (cell= {:a i1 :b i2}))
 (def f3 (cell= (merge {:c f1} f2)))
 
-;;; Get the value of formula cells
+;;; Get the values contained in cells:
+@i1 ;=> 42
 @f1 ;=> 1379
 @f2 ;=> {:a 42 :b \g}
 @f3 ;=> {:c 1379 :a 42 :b \g}
@@ -347,23 +341,25 @@ macro. For example:
 ;;; Update input cell
 (swap! i1 inc)
 
-;;; Formula cells update responsively
+;;; Formula cells were updated automatically
 @f1 ;=> 1380
 @f2 ;=> {:a 43 :b \g}
 @f3 ;=> {:c 1380 :a 43 :b \g}
 
 ;;; Anonymous formula cell for side-effects
-(cell= (.log js/console (pr-str f2)))
+(cell= (.log js/console (pr-str f2))) ;=> nil
+
+;;; {:a 43 :b \g} is printed to the console
 
 ;;; Update input cell
-(swap! i1 inc)
+(swap! i1 inc) ;=> 43
 
 ;;; {:a 44 :b \g} is printed to the console
 ```
 
 ### Reactive Attributes
 
-In the example above the DOM was wired up to the underlying Javelin cells
+In the example above the DOM was wired up to the underlying [Javelin][4] cells
 via the `:on-click` and `:do-text` attributes on DOM elements. In general,
 reactive attributes are divided into two categories: **input** and **output**.
 
@@ -373,7 +369,7 @@ reactive attributes are divided into two categories: **input** and **output**.
   * start with the prefix `on-`.
   
 #### Output Attributes
-  * link the state of DOM elements to the state of the underlying Javelin cells
+  * link the state of DOM elements to the state of the underlying [Javelin][4] cells
     via formulas.
   * start with the prefix `do-`.
 
