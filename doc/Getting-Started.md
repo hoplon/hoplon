@@ -368,12 +368,10 @@ macros, respectively.
 
 ;;; Anonymous formula cell for side-effects
 (cell= (.log js/console (pr-str f2))) ;=> #<Cell: nil>
-
 ;;; console log: {:a 43 :b \g}
 
 ;;; Update input cell
 (swap! i1 inc)                        ;=> 44
-
 ;;; console log: {:a 44 :b \g}
 ```
 
