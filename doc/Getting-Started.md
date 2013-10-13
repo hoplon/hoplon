@@ -107,10 +107,7 @@ Since HTML markup is a tree structure it can be expressed as [s-expressions][2].
 For example, this HTML markup
 
 ```html
-<form>
-  <input>
-  <input>
-</form>
+<form><input><input></form>
 ```
 
 is syntactically equivalent to this s-expression
