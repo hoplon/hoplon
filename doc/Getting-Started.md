@@ -174,30 +174,6 @@ of productivity.
   are appended to its parent. For example, `(div (spliced (p "1") (p "2")))`
   is equivalent to `(div (p "1") (p "2"))`.
 
-### ClojureScript CSS Literal Syntax
-
-When editing HTML as s-expressions the compiler will also parse `<style>`
-elements containing a simple ClojureScript CSS literal syntax:
-
-```clojure
-(ns hello.index)
-
-(html
-  (head
-    (style
-      [:body > :h1], [:div :p.blue-border :span], [:#main]
-      {:border "1px solid blue"}))
-  (body
-    (h1 {:id "main" :style "color:red"} "Hello world")))
-```
-
-The ClojureScript CSS syntax follows the following conventions:
-
-* **Selectors:** Selectors are vectors of symbols and/or keywords, the names
-  of which will be used in the output.
-* **Declaration blocks:** Declaration blocks are maps with keyword keys and
-  string values.
-
 ### HTML-As-ClojureScript-As-HTML
 
 The equivalence of HTML and s-expression syntax allows the representation
