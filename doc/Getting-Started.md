@@ -79,8 +79,6 @@ declaration. All HTML source files in a Hoplon application must declare a
 namespace. This is because the HTML contained in the document body is going to
 be _evaluated_ as ClojureScript in the browser.
 
-File _src/html/index.html.hl_:
-
 ```html
 <script type="text/hoplon">
   (ns hello.index)
@@ -135,8 +133,6 @@ could be represented equivalently in HTML markup
 
 With that in mind, the Hello World example can be translated into s-expression
 syntax. The Hoplon compiler can compile HTML source in this format, as well.
-
-_src/html/index.cljs.hl_
 
 ```clojure
 (ns hello.index)
@@ -233,8 +229,6 @@ code as HTML. This allows the use of macros in HTML documents, and seamless
 templating as templates in this environment are simply functions that return
 nodes.
 
-_src/html/func.cljs.hl_
-
 ```clojure
 (ns hello.func)
 
@@ -256,8 +250,6 @@ _src/html/func.cljs.hl_
 When _resources/public/func.html_ is viewed in the browser the list items,
 headings, and paragraphs will be seen in the resulting HTML. As always, the
 same page can be represented as HTML markup:
-
-_src/html/func2.html_
 
 ```html
 <script type="text/hoplon">
