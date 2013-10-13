@@ -94,6 +94,14 @@ Artifacts are [published on Clojars][4].
 [tailrecursion/hoplon "1.1.0-SNAPSHOT"]
 ```
 
+```xml
+<dependency>
+  <groupId>tailrecursion</groupId>
+  <artifactId>hoplon</artifactId>
+  <version>1.1.0-SNAPSHOT</version>
+</dependency>
+```
+
 ### Demos and Examples
 
 * [Hoplon demo applications repository][5]
