@@ -106,7 +106,7 @@ Artifacts are published on [Clojars][4].
 
 * [Hoplon demo applications repository][5]
 
-## Documentation
+### Documentation
 
 * [Getting Started][6]
 * [Configuration][7]
