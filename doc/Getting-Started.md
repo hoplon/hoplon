@@ -347,7 +347,7 @@ macros, respectively.
 @f3 ;=> {:c 1380 :a 43 :b \g}
 
 ;;; Anonymous formula cell for side-effects
-(cell= (.log js/console (pr-str f2))) ;=> nil
+(cell= (.log js/console (pr-str f2))) ;=> #<Cell: nil>
 
 ;;; {:a 43 :b \g} is printed to the console
 
