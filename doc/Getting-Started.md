@@ -298,7 +298,9 @@ characters, etc.
 ## Functional Reactive Programming
 
 An example of how macros can be used to advantage is the `with-frp` macro that
-ships with Hoplon. It ties the FRP reference type from [Javelin][4] to the DOM.
+ships with Hoplon. It ties the FRP reference type from [Javelin][4] to the DOM
+such that DOM elements update reactively when the underlying [Javelin][4] cells
+change and [Javelin][4] cells are updated in response to user input (events).
 Consider the following program:
 
 ```clojure
