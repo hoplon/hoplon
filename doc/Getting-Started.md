@@ -61,7 +61,7 @@ declaration. All HTML source files in a Hoplon application must declare a
 namespace. This is because the HTML contained in the document body is going to
 be _evaluated_ as ClojureScript in the browser.
 
-_src/html/index.html.hl_
+File _src/html/index.html.hl_:
 
 ```html
 <script type="text/hoplon">
@@ -278,7 +278,7 @@ characters, etc.
 ## Functional Reactive Programming
 
 An example of how macros can be used to advantage is the `with-frp` macro that
-ships with Hoplon. It ties FRP data structures from [Javelin][4] to the DOM.
+ships with Hoplon. It ties the FRP reference type from [Javelin][4] to the DOM.
 Consider the following program:
 
 ```clojure
