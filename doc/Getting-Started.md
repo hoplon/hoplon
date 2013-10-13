@@ -7,6 +7,8 @@ files. The ClojureScript sources are then compiled into a `main.js` file that
 is loaded from the HTML pages. The resulting output files can then be served
 from a web server's document root.
 
+### Hoplon Source File Extensions
+
 The Hoplon compiler accepts source files containing pages in the familiar HTML
 markup syntax (the `.html.hl` files) or in an [s-expression][2] syntax (the
 `.cljs.hl` files).
