@@ -1,5 +1,4 @@
-<img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.jpg"
-alt="tailrecursion/hoplon logo" title="tailrecursion/hoplon logo">
+<img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.jpg">
 
 # Hoplon
 
