@@ -339,7 +339,7 @@ macros, respectively.
 @f3 ;=> {:c 1379 :a 42 :b \g}
 
 ;;; Update input cell
-(swap! i1 inc)
+(swap! i1 inc) ;=> 43
 
 ;;; Formula cells were updated automatically
 @f1 ;=> 1380
@@ -352,7 +352,7 @@ macros, respectively.
 ;;; {:a 43 :b \g} is printed to the console
 
 ;;; Update input cell
-(swap! i1 inc) ;=> 43
+(swap! i1 inc) ;=> 44
 
 ;;; {:a 44 :b \g} is printed to the console
 ```
