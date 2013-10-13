@@ -9,9 +9,11 @@ from a web server's document root.
 
 #### Hoplon Source File Extensions
 
-Use the file extension to indicate which syntax the source file contains:
+Hoplon pages can be written using either the familiar HTML markup or using the
+Clojure [s-expression][2] syntax. Use the file extension to indicate which
+syntax the source file contains:
 
-* `.html.hl`: the familiar HTML markup syntax
+* `.html.hl`: HTML markup syntax
 * `.cljs.hl`: [s-expression][2] syntax
 
 ## Building a Hoplon Application
