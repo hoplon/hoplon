@@ -116,7 +116,7 @@ For example, this HTML markup
 is syntactically equivalent to this s-expression
 
 ```clojure
-(form (input) (input))
+(form input input)
 ```
 
 Conversely, the s-expression
