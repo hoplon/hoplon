@@ -132,7 +132,7 @@ could be represented equivalently in HTML markup
 ```
 
 With that in mind, the Hello World example can be translated into s-expression
-syntax. The Hoplon compiler can compile HTML source in this format, as well.
+syntax
 
 ```clojure
 (ns hello.index)
@@ -142,9 +142,6 @@ syntax. The Hoplon compiler can compile HTML source in this format, as well.
   (body
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
-
-When the application is compiled the output files _resources/public/index.html_
-and _resources/public/main.js_ are produced.
 
 Note that the script element has been removed in the sexp version. The script
 element in the HTML version serves simply to splice the lisp expressions it
