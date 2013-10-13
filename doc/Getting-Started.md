@@ -9,6 +9,8 @@ from a web server's document root.
 
 #### Hoplon Source File Extensions
 
+Use the file extension to indicate which syntax the source file contains:
+
 * `.html.hl`: the familiar HTML markup syntax
 * `.cljs.hl`: [s-expression][2] syntax
 
