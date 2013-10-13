@@ -19,7 +19,7 @@ syntax the source file contains:
 ## Building a Hoplon Application
 
 Hoplon applications are be built using the [boot][1] build tool. The following
-`boot.clj` file is a good starting point:
+`boot.edn` file is a good starting point:
 
 ```clojure
 {:project       my-hoplon-project
@@ -46,7 +46,7 @@ $ boot watch hoplon
 
 ### Compiler Source Directories
 
-For the purposes of this document (as specified in the `boot.clj` file above)
+For the purposes of this document (as specified in the `boot.edn` file above)
 the source paths are organized as follows:
 
 | Directory    | Contents                                          |
@@ -59,7 +59,7 @@ the source paths are organized as follows:
 ### Library And Package Management
 
 Hoplon projects can depend on maven artifacts, specified in the `:dependencies`
-key of the project _boot.clj_ file. These jar files may contain any of the
+key of the project _boot.edn_ file. These jar files may contain any of the
 following:
 
 * Clojure namespaces (ClojureScript macros are written in Clojure).
