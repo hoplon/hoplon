@@ -185,7 +185,7 @@ elements containing a simple ClojureScript CSS literal syntax:
 (html
   (head
     (style
-      [body > h1], [div p span], [:#main]
+      [:body > :h1], [:div :p.blue-border :span], [:#main]
       {:border "1px solid blue"}))
   (body
     (h1 {:id "main" :style "color:red"} "Hello world")))
