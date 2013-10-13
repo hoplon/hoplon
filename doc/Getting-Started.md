@@ -76,12 +76,14 @@ File _src/html/index.html.hl_:
 </html>
 ```
 
-Note the `.html.hl` extension: all files ending in `.hl` will be compiled by
-the Hoplon compiler, and the `.html.hl` ending tells Hoplon that the source
-file format is HTML markup. Hoplon can also compile source files with the
-`.cljs.hl` extension, which indicates that the source file format is
-ClojureScript forms (s-expressions) instead of HTML markup. This is covered in
-detail below.
+### Hoplon Source File Extensions
+
+Note the `.html.hl` extension in the example above: all files ending in `.hl`
+will be compiled by the Hoplon compiler, and the `.html.hl` ending tells Hoplon
+that the source file format is HTML markup. Hoplon can also compile source
+files with the `.cljs.hl` extension, which indicates that the source file
+format is ClojureScript forms (s-expressions) instead of HTML markup. This is
+covered in detail below.
 
 ## S-Expression Syntax
 
