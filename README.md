@@ -88,7 +88,7 @@ Or, equivalently:
 
 ### Dependency
 
-Artifacts are [published on Clojars][4]. 
+Artifacts are published on [Clojars][4]. 
 
 ```clojure
 [tailrecursion/hoplon "1.1.0-SNAPSHOT"]
