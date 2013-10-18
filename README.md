@@ -17,7 +17,7 @@ the following libraries as dependencies to complete the stack:
 
 ### Example
 
-```html
+```xml
 <script type="text/hoplon">
   ;; namespace declaration is required
   (ns example.index
