@@ -1,8 +1,25 @@
 # Getting Started
 
-Hoplon applications are be built using the 
-[boot](http://github.com/tailrecursion/boot)
-build tool. The following `boot.clj` file is a good starting point:
+Hoplon web application frontends are built from source files by the Hoplon
+compiler. The Hoplon compiler compiles source files with the `.html.hl` and
+`.cljs.hl` extensions, emitting static HTML pages and ClojureScript source
+files. The ClojureScript sources are then compiled into a `main.js` file that
+is loaded from the HTML pages. The resulting output files can then be served
+from a web server's document root.
+
+#### Hoplon Source File Extensions
+
+Hoplon pages can be written using either the familiar HTML markup or the
+Clojure [s-expression][2] syntax. Use the file extension to indicate which
+syntax the source file contains:
+
+* `.html.hl`: HTML markup syntax
+* `.cljs.hl`: [s-expression][2] syntax
+
+## Building a Hoplon Application
+
+Hoplon applications are built using the [boot][1] build tool. The following
+`boot.edn` file is a good starting point:
 
 ```clojure
 {:project       my-hoplon-project
@@ -29,7 +46,7 @@ $ boot watch hoplon
 
 ### Compiler Source Directories
 
-For the purposes of this document (as specified in the `boot.clj` file above)
+For the purposes of this document (as specified in the `boot.edn` file above)
 the source paths are organized as follows:
 
 | Directory    | Contents                                          |
@@ -42,7 +59,7 @@ the source paths are organized as follows:
 ### Library And Package Management
 
 Hoplon projects can depend on maven artifacts, specified in the `:dependencies`
-key of the project _boot.clj_ file. These jar files may contain any of the
+key of the project _boot.edn_ file. These jar files may contain any of the
 following:
 
 * Clojure namespaces (ClojureScript macros are written in Clojure).
@@ -62,8 +79,6 @@ declaration. All HTML source files in a Hoplon application must declare a
 namespace. This is because the HTML contained in the document body is going to
 be _evaluated_ as ClojureScript in the browser.
 
-_src/html/index.html.hl_
-
 ```html
 <script type="text/hoplon">
   (ns hello.index)
@@ -77,47 +92,23 @@ _src/html/index.html.hl_
 </html>
 ```
 
-Note the `.html.hl` extension: all files ending in `.hl` will be compiled by
-the Hoplon compiler, and the `.html.hl` ending tells Hoplon that the source
-file format is HTML markup. Hoplon can also compile source files with the
-`.cljs.hl` extension, which indicates that the source file format is
-ClojureScript forms (s-expressions) instead of HTML markup. This is covered in
-detail below.
-
 ## S-Expression Syntax
 
-Since HTML markup is a tree structure it can be expressed as [s-expressions]
-(http://en.wikipedia.org/wiki/S-expression). For example, this HTML markup
+Since HTML markup is a tree structure it can be expressed as [s-expressions][2].
+For example, this HTML markup
 
 ```html
-<form>
-  <input>
-  <input>
-</form>
+<form><input><input></form>
 ```
 
 is syntactically equivalent to this s-expression
 
 ```clojure
-(form (input) (input))
-```
-
-Conversely, the s-expression
-
-```clojure
-(map identity coll)
-```
-
-could be represented equivalently in HTML markup
-
-```html
-<map><identity/><coll/></map>
+(form input input)
 ```
 
 With that in mind, the Hello World example can be translated into s-expression
-syntax. The Hoplon compiler can compile HTML source in this format, as well.
-
-_src/html/index.cljs.hl_
+syntax
 
 ```clojure
 (ns hello.index)
@@ -127,9 +118,6 @@ _src/html/index.cljs.hl_
   (body
     (h1 {:id "main" :style "color:red"} "Hello world")))
 ```
-
-When the application is compiled the output files _resources/public/index.html_
-and _resources/public/main.js_ are produced.
 
 Note that the script element has been removed in the sexp version. The script
 element in the HTML version serves simply to splice the lisp expressions it
@@ -162,30 +150,6 @@ of productivity.
   are appended to its parent. For example, `(div (spliced (p "1") (p "2")))`
   is equivalent to `(div (p "1") (p "2"))`.
 
-### ClojureScript CSS Literal Syntax
-
-When editing HTML as s-expressions the compiler will also parse `<style>`
-elements containing a simple ClojureScript CSS literal syntax:
-
-```clojure
-(ns hello.index)
-
-(html
-  (head
-    (style
-      [body > h1], [div p span], [:#main]
-      {:border "1px solid blue"}))
-  (body
-    (h1 {:id "main" :style "color:red"} "Hello world")))
-```
-
-The ClojureScript CSS syntax follows the following conventions:
-
-* **Selectors:** Selectors are vectors of symbols and/or keywords, the names
-  of which will be used in the output.
-* **Declaration blocks:** Declaration blocks are maps with keyword keys and
-  string values.
-
 ### HTML-As-ClojureScript-As-HTML
 
 The equivalence of HTML and s-expression syntax allows the representation
@@ -195,9 +159,8 @@ step of adding HTML primitives to the ClojureScript environment in which
 the page is evaluated provides the semantics of HTML, as well.
 
 HTML primitives are implemented as ClojureScript text and element node types.
-Each of the [HTML5 elements](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list)
-is defined, i.e. `a`, `div`, `span`, `p`, etc. The ClojureScript element node
-type has the following properties:
+Each of the [HTML5 elements][3] is defined, i.e. `a`, `div`, `span`, `p`, etc.
+The ClojureScript element node type has the following properties:
 
 * **They are self-evaluating.** There is no `render` function.
 * **They are immutable.** Operations on a node return a new node and do not
@@ -214,8 +177,6 @@ This implementation provides a literal representation of HTML as code, and of
 code as HTML. This allows the use of macros in HTML documents, and seamless
 templating as templates in this environment are simply functions that return
 nodes.
-
-_src/html/func.cljs.hl_
 
 ```clojure
 (ns hello.func)
@@ -235,11 +196,7 @@ _src/html/func.cljs.hl_
       (fancyitem (span "Item 2") (span "This is the second item.")))))
 ```
 
-When _resources/public/func.html_ is viewed in the browser the list items,
-headings, and paragraphs will be seen in the resulting HTML. As always, the
-same page can be represented as HTML markup:
-
-_src/html/func2.html_
+As always, the same page can be represented as HTML markup:
 
 ```html
 <script type="text/hoplon">
@@ -280,117 +237,55 @@ characters, etc.
 ## Functional Reactive Programming
 
 An example of how macros can be used to advantage is the `with-frp` macro that
-ships with Hoplon. The `tailrecursion.hoplon.reactive` library ties FRP data
-structures from [Javelin](http://github.com/tailrecursion/javelin) to the DOM.
+ships with Hoplon. It ties the FRP reference type from [Javelin][4] to the DOM
+such that DOM elements update reactively when the underlying [Javelin][4] cells
+change and [Javelin][4] cells are updated in response to user input (events).
 Consider the following program:
 
-_src/html/react1.cljs.hl_
-
 ```clojure
 (ns hello.react1
   (:require-macros
-    [tailrecursion.javelin.macros   :refer [cell]]
-    [tailrecursion.hoplon.macros    :refer [with-frp]])
-  (:require
-    [tailrecursion.javelin          :as j]
-    [tailrecursion.hoplon.reactive  :as r]))
+    [tailrecursion.javelin  :refer [defc]]
+    [tailrecursion.hoplon   :refer [with-frp]])
+  (:require tailrecursion.javelin tailrecursion.hoplon))
 
-(def clicks (cell 0))
+(defc clicks 0)
 
 (html
   (head
     (title "Reactive Attributes: Example 1"))
   (body
     (with-frp
-      (h1 {:on-click [#(swap! clicks inc)]} "click me")
-      (p {:do-text [(format "You've clicked %s times, so far." clicks)]}))))
+      ;; underlying cells wired to DOM using the :do-text attribute
+      (p {:do-text [(format "You've clicked %s times, so far." clicks)]})
+
+      ;; underlying cells wired to DOM using interpolated text node
+      (p "If you click again you'll have clicked ~(inc clicks) times.")
+
+      ;; user input (click event) wired to change underlying cells
+      (button {:on-click [#(swap! clicks inc)]} "click me"))))
 ```
 
-Clicking on the "click me" element causes the p element to update, its text
-reflecting the number of times the user has clicked so far. Note that the
-p element's text updates _reactively_, responding automatically to the updated
-value of the `clicks` cell. An alternative way to achieve the same effect:
-
-```clojure
-(ns hello.react1
-  (:require-macros
-    [tailrecursion.javelin.macros   :refer [cell]]
-    [tailrecursion.hoplon.macros    :refer [with-frp]])
-  (:require
-    [tailrecursion.javelin          :as j]
-    [tailrecursion.hoplon.reactive  :as r]))
-
-(def clicks         (cell 0))
-(def clicks-report  (cell (format "You've clicked %s times, so far." clicks)))
-
-(html
-  (head
-    (title "Reactive Attributes: Example 1"))
-  (body
-    (with-frp
-      (h1 {:on-click [#(swap! clicks inc)]} "click me")
-      (p {:do-text [clicks-report]}))))
-```
-
-Comparing the two equivalent programs should help illustrate the relationship
-between the expression passed in as the value of the `:do-text` attribute and
-the Javelin cells that comprise the reactive data graph. To see the
-`clicks-report` cell updating, add the following expression after its
-definition:
-
-```clojure
-(cell (.log js/console "[clicks-report]" clicks-report))
-```
-
-This is an anonymous cell that logs the value of the `clicks-report` cell
-whenever its value is updated.
-
-### Javelin Cells
-
-The Javelin library provides a spreadsheet-like computing model. The core of
-this model is the **cell**. A cell is a reference type that can be dereferenced
-like an atom to retrieve its current value. Depending on the type of cell, the
-value may be updated either automatically via a formula provided when the cell
-was created, or directly via the `swap!` or `reset!` functions. Just like in a
-spreadsheet, changes to cells propagate to other cells whose formulas reference
-the changed cell and whose values are then recomputed according to these
-formulas.
-
-#### Types Of Cells
-
-Javelin, like any spreadsheet, provides two types of cells: **input cells** and
-**formula cells**. Cells are created with the `cell` macro.
-
-```clojure
-;;; A constant.
-(def foo 1337)
-
-;;; Examples of input cells:
-(def i1 (cell 42))
-(def i2 (cell \g))
-(def i3 (cell "qwerty"))
-(def i4 (cell foo))
-(def i5 (cell '[1 2 3]))
-(def i6 (cell '{:a 1, :b 2}))
-
-;;; Examples of formula cells:
-(def f1 (cell (+ i1 foo)))
-(def f2 (cell {:a i1 :b i2}))
-(def f3 (cell (merge {:c f1} f2)))
-
-;;; Update input cells
-```
+Clicking on the "click me" button causes the paragraph element to update, its
+text reflecting the number of times the user has clicked so far. Note that the
+paragraph's text updates _reactively_ according to a _formula_&mdash;responding
+automatically to the updated value of the `clicks` cell.
 
 ### Reactive Attributes
 
-In the example above the DOM was wired up to the underlying Javelin cells
+In the example above the DOM was wired up to the underlying [Javelin][4] cells
 via the `:on-click` and `:do-text` attributes on DOM elements. In general,
-reactive attributes are divided into two categories: input and output.
-Input attributes connect user input events (click, keypress, mouseover, etc.)
-to cell values via a callback function. These attributes all start with the
-prefix `on-`. Output attributes link the state of DOM elements to the state
-of the underlying Javelin cells via ClojureScript expressions. These attributes
-all start with the prefix `do-`.
+reactive attributes are divided into two categories: **input** and **output**.
+
+##### Input Attributes
+  * connect DOM events (click, keypress, mouseover, etc.) to cell values via a
+    callback function.
+  * start with the prefix `on-`.
+  
+##### Output Attributes
+  * link the state of DOM elements to the state of the underlying [Javelin][4] cells
+    via formulas.
+  * start with the prefix `do-`.
 
 | Attribute                 | Description |
 |---------------------------|-------------|
@@ -410,10 +305,13 @@ all start with the prefix `do-`.
 
 #### Custom Reactive Attributes
 
-The output attributes can be extended by adding to the
-`tailrecursion.hoplon.reactive/do!` multimethod. For example, adding a `:foo`
-dispatch method will enable the use of the `:do-foo` attribute. Look at the
-implementations of the above attributes in the
-[source file](https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon/reactive.cljs)
-for examples and ideas.
+The output attributes can be extended by adding to the `#'tailrecursion.hoplon.reactive/do!`
+multimethod. For example, adding a `:foo` dispatch method will enable the use
+of the `:do-foo` attribute. Look at the implementations of the above attributes
+in the [source file][5] for examples and ideas.
 
+[1]: https://github.com/tailrecursion/boot
+[2]: http://en.wikipedia.org/wiki/S-expression
+[3]: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
+[4]: https://github.com/tailrecursion/javelin
+[5]: https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon/reactive.cljs
