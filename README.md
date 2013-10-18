@@ -1,4 +1,4 @@
-<img src="https://raw.github.com/tailrecursion/hoplon/dox/img/Hoplite.jpg">
+<img src="https://raw.github.com/tailrecursion/hoplon/master/img/Hoplite.jpg">
 
 # Hoplon
 
