@@ -271,13 +271,6 @@ text reflecting the number of times the user has clicked so far. Note that the
 paragraph's text updates _reactively_ according to a _formula_&mdash;responding
 automatically to the updated value of the `clicks` cell.
 
-### Javelin Cells
-
-The [Javelin][4] library provides a spreadsheet-like computing model. The core
-of this model is the **cell**. Like any spreadsheet, cells can either contain a
-value that is entered directly or have a **formula** that determines its value
-_reactively_ based on the values of other cells in the spreadsheet.
-
 ### Reactive Attributes
 
 In the example above the DOM was wired up to the underlying [Javelin][4] cells
