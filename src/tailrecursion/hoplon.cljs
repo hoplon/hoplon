@@ -568,40 +568,25 @@
   [elem _ v]
   (js/jQuery #(.text (dom-get elem) (str v))))
 
+(def events (atom {}))
+
 (defn- delegate
   [atm event]
   (.on (js/jQuery js/document) event "[data-hl]" #(reset! atm %))
   atm)
 
-(def events {
-  :change       (delegate (atom nil) "change")
-  :click        (delegate (atom nil) "click")
-  :dblclick     (delegate (atom nil) "dblclick")
-  :error        (delegate (atom nil) "error")
-  :focus        (delegate (atom nil) "focus")
-  :focusin      (delegate (atom nil) "focusin")
-  :focusout     (delegate (atom nil) "focusout")
-  :hover        (delegate (atom nil) "hover")
-  :keydown      (delegate (atom nil) "keydown")
-  :keypress     (delegate (atom nil) "keypress")
-  :keyup        (delegate (atom nil) "keyup")
-  :load         (delegate (atom nil) "load")
-  :mousedown    (delegate (atom nil) "mousedown")
-  :mouseenter   (delegate (atom nil) "mouseenter")
-  :mouseleave   (delegate (atom nil) "mouseleave")
-  :mousemove    (delegate (atom nil) "mousemove")
-  :mouseout     (delegate (atom nil) "mouseout")
-  :mouseover    (delegate (atom nil) "mouseover")
-  :mouseup      (delegate (atom nil) "mouseup")
-  :ready        (delegate (atom nil) "ready")
-  :scroll       (delegate (atom nil) "scroll")
-  :select       (delegate (atom nil) "select")
-  :submit       (delegate (atom nil) "submit")
-  :unload       (delegate (atom nil) "unload")})
+(defn add-event! [& event-keys]
+  (doseq [event event-keys]
+    (swap! events assoc (keyword event) (delegate (atom nil) (name event)))))
+
+(add-event! :change :click :dblclick :error :focus :focusin :focusout
+            :hover :keydown :keypress :keyup :load :mousedown :mouseenter
+            :mouseleave :mousemove :mouseout :mouseover :mouseup :ready
+            :scroll :select :submit :unload)
 
 (defn- do-on!
   [elem event callback]
-  (let [event   (get events (keyword event))
+  (let [event   (get @events (keyword event))
         update  #(if (and (not= %3 %4) ((filter-id (id elem)) %4)) (callback %4))]
     (add-watch event (gensym) update)))
 
