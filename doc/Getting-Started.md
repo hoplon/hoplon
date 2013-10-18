@@ -267,7 +267,13 @@ Consider the following program:
     (title "Reactive Attributes: Example 1"))
   (body
     (with-frp
+      ;; underlying cells wired to DOM using the :do-text attribute
       (p {:do-text [(format "You've clicked %s times, so far." clicks)]})
+
+      ;; underlying cells wired to DOM using interpolated text node
+      (p "If you click again you'll have clicked ~(inc clicks) times.")
+
+      ;; user input (click event) wired to change underlying cells
       (button {:on-click [#(swap! clicks inc)]} "click me"))))
 ```
 
