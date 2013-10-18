@@ -27,7 +27,7 @@ the following libraries as dependencies to complete the stack:
       [tailrecursion.javelin.macros :refer [cell]]))
   
   ;; definitions in this file are optional
-  (defn my-list [& items]
+  (defn mylist [& items]
     (div {:class "my-list"}
       (into ul (map #(li (div {:class "my-list-item"} %)) items))))
 
@@ -42,11 +42,11 @@ the following libraries as dependencies to complete the stack:
     <with-frp>
       <h1>Hello, Hoplon</h1>
       
-      <!-- an HTML syntax call to the my-list function -->
-      <my-list>
+      <!-- an HTML syntax call to the mylist function -->
+      <mylist>
         <span>first thing</span>
         <span>second thing</span>
-      </myfn>
+      </mylist>
 
       <!-- using FRP to link DOM and Javelin cells -->
       <p>You've clicked ~{clicks} times, so far.</p>
@@ -65,7 +65,7 @@ Or, equivalently:
     [tailrecursion.hoplon.macros  :refer [with-frp]]
     [tailrecursion.javelin.macros :refer [cell]]))
 
-(defn my-list [& items]
+(defn mylist [& items]
   (div {:class "my-list"}
     (into ul (map #(li (div {:class "my-list-item"} %)) items))))
 
@@ -78,7 +78,7 @@ Or, equivalently:
     (with-frp
       (h1 "Hello, Hoplon")
 
-      (my-list
+      (mylist
         (span "first thing")
         (span "second thing"))
 
