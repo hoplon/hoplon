@@ -245,13 +245,11 @@ Consider the following program:
 ```clojure
 (ns hello.react1
   (:require-macros
-    [tailrecursion.javelin    :refer [defc cell=]]
-    [tailrecursion.hoplon.    :refer [with-frp]])
-  (:require
-    tailrecursion.javelin     :refer [cell]
-    tailrecursion.hoplon.reactive))
+    [tailrecursion.javelin  :refer [defc]]
+    [tailrecursion.hoplon   :refer [with-frp]])
+  (:require tailrecursion.javelin tailrecursion.hoplon))
 
-(def clicks (cell 0))
+(defc clicks 0)
 
 (html
   (head
@@ -278,49 +276,7 @@ automatically to the updated value of the `clicks` cell.
 The [Javelin][4] library provides a spreadsheet-like computing model. The core
 of this model is the **cell**. Like any spreadsheet, cells can either contain a
 value that is entered directly or have a **formula** that determines its value
-_reactively_ based on the values of other cells in the spreadsheet. These are
-called **input cells** and **formula cells**, created by the `cell` and `cell=`
-macros, respectively.
-
-```clojure
-;;; A constant.
-(def foo 1337)                        ;=> #'user/foo
-
-;;; Example input cells:
-(def i1 (cell 42))                    ;=> #'user/i1
-(def i2 (cell \g))                    ;=> #'user/i2
-(def i3 (cell "qwerty"))              ;=> #'user/i3
-(def i4 (cell foo))                   ;=> #'user/i4
-(def i5 (cell [1 2 3]))               ;=> #'user/i5
-(def i6 (cell {:a 1, :b 2}))          ;=> #'user/i6
-
-;;; Example formula cells:
-(def f1 (cell= (+ i1 foo)))           ;=> #'user/f1
-(def f2 (cell= {:a i1 :b i2}))        ;=> #'user/f2
-(def f3 (cell= (merge {:c f1} f2)))   ;=> #'user/f3
-
-;;; Get the values contained in cells:
-@i1                                   ;=> 42
-@f1                                   ;=> 1379
-@f2                                   ;=> {:a 42 :b \g}
-@f3                                   ;=> {:c 1379 :a 42 :b \g}
-
-;;; Update input cell
-(swap! i1 inc)                        ;=> 43
-
-;;; Formula cells were updated automatically
-@f1                                   ;=> 1380
-@f2                                   ;=> {:a 43 :b \g}
-@f3                                   ;=> {:c 1380 :a 43 :b \g}
-
-;;; Anonymous formula cell for side-effects
-(cell= (.log js/console (pr-str f2))) ;=> #<Cell: nil>
-;;; console log: {:a 43 :b \g}
-
-;;; Update input cell
-(swap! i1 inc)                        ;=> 44
-;;; console log: {:a 44 :b \g}
-```
+_reactively_ based on the values of other cells in the spreadsheet.
 
 ### Reactive Attributes
 
