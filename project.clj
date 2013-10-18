@@ -4,7 +4,7 @@
   :license            {:name "Eclipse Public License"
                        :url "http://www.eclipse.org/legal/epl-v10.html"}
   :manifest           {"hoplon-provides"            "hoplon"}
-  :dependencies       [[tailrecursion/javelin       "2.0.0-SNAPSHOT"]
+  :dependencies       [[tailrecursion/javelin       "2.0.0"]
                        [tailrecursion/boot.task     "0.1.0-SNAPSHOT"]
                        [tailrecursion/castra        "0.1.0-SNAPSHOT"]
                        ;; for fipp, jdk 1.6 compat

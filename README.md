@@ -49,7 +49,7 @@ the following libraries as dependencies to complete the stack:
       </myfn>
 
       <!-- using FRP to link DOM and Javelin cells -->
-      <p>You've clicked <span do-text="clicks"/> times, so far.</p>
+      <p>You've clicked ~{clicks} times, so far.</p>
       <button on-click="#(swap! clicks inc)">click me</button>
     </with-frp>
   </body>
@@ -82,7 +82,7 @@ Or, equivalently:
         (span "first thing")
         (span "second thing"))
 
-      (p "You've clicked " (span {:do-text [clicks]}) " times, so far.")
+      (p "You've clicked ~{clicks} times, so far.")
       (button {:on-click [#(swap! clicks inc)]} "click me"))))
 ```
 

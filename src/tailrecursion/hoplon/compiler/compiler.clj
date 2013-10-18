@@ -2,7 +2,7 @@
   (:require
     [clojure.walk                           :refer  [stringify-keys]]
     [clojure.java.io                        :refer  [file make-parents]]
-    [clojure.pprint                         :refer  [pprint]]
+    [clojure.pprint                         :as     pprint]
     [clojure.zip                            :as     zip]
     [clojure.string                         :as     string]
     [cljs.compiler                          :as     cljsc]
@@ -49,8 +49,7 @@
   (-> (str "__" path) (string/replace "_" "__") (string/replace "/" "_")))
 
 (def hoplon-exports
-  ['tailrecursion.hoplon.env :only
-   (into html-tags '[text pr-node tag attrs branch? children make-node dom node-zip clone])])
+  ['tailrecursion.hoplon :only html-tags])
 
 (defn clj->css [forms]
   (let [[selectors properties]
@@ -144,7 +143,7 @@
                   (list nsdecl)
                   (list
                     (list 'defn (symbol "^:export") 'hoploninit []
-                          (list (symbol "tailrecursion.hoplon.env/init") (vec (drop 1 forms)))))) 
+                          (list (symbol "tailrecursion.hoplon/init") (vec (drop 1 forms)))))) 
         cljsstr  (string/join "\n" (map #(with-out-str (*printer* %)) cljs))
         html    (replace {body bnew} html-forms)
         htmlstr (ts/pp-forms "html" html)]
@@ -199,8 +198,10 @@
         write-files (fn [h c {:keys [html cljs]}] (write h html) (write c cljs))]
     (doall (map write-files html-outs cljs-outs compiled))))
 
+(defn pp [form] (pprint/write form :dispatch pprint/code-dispatch))
+
 (defn compile-dirs [js-file srcdirs cljsdir htmldir & {:keys [opts]}]
-  (binding [*printer* (if (:pretty-print opts) pprint prn)]
+  (binding [*printer* (if (:pretty-print opts) pp prn)]
     (doall (map #(compile-dir js-file % cljsdir htmldir) srcdirs))))
 
 (comment
