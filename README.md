@@ -109,8 +109,8 @@ Artifacts are published on [Clojars][4].
 ### Documentation
 
 * [Getting Started][6]
-* [Configuration][7]
-* [API Documentation][8]
+* ~~[Configuration][7]~~
+* ~~[API Documentation][8]~~
 * [Design Document][9]
 
 ## License
