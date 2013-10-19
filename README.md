@@ -15,6 +15,22 @@ the following libraries as dependencies to complete the stack:
   between client and server. Castra uses cljson as the underlying transport
   protocol.
 
+### Dependency
+
+Artifacts are published on [Clojars][4]. 
+
+```clojure
+[tailrecursion/hoplon "1.1.2"]
+```
+
+```xml
+<dependency>
+  <groupId>tailrecursion</groupId>
+  <artifactId>hoplon</artifactId>
+  <version>1.1.2</version>
+</dependency>
+```
+
 ### Example
 
 ```xml
@@ -84,22 +100,6 @@ Or, equivalently:
 
       (p "You've clicked ~{clicks} times, so far.")
       (button {:on-click [#(swap! clicks inc)]} "click me"))))
-```
-
-### Dependency
-
-Artifacts are published on [Clojars][4]. 
-
-```clojure
-[tailrecursion/hoplon "1.1.2"]
-```
-
-```xml
-<dependency>
-  <groupId>tailrecursion</groupId>
-  <artifactId>hoplon</artifactId>
-  <version>1.1.2</version>
-</dependency>
 ```
 
 ### Demos
