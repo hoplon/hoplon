@@ -24,8 +24,9 @@ Hoplon applications are built using the [boot][1] build tool. The following
 ```clojure
 {:project       my-hoplon-project
  :version       "0.1.0-SNAPSHOT"
- :dependencies  [[tailrecursion/boot.task "0.1.0-SNAPSHOT"]
-                 [tailrecursion/hoplon "1.1.0-SNAPSHOT"]]
+ :dependencies  [[org.clojure/clojurescript "0.0-1859"]
+                 [tailrecursion/boot.task "0.1.1"]
+                 [tailrecursion/hoplon "1.1.0"]]
  :require-tasks #{[tailrecursion.boot.task :refer :all]
                   [tailrecursion.hoplon.boot :refer :all]}
  :src-paths     #{"src/html" "src/clj" "src/cljs"}
@@ -108,7 +109,7 @@ is syntactically equivalent to this s-expression
 ```
 
 With that in mind, the Hello World example can be translated into s-expression
-syntax
+syntax. (This is, in fact, the first pass when the file is compiled.)
 
 ```clojure
 (ns hello.index)
@@ -278,40 +279,112 @@ via the `:on-click` and `:do-text` attributes on DOM elements. In general,
 reactive attributes are divided into two categories: **input** and **output**.
 
 ##### Input Attributes
+  * start with the prefix `on-`.
   * connect DOM events (click, keypress, mouseover, etc.) to cell values via a
     callback function.
-  * start with the prefix `on-`.
+  * are extended by calling the `#'tailrecursion.hoplon/add-event!` function.
+    Examples [here][5].
   
 ##### Output Attributes
-  * link the state of DOM elements to the state of the underlying [Javelin][4] cells
-    via formulas.
   * start with the prefix `do-`.
+  * link the state of DOM elements to the state of the underlying [Javelin][4]
+    cells via formulas.
+  * are extended by providing a method for the `#'tailrecursion.hoplon/do!`
+    multimethod. Examples [here][5].
 
 | Attribute                 | Description |
 |---------------------------|-------------|
-| `:loop [looper i & args]` | See the [thing-looper](#) section below. |
+| `:loop [looper i & args]` | See the [thing-looper][6] section below. |
 | `:on-<event> [callback]`  | Adds handler `callback` to be called when _event_ is triggered on the element. Supported events are: _change_, _click_, _dblclick_, _error_, _focus_, _focusin_, _focusout_, _hover_, _keydown_, _keypress_, _keyup_, _load_, _mousedown_, _mouseenter_, _mouseleave_, _mousemove_, _mouseout_, _mouseover_, _mouseup_, _ready_, _scroll_, _select_, _submit_, and _unload_. The callback must be a function of one argument: the browser event object. |
-| `:do-value [expr]`        | Sets the `value` of the element to the value of `expr`. The special values `true` and `false` will check or uncheck checkboxes. |
-| `:do-attr [attr expr]`    | Sets the attribute `attr` to the value of `expr`. The special values `true` and `false` add or remove the attribute. |
-| `:do-class [class expr]`  | Adds or removes the CSS class `class` depending on whether `expr` is truthy or falsy. |
-| `:do-css [prop expr]`     | Sets the css property `prop` to the value of `expr`. |
-| `:do-toggle [expr]`       | Toggles visibility of the element according to the truthiness of `expr`. |
-| `:do-slide-toggle [expr]` | Toggles visibility of the element according to the truthiness of `expr` using a sliding animation. |
-| `:do-fade-toggle [expr]`  | Toggles visibility of the element according to the truthiness of `expr` using a fading animation. |
-| `:do-focus [expr]`        | Triggers the `focus` event on the element when `expr` changes to a truthy value. |
-| `:do-select [expr]`       | Triggers the `select` event on the element when `expr` changes to a truthy value. |
-| `:do-focus-select [expr]` | Triggers the `focus` and `select` events on the element when `expr` changes to a truthy value. |
+| `:do-value [expr]`        | Sets the `value` of the element to the value of the formula `expr`. The special values `true` and `false` will check or uncheck checkboxes. |
+| `:do-attr [attr expr]`    | Sets the attribute `attr` to the value of the formula `expr`. The special values `true` and `false` add or remove the attribute. |
+| `:do-class [class expr]`  | Adds or removes the CSS class `class` depending on whether the value of the formula `expr` is truthy or falsy. |
+| `:do-css [prop expr]`     | Sets the css property `prop` to the value of the formula `expr`. |
+| `:do-toggle [expr]`       | Toggles visibility of the element according to the truthiness of the value of the formula `expr`. |
+| `:do-slide-toggle [expr]` | Toggles visibility of the element according to the truthiness of the value of the formula `expr` using a sliding animation. |
+| `:do-fade-toggle [expr]`  | Toggles visibility of the element according to the truthiness of the value of the formula `expr` using a fading animation. |
+| `:do-focus [expr]`        | Triggers the `focus` event on the element when the value of the formula `expr` changes to a truthy value. |
+| `:do-select [expr]`       | Triggers the `select` event on the element when the value of the formula `expr` changes to a truthy value. |
+| `:do-focus-select [expr]` | Triggers the `focus` and `select` events on the element when the value of the formula `expr` changes to a truthy value. |
 | `:do-text [expr]`         | Sets the element's text to the value of `expr`. |
 
-#### Custom Reactive Attributes
+### Thing Looper
 
-The output attributes can be extended by adding to the `#'tailrecursion.hoplon.reactive/do!`
-multimethod. For example, adding a `:foo` dispatch method will enable the use
-of the `:do-foo` attribute. Look at the implementations of the above attributes
-in the [source file][5] for examples and ideas.
+Most applications have some DOM structure that is repeated a number of times,
+once for each item in an array. This could be a list of to-do items which would
+be inserted into an ordered list, for example. The thing-looper mechanism is
+provided to accomplish this in a way that avoids coupling between data and DOM.
+
+For example:
+
+```clojure
+(ns html.index
+  (:require-macros
+    [tailrecursion.javelin :refer [cell= defc defc=]]
+    [tailrecursion.hoplon :refer [with-frp]])
+  (:require
+    [tailrecursion.javelin :refer [cell]]
+    [tailrecursion.hoplon :refer [thing-looper]]))
+
+(defc people
+  [{:first "bob" :last "smith"}
+   {:first "joe" :last "blow"}])
+
+(def loop-people
+  (thing-looper
+    people
+    (fn [people i person]
+      [(cell= (:first person))
+       (cell= (:last person))])))
+
+(html
+  (head
+    (title "looping"))
+  (body
+    (h1 "people")
+    (ul {:loop [loop-people i first last]}
+      (li "~{last}, ~{first}"))))
+```
+
+As can be seen in the example above, the thing looper mechanism consists of two
+parts: the looper definition and the loop template, denoted by the `:loop`
+attribute. The different parts can be in different files, even. For instance,
+the looper definition can be in a library that is shared by multiple frontends,
+each one requiring the library and having its own loop template.
+
+##### Looper Definition
+* fn takes three arguments:
+  * the cell containing the items
+  * the index of the current item
+  * a cell containing the current item
+* fn returns a vector of cells which will be passed as arguments to the `:loop`
+  template.
+
+##### Loop Template
+* denoted by the `:loop` attribute, which takes the following arguments
+  * the looper to loop over
+  * a binding for the index of the current item (an int, not a cell)
+  * bindings for the cells provided by the fn of the looper being looped over
+* a template inside of which the bindings in the `:loop` argument can be
+  referenced.
+
+Note that the templates are fully reactive: swapping the `people` cell will
+cause the `li` elements in the list to update as necessary, automatically.
+
+```clojure
+(swap! people assoc-in [0 :last] "jones")
+```
+
+The list updates itself, with the first name in the list now reading
+"jones, bob" instead of "smith, bob".
+
+### The N-Things Problem
+
+FIXME
 
 [1]: https://github.com/tailrecursion/boot
 [2]: http://en.wikipedia.org/wiki/S-expression
 [3]: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
 [4]: https://github.com/tailrecursion/javelin
-[5]: https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon/reactive.cljs
+[5]: https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon.cljs
+[6]: #thing-looper

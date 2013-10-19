@@ -76,12 +76,12 @@
                           attrs     (when attrs? (hl-attr maybe-attrs))
                           kids      (if attrs? children (cons maybe-attrs children))
                           form      `(~tag ~@(when attrs [(dissoc attrs :do)]) ~@kids)
-                          dostr     (:do attrs)
-                          unquot-on (fn [[on e f]] (list on e (list 'clojure.core/unquote f)))
-                          unquot    #(if (= on!' (first %)) (unquot-on %) %)]
-                      (if-let [exprs (seq (map unquot (sub-ids (doread dostr))))]
-                        `(~deref*' (let [f# (~clone' ~form)]
-                                    (~cell=' (doto f# ~@exprs))))
+                          dostr     (:do attrs)]
+                      (if-let [exprs (seq (sub-ids (doread dostr)))]
+                        (let [{ons "on!" dos "do!"} (group-by (comp name first) exprs)]
+                          `(let [f# (~clone' ~form)]
+                             (doto f# ~@ons)
+                             (~deref*' (~cell=' (doto f# ~@dos)))))
                         form)))
       loop-1      (fn [[tag maybe-attrs & [tpl] :as form]]
                     (let [

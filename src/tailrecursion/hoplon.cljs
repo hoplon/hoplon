@@ -1,9 +1,19 @@
 (ns tailrecursion.hoplon
+  (:require-macros
+    [tailrecursion.javelin :refer [cell=]])
   (:require
+    tailrecursion.javelin
     [goog.dom         :as gdom]
-    [clojure.zip      :as zip])
-  (:use
-    [clojure.string   :only [join blank?]]))
+    [clojure.zip      :as zip]
+    [clojure.string   :refer [join blank?]]))
+
+(defn safe-name [x]
+  (try (name x) (catch js/Error e)))
+
+(defn safe-nth
+  ([coll index] (safe-nth coll index nil))
+  ([coll index not-found]
+   (try (nth coll index not-found) (catch js/Error _ not-found))))
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -496,9 +506,6 @@
       "checkbox" (apply check-val! e args)
       (apply text-val! e args))))
 
-(defn- safe-name [x]
-  (try (name x) (catch js/Error e)))
-
 (defmethod do! :attr
   ([elem _ k]
    (.attr (dom-get elem) (name k)))
@@ -596,7 +603,7 @@
 
 (defn thing-looper [things g]
   (fn [f container]
-    (into container (mapv #(apply f % (g things %))
+    (into container (mapv #(apply f % (g things % (cell= (safe-nth things %))))
                           (range 0 (count @things))))))
 
 ;;; Deprecated api---these functions are here for backward compatibility.
