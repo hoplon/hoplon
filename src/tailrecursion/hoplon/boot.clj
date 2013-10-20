@@ -2,9 +2,11 @@
   (:require
     [tailrecursion.boot.task                  :as t]
     [tailrecursion.boot.file                  :as f]
-    [tailrecursion.boot.core                  :refer [deftask mk! mkdir! add-sync!]]
+    [clojure.pprint                           :refer [pprint]]
     [clojure.java.io                          :refer [file make-parents]]
-    [tailrecursion.hoplon.compiler.compiler   :refer [compile-dirs]]))
+    [tailrecursion.boot.core                  :refer [deftask mk! mkdir! add-sync!]]
+    [tailrecursion.hoplon.compiler.compiler   :refer [compile-dirs]]
+    [tailrecursion.hoplon.compiler.tagsoup    :refer [parse-string tagsoup->hoplon]]))
 
 (deftask hoplon
   "Build Hoplon web application."
@@ -24,3 +26,9 @@
          (compile-dirs main-js src-paths cljs-tmp public-tmp :opts hoplon-opts)
          (% event))
       (t/cljs boot :output-to main-js :opts cljs-opts))))
+
+(deftask html2cljs
+  "Print cljs representation of an HTML file."
+  [boot f]
+  (assert (.exists (file f)))
+  (-> f slurp parse-string tagsoup->hoplon pprint))

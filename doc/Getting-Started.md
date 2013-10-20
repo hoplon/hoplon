@@ -365,8 +365,8 @@ each one requiring the library and having its own loop template.
   * the looper to loop over
   * a binding for the index of the current item (an int, not a cell)
   * bindings for the cells provided by the fn of the looper being looped over
-* a template inside of which the bindings in the `:loop` argument can be
-  referenced.
+* one child: a template inside of which the bindings in the `:loop` argument can
+  be referenced.
 
 Note that the templates are fully reactive: swapping the `people` cell will
 cause the `li` elements in the list to update as necessary, automatically.
