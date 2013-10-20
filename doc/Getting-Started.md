@@ -364,7 +364,7 @@ each one requiring the library and having its own loop template.
 * denoted by the `:loop` attribute, which takes the following arguments
   * the looper to loop over
   * a binding for the index of the current item (an int, not a cell)
-  * bindings for the cells provided by the fn of the looper being looped over
+  * bindings for the cells provided by the looper fn
 * one child: a template inside of which the bindings in the `:loop` argument can
   be referenced.
 
