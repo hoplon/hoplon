@@ -6,14 +6,14 @@ Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
 the following libraries as dependencies to complete the stack:
 
-* [Javelin][1]: a spreadsheet-like FRP dataflow library for managing client
-  state. Hoplon tightly integrates with Javelin to reactively bind DOM elements
-  to the underlying Javelin cell graph.
+* [Javelin][1]: a spreadsheet-like dataflow library for managing client
+  state. Hoplon tightly integrates with Javelin to reactively bind DOM
+  elements to the underlying Javelin cell graph.
 * [Castra][2]: a full-featured RPC library for Clojure and
   ClojureScript, providing the serverside environment.
-* [Cljson][3]: an efficient method for transferring Clojure/ClojureScript data
-  between client and server. Castra uses cljson as the underlying transport
-  protocol.
+* [Cljson][3]: an efficient method for transferring Clojure/ClojureScript
+  data between client and server. Castra uses cljson as the underlying
+  transport protocol.
 
 ### Dependency
 
