@@ -20,14 +20,14 @@ the following libraries as dependencies to complete the stack:
 Artifacts are published on [Clojars][4]. 
 
 ```clojure
-[tailrecursion/hoplon "1.1.3"]
+[tailrecursion/hoplon "1.1.4"]
 ```
 
 ```xml
 <dependency>
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
-  <version>1.1.3</version>
+  <version>1.1.4</version>
 </dependency>
 ```
 
@@ -37,11 +37,14 @@ Artifacts are published on [Clojars][4].
 <script type="text/hoplon">
   ;; namespace declaration is required
   (ns example.index
-    (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
+    (:require tailrecursion.javelin tailrecursion.hoplon)
     (:require-macros
-      [tailrecursion.hoplon.macros  :refer [with-frp]]
-      [tailrecursion.javelin.macros :refer [cell]]))
+      [tailrecursion.hoplon  :refer [with-frp]]
+      [tailrecursion.javelin :refer [refer-all]]))
   
+  (refer-all tailrecursion.hoplon)
+  (refer-all tailrecursion.javelin)
+
   ;; definitions in this file are optional
   (defn my-list [& items]
     (div {:class "my-list"}
@@ -76,10 +79,13 @@ Or, equivalently:
 
 ```clojure
 (ns example.index
-  (:require tailrecursion.javelin tailrecursion.hoplon.reactive)
+  (:require tailrecursion.javelin tailrecursion.hoplon)
   (:require-macros
-    [tailrecursion.hoplon.macros  :refer [with-frp]]
-    [tailrecursion.javelin.macros :refer [cell]]))
+    [tailrecursion.hoplon  :refer [with-frp]]
+    [tailrecursion.javelin :refer [refer-all]]))
+
+(refer-all tailrecursion.hoplon)
+(refer-all tailrecursion.javelin)
 
 (defn my-list [& items]
   (div {:class "my-list"}

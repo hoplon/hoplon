@@ -48,9 +48,6 @@
 (defn munge-path [path]
   (-> (str "__" path) (string/replace "_" "__") (string/replace "/" "_")))
 
-(def hoplon-exports
-  ['tailrecursion.hoplon :only html-tags])
-
 (defn clj->css [forms]
   (let [[selectors properties]
         (apply map vector (partition 2 (partition-by map? forms)))
@@ -109,13 +106,6 @@
                  (list* a (concat newkids (rest tail)))
                  (list* {} (concat newkids tail))))))
 
-(defn add-hoplon-uses
-  [[_ nm & forms]]
-  (let [parts (group-by #(= :use (first %)) forms)
-        uses  (concat (or (first (get parts true)) (list :use)) (list hoplon-exports)) 
-        other (get parts false)] 
-    (list* 'ns nm uses other)))
-
 (defn compile-forms [html-forms js-uri]
   (let [body-noinc    (first (filter-tag 'body html-forms))
         forms-noinc   (drop (if (map? (second body-noinc)) 2 1) body-noinc) 
@@ -123,7 +113,7 @@
         body    (first (filter-tag 'body html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
-        nsdecl  (add-hoplon-uses (first forms)) 
+        nsdecl  (first forms) 
         nsname  (cljsc/munge (second nsdecl)) 
         emptyjs (str "(function(node) {"
                      " while (node.hasChildNodes())"

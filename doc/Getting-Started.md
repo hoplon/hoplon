@@ -26,7 +26,7 @@ Hoplon applications are built using the [boot][1] build tool. The following
  :version       "0.1.0-SNAPSHOT"
  :dependencies  [[org.clojure/clojurescript "0.0-1859"]
                  [tailrecursion/boot.task "0.1.1"]
-                 [tailrecursion/hoplon "1.1.3"]]
+                 [tailrecursion/hoplon "1.1.4"]]
  :require-tasks #{[tailrecursion.boot.task :refer :all]
                   [tailrecursion.hoplon.boot :refer :all]}
  :src-paths     #{"src/html" "src/clj" "src/cljs"}
@@ -82,7 +82,13 @@ be _evaluated_ as ClojureScript in the browser.
 
 ```html
 <script type="text/hoplon">
-  (ns hello.index)
+  (ns hello.index
+    (:require tailrecursion.hoplon tailrecursion.javelin)
+    (:require-macros
+      [tailrecursion.javelin :refer [refer-all]]))
+
+  (refer-all tailrecursion.hoplon)
+  (refer-all tailrecursion.javelin)
 </script>   
 
 <html>
@@ -112,7 +118,13 @@ With that in mind, the Hello World example can be translated into s-expression
 syntax. (This is, in fact, the first pass when the file is compiled.)
 
 ```clojure
-(ns hello.index)
+(ns hello.index
+  (:require tailrecursion.hoplon tailrecursion.Javelin)
+  (:require-macros
+    [tailrecursion.javelin :refer [refer-all]]))
+
+(refer-all tailrecursion.hoplon)
+(refer-all tailrecursion.javelin)
 
 (html
   head
@@ -245,10 +257,13 @@ Consider the following program:
 
 ```clojure
 (ns hello.react1
+  (:require tailrecursion.javelin tailrecursion.hoplon)
   (:require-macros
-    [tailrecursion.javelin  :refer [defc]]
-    [tailrecursion.hoplon   :refer [with-frp]])
-  (:require tailrecursion.javelin tailrecursion.hoplon))
+    [tailrecursion.javelin  :refer [refer-all defc]]
+    [tailrecursion.hoplon   :refer [with-frp]]))
+
+(refer-all tailrecursion.hoplon)
+(refer-all tailrecursion.javelin)
 
 (defc clicks 0)
 
@@ -319,12 +334,13 @@ For example:
 
 ```clojure
 (ns html.index
+  (:require tailrecursion.javelin tailrecursion.hoplon)
   (:require-macros
     [tailrecursion.javelin :refer [cell= defc defc=]]
-    [tailrecursion.hoplon :refer [with-frp]])
-  (:require
-    [tailrecursion.javelin :refer [cell]]
-    [tailrecursion.hoplon :refer [thing-looper]]))
+    [tailrecursion.hoplon :refer [with-frp]]))
+
+(refer-all tailrecursion.hoplon)
+(refer-all tailrecursion.javelin)
 
 (defc people
   [{:first "bob" :last "smith"}
