@@ -192,7 +192,13 @@ templating as templates in this environment are simply functions that return
 nodes.
 
 ```clojure
-(ns hello.func)
+(ns hello.func
+  (:require tailrecursion.hoplon tailrecursion.javelin)
+  (:require-macros
+    [tailrecursion.javelin :refer [refer-all]]))
+
+(refer-all tailrecursion.hoplon)
+(refer-all tailrecursion.javelin)
 
 (defn fancyitem [heading body]
   (li

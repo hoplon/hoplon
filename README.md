@@ -42,6 +42,7 @@ Artifacts are published on [Clojars][4].
       [tailrecursion.hoplon  :refer [with-frp]]
       [tailrecursion.javelin :refer [refer-all]]))
   
+  ;; refer all names in the hoplon and javelin namespaces
   (refer-all tailrecursion.hoplon)
   (refer-all tailrecursion.javelin)
 
