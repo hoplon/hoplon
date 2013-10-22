@@ -6,6 +6,7 @@
     [clojure.zip                            :as     zip]
     [clojure.string                         :as     string]
     [cljs.compiler                          :as     cljsc]
+    [tailrecursion.javelin                  :refer  [make-require make-require-macros]]
     [tailrecursion.hoplon.compiler.tagsoup  :as     ts]))
 
 (def ^:dynamic *current-file* nil)
@@ -28,7 +29,7 @@
 
 (defn relative-to [base f] (.relativize (.toURI base) (.toURI f)))
 
-(defn up-parents [f base & parts]
+#_(defn up-parents [f base & parts]
   (->> (file f)
     (relative-to (file base))
     .getPath
@@ -41,6 +42,10 @@
     reverse
     (apply file)
     .getPath))
+
+(defn up-parents [path name]
+  (let [[f & dirs] (string/split path #"/")]
+    (->> [name] (concat (repeat (count dirs) "../")) (apply str))))
 
 (defn srcdir->outdir [fname srcdir outdir]
   (.getPath (file outdir (.getPath (relative-to (file srcdir) (file fname))))))
@@ -106,14 +111,17 @@
                  (list* a (concat newkids (rest tail)))
                  (list* {} (concat newkids tail))))))
 
-(defn compile-forms [html-forms js-uri]
-  (let [body-noinc    (first (filter-tag 'body html-forms))
-        forms-noinc   (drop (if (map? (second body-noinc)) 2 1) body-noinc) 
-        bhtml         (map ts/pedanticize (rest forms-noinc))
+(defn compile-forms [html-forms js-file]
+  (let [body*   (first (filter-tag 'body html-forms))
+        forms*  (drop (if (map? (second body*)) 2 1) body*) 
+        bhtml   (map ts/pedanticize (rest forms*))
         body    (first (filter-tag 'body html-forms))
         battr   (let [a (second body)] (if (map? a) a {}))
         forms   (drop (if (map? (second body)) 2 1) body) 
-        nsdecl  (first forms) 
+        outpath (str (second (first forms)))
+        js-uri  (up-parents outpath (.getName js-file))
+        nsdecl  (let [n (first forms)]
+                  (concat (take 1 n) [(munge (second n))] (drop 2 n))) 
         nsname  (cljsc/munge (second nsdecl)) 
         emptyjs (str "(function(node) {"
                      " while (node.hasChildNodes())"
@@ -137,62 +145,55 @@
         cljsstr  (string/join "\n" (map #(with-out-str (*printer* %)) cljs))
         html    (replace {body bnew} html-forms)
         htmlstr (ts/pp-forms "html" html)]
-    {:html htmlstr :cljs cljsstr}))
+    {:html htmlstr :cljs cljsstr :file outpath}))
+
+(defn make-nsdecl
+  [[_ ns-sym & forms]]
+  (let [ns-syms '#{tailrecursion.hoplon tailrecursion.javelin}
+        rm?     #(or (contains? ns-syms %) (and (seq %) (contains? ns-syms (first %))))
+        mk-req  #(concat (remove rm? %2) (map %1 ns-syms))
+        clauses (->> (tree-seq list? seq forms) (filter list?) (group-by first))
+        combine #(mapcat (partial drop 1) (% clauses))
+        reqs    `(:require ~@(mk-req make-require (combine :require)))
+        macros  `(:require-macros ~@(mk-req make-require-macros (combine :require-macros)))]
+    `(~'ns ~ns-sym ~reqs ~macros)))
 
 (defn move-cljs-to-body
   [[[first-tag & _ :as first-form] & more :as forms]]
   (case first-tag
-    ns    (let [html-forms        (process-styles (last forms)) 
-                [nsdecl & exprs]  (butlast forms)
-                cljs-forms        (list*
-                                    nsdecl
-                                    (list (list* 'do (concat exprs (list 'nil)))))
-                body              (first (filter-tag 'body html-forms)) 
-                bnew              (prepend-children body cljs-forms)]
+    page  (let [html-forms      (process-styles (last forms)) 
+                [page & exprs]  (butlast forms)
+                cljs-forms      `(~(make-nsdecl page) (do ~@exprs nil))
+                body            (first (filter-tag 'body html-forms)) 
+                bnew            (prepend-children body cljs-forms)]
             (replace {body bnew} html-forms))
     html  first-form
-    (throw (Exception. "First tag is not HTML or namespace declaration."))))
+    (throw (Exception. "First tag is not page declaration."))))
 
-(defn compile-ts [html-ts js-uri]
-  (compile-forms (move-cljs-to-body (ts/tagsoup->hoplon html-ts)) js-uri))
+(defn compile-ts [html-ts js-file]
+  (compile-forms (move-cljs-to-body (ts/tagsoup->hoplon html-ts)) js-file))
 
-(defn compile-string [html-str js-uri]
-  (compile-ts (ts/parse-string html-str) js-uri))
-
-(defn compile-file
-  [f js-uri]
-  (let [read-all  #(read-string (str "(" (slurp %) ")"))
-        do-move   #(move-cljs-to-body (read-all %))
-        do-html   #(compile-string (slurp %) js-uri)
-        do-cljs   #(compile-forms (do-move %) js-uri)
-        domap     {"html" do-html "cljs" do-cljs}
-        doit      #(domap (last (re-find #"[^.]+\.([^.]+)\.hl$" %)))]
-    (binding [*current-file* f] ((doit (.getPath f)) f))))
-
-(defn compile-dir
-  [js-file srcdir cljsdir htmldir]
-  (let [to-html     #(let [path (.getPath %)]
-                       (if (or (.endsWith path ".cljs.hl")
-                               (.endsWith path ".html.hl")) 
-                         (str (subs path 0 (- (count path) 8)) ".html")
-                         path))
-        ->htmldir   #(file (srcdir->outdir (to-html %) srcdir htmldir))
-        ->cljsdir   #(file cljsdir (str (munge-path (.getPath %)) ".cljs"))
-        src?        #(and (.isFile %) (re-find #"\.(html|cljs)\.hl$" (.getName %)))
-        srcs        (into [] (filter src? (file-seq (file srcdir)))) 
-        js-uris     (mapv #(up-parents % srcdir (.getName js-file)) srcs)
-        compiled    (mapv compile-file srcs js-uris)
-        html-outs   (mapv ->htmldir srcs)
-        cljs-outs   (mapv ->cljsdir srcs)
-        write       #(spit (doto %1 make-parents) %2)
-        write-files (fn [h c {:keys [html cljs]}] (write h html) (write c cljs))]
-    (doall (map write-files html-outs cljs-outs compiled))))
+(defn compile-string [html-str js-file]
+  (compile-ts (ts/parse-string html-str) js-file))
 
 (defn pp [form] (pprint/write form :dispatch pprint/code-dispatch))
 
-(defn compile-dirs [js-file srcdirs cljsdir htmldir & {:keys [opts]}]
-  (binding [*printer* (if (:pretty-print opts) pp prn)]
-    (doall (map #(compile-dir js-file % cljsdir htmldir) srcdirs))))
+(defn compile-file
+  [f js-file cljsdir htmldir & {:keys [opts]}]
+  (let [read-all  #(read-string (str "(" (slurp %) ")"))
+        do-move   #(move-cljs-to-body (read-all %))
+        do-html   #(compile-string (slurp %) js-file)
+        do-cljs   #(compile-forms (do-move %) js-file)
+        domap     {"html" do-html "cljs" do-cljs}
+        doit      #(domap (last (re-find #"[^.]+\.([^.]+)\.hl$" %)))]
+    (binding [*current-file*  f
+              *printer*       (if (:pretty-print opts) pp prn)]
+      (if-let [compile (doit (.getPath f))]
+        (let [compiled (compile f)
+              cljs-out (file cljsdir (str (munge-path (.getPath f)) ".cljs"))
+              html-out (file htmldir (:file compiled))
+              write    #(spit (doto %1 make-parents) %2)]
+          (doall (map write [cljs-out html-out] ((juxt :cljs :html) compiled))))))))
 
 (comment
   (binding [*printer* pprint]

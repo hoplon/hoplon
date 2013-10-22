@@ -19,17 +19,9 @@ the following libraries as dependencies to complete the stack:
 
 ```xml
 <script type="text/hoplon">
-  ;; namespace declaration is required
-  (ns example.index
-    (:require tailrecursion.javelin tailrecursion.hoplon)
-    (:require-macros
-      [tailrecursion.hoplon  :refer [with-frp]]
-      [tailrecursion.javelin :refer [refer-all]]))
+  ;; Page declaration specifies output file path.
+  (page index.html)
   
-  ;; refer all names in the hoplon and javelin namespaces
-  (refer-all tailrecursion.hoplon)
-  (refer-all tailrecursion.javelin)
-
   ;; definitions in this file are optional
   (defn my-list [& items]
     (div {:class "my-list"}
@@ -63,14 +55,7 @@ the following libraries as dependencies to complete the stack:
 Or, equivalently:
 
 ```clojure
-(ns example.index
-  (:require tailrecursion.javelin tailrecursion.hoplon)
-  (:require-macros
-    [tailrecursion.hoplon  :refer [with-frp]]
-    [tailrecursion.javelin :refer [refer-all]]))
-
-(refer-all tailrecursion.hoplon)
-(refer-all tailrecursion.javelin)
+(page index.html)
 
 (defn my-list [& items]
   (div {:class "my-list"}
@@ -102,14 +87,14 @@ Or, equivalently:
 Artifacts are published on [Clojars][4]. 
 
 ```clojure
-[tailrecursion/hoplon "1.1.4"]
+[tailrecursion/hoplon "2.0.0"]
 ```
 
 ```xml
 <dependency>
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
-  <version>1.1.4</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 

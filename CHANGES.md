@@ -1,5 +1,12 @@
 # hoplon
 
+## 2.0.0
+
+*Tue Oct 22 14:14:34 EDT 2013*
+
+* Hoplon source files (.hl extension) now use the `page` form instead of `ns`
+  to declare the output file and require/refer names into page namespace.
+
 ## 1.1.4
 
 *Mon Oct 21 16:44:03 EDT 2013*
