@@ -26,7 +26,7 @@ Hoplon applications are built using the [boot][1] build tool. The following
  :version       "0.1.0-SNAPSHOT"
  :dependencies  [[org.clojure/clojurescript "0.0-1859"]
                  [tailrecursion/boot.task "0.1.1"]
-                 [tailrecursion/hoplon "1.1.4"]]
+                 [tailrecursion/hoplon "2.0.0"]]
  :require-tasks #{[tailrecursion.boot.task :refer :all]
                   [tailrecursion.hoplon.boot :refer :all]}
  :src-paths     #{"src/html" "src/clj" "src/cljs"}
@@ -50,12 +50,18 @@ $ boot watch hoplon
 For the purposes of this document (as specified in the `boot.edn` file above)
 the source paths are organized as follows:
 
-| Directory    | Contents                                          |
-|--------------|---------------------------------------------------|
-| _src/html_   | Hoplon source files, organized in directories reflecting the application's HTML page structure. |
+| Directory    | Contents                                                     |
+|--------------|--------------------------------------------------------------|
+| _src/html_   | Hoplon source files.                                         |
+| _src/cljs_   | ClojureScript library source files.                          |
+| _src/clj_    | Clojure source files.                                        |
 | _src/static_ | Static content (CSS files, images, etc.), organized in directories reflecting the application's HTML page structure. |
-| _src/cljs_   | ClojureScript library source files.               |
-| _src/clj_    | Clojure source files.                             |
+
+This particular directory structure was chosen simply as an example. In practice
+the source paths directory structure is completely arbitrary. Source files can
+be organized in any way that makes sense for the project. Static files, of
+course, need to have a directory structure that mirrors the desired output
+directory structure.
 
 ### Library And Package Management
 
@@ -82,13 +88,7 @@ be _evaluated_ as ClojureScript in the browser.
 
 ```html
 <script type="text/hoplon">
-  (ns hello.index
-    (:require tailrecursion.hoplon tailrecursion.javelin)
-    (:require-macros
-      [tailrecursion.javelin :refer [refer-all]]))
-
-  (refer-all tailrecursion.hoplon)
-  (refer-all tailrecursion.javelin)
+  (page index.html)
 </script>   
 
 <html>
@@ -102,29 +102,13 @@ be _evaluated_ as ClojureScript in the browser.
 ## S-Expression Syntax
 
 Since HTML markup is a tree structure it can be expressed as [s-expressions][2].
-For example, this HTML markup
-
-```html
-<form><input><input></form>
-```
-
-is syntactically equivalent to this s-expression
+For example, `<form><input><input></form>` is syntactically equivalent to the
+s-expression `(form input input)`. With that in mind, the Hello World example
+can be translated into s-expression syntax. (This is, in fact, the first pass
+when the file is compiled.)
 
 ```clojure
-(form input input)
-```
-
-With that in mind, the Hello World example can be translated into s-expression
-syntax. (This is, in fact, the first pass when the file is compiled.)
-
-```clojure
-(ns hello.index
-  (:require tailrecursion.hoplon tailrecursion.Javelin)
-  (:require-macros
-    [tailrecursion.javelin :refer [refer-all]]))
-
-(refer-all tailrecursion.hoplon)
-(refer-all tailrecursion.javelin)
+(page index.html)
 
 (html
   head
@@ -192,13 +176,7 @@ templating as templates in this environment are simply functions that return
 nodes.
 
 ```clojure
-(ns hello.func
-  (:require tailrecursion.hoplon tailrecursion.javelin)
-  (:require-macros
-    [tailrecursion.javelin :refer [refer-all]]))
-
-(refer-all tailrecursion.hoplon)
-(refer-all tailrecursion.javelin)
+(page examples/sexp.html)
 
 (defn fancyitem [heading body]
   (li
@@ -219,7 +197,7 @@ As always, the same page can be represented as HTML markup:
 
 ```html
 <script type="text/hoplon">
-  (ns hello.func2)
+  (page example1/sexp.html)
       
   (defn fancyitem [heading body]
     (li
@@ -253,6 +231,32 @@ easily represented in the other syntax if desired. Of course some care
 must be taken when using HTML syntax that tag names do not contain invalid
 characters, etc.
 
+### Page Declaration
+
+Each Hoplon source file must have a `page` declaration as its first form.
+
+```clojure
+(page examples/lesson1/fractions.html
+  ;;  ^ REQUIRED output file path
+
+  ;;  v OPTIONAL (:require ...) and/or (:require-macros ...) clauses 
+  (:require
+    [acme.widgets :as widgets :refer [stethescope jackhammer]]
+    [enemy.plans :as plans :refer [attack destroy fake-empathy]])
+  (:require-macros
+    [acme.super-transform :refer [uberdef]]))
+```
+
+The page declaration
+* determines the path of the output file relative to the webserver document
+  root.
+* creates a ClojureScript namespace for the page (the namespace name is
+  obtained by [munging][7] the output file path).
+* automatically adds `(:require ...)` and `(:require-macros ...)` clauses to
+  refer all names and macros from the `tailrecursion.hoplon` and
+  `tailrecursion.javelin` namespaces.
+* may contain `(:require ...)` and/or `(:require-macros ...)` clauses.
+
 ## Functional Reactive Programming
 
 An example of how macros can be used to advantage is the `with-frp` macro that
@@ -262,14 +266,7 @@ change and [Javelin][4] cells are updated in response to user input (events).
 Consider the following program:
 
 ```clojure
-(ns hello.react1
-  (:require tailrecursion.javelin tailrecursion.hoplon)
-  (:require-macros
-    [tailrecursion.javelin  :refer [refer-all defc]]
-    [tailrecursion.hoplon   :refer [with-frp]]))
-
-(refer-all tailrecursion.hoplon)
-(refer-all tailrecursion.javelin)
+(page examples/frp.html)
 
 (defc clicks 0)
 
@@ -339,14 +336,7 @@ provided to accomplish this in a way that avoids coupling between data and DOM.
 For example:
 
 ```clojure
-(ns html.index
-  (:require tailrecursion.javelin tailrecursion.hoplon)
-  (:require-macros
-    [tailrecursion.javelin :refer [cell= defc defc=]]
-    [tailrecursion.hoplon :refer [with-frp]]))
-
-(refer-all tailrecursion.hoplon)
-(refer-all tailrecursion.javelin)
+(page examples/looper.html)
 
 (defc people
   [{:first "bob" :last "smith"}
@@ -410,3 +400,4 @@ FIXME
 [4]: https://github.com/tailrecursion/javelin
 [5]: https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon.cljs
 [6]: #thing-looper
+[7]: http://clojuredocs.org/clojure_core/clojure.core/munge
