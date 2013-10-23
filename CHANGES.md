@@ -1,5 +1,11 @@
 # hoplon
 
+## 2.1.0
+
+*Wed Oct 23 03:36:35 EDT 2013*
+
+* Add auto-gensym ids in :loop bindings
+
 ## 2.0.0
 
 *Tue Oct 22 14:14:34 EDT 2013*

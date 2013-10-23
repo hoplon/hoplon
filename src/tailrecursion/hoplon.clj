@@ -61,10 +61,15 @@
       listy?      #(or (list? %)
                        (= clojure.lang.LazySeq (type %))
                        (= clojure.lang.Cons (type %))) 
-      uquote?     #(and (listy? %) (= unq (first %)) (keyword? (second %)))
-      uquote-spl? #(and (listy? %) (= unqs (first %)) (keyword? (second %)))
-      sub-id      #(cond (uquote-spl? %)  `(~jQuery ~(str "#" (name (second %)))) 
-                         (uquote? %)      `(.val (~jQuery ~(str "#" (name (second %))))) 
+      sym-or-kw?  #(or (keyword? %) (symbol? %))
+      uquote?     #(and (listy? %) (= unq (first %)) (sym-or-kw? (second %)))
+      uquote-spl? #(and (listy? %) (= unqs (first %)) (sym-or-kw? (second %)))
+      sub-id      #(cond (uquote-spl? %)  (if (keyword? (second %))
+                                            `(~jQuery ~(str "#" (name (second %))))
+                                            `(~jQuery (str "#" ~(second %)))) 
+                         (uquote? %)      (if (keyword? (second %))
+                                            `(do! (~jQuery ~(str "#" (name (second %)))) :value)
+                                            `(do! (~jQuery (str "#" ~(second %))) :value)) 
                          :else            %)
       sub-ids     #(walk/postwalk sub-id %)
       doread      #(cond (string? %) (readstr %) (vector? %) %)
@@ -92,14 +97,22 @@
                              (~deref*' (~cell=' (doto f# ~@dos)))))
                         form)))
       loop-1      (fn [[tag maybe-attrs & [tpl] :as form]]
-                    (let [
-                          attrs?    (map? maybe-attrs)
+                    (let [attrs?    (map? maybe-attrs)
                           tpl       (if attrs? tpl maybe-attrs)
                           attrs     (if attrs? maybe-attrs {})
                           container `(~tag ~(dissoc attrs :loop))
                           {loopspec :loop} attrs]
                       (if-let [[looper & args] (doread loopspec)]
-                        `(~looper (fn ~(vec args) ~tpl) ~container)
+                        (let [gsym? #(and (symbol? %) (= \# (last (name %))))
+                              mksym (fn [& _] (gensym "hl-auto-"))
+                              gsyms (into {} (map (juxt identity mksym) (filter gsym? args)))
+                              sym*  '(str (gensym "hl-auto-")) 
+                              args  (remove gsym? args)]
+                          `(~looper
+                             (fn [~@args]
+                               (let [~@(mapcat vector (vals gsyms) (repeat sym*))]
+                                 ~(postwalk #(get gsyms % %) tpl)))
+                             ~container)) 
                         form)))
       do-text     (fn [x]
                     (let [i (terpol8 (if (listy? x) (second x) x))

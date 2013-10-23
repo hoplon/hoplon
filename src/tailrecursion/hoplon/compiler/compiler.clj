@@ -163,15 +163,18 @@
         clauses (->> (tree-seq list? seq forms) (filter list?) (group-by first))
         combine #(mapcat (partial drop 1) (% clauses))
         reqs    `(:require ~@(mk-req make-require (combine :require)))
-        macros  `(:require-macros ~@(mk-req make-require-macros (combine :require-macros)))]
-    `(~'ns ~ns-sym ~reqs ~macros)))
+        macros  `(:require-macros ~@(mk-req make-require-macros (combine :require-macros)))
+        other?  #(not (contains? #{:require :require-macros} (first %)))
+        others  (->> forms (filter list?) (filter other?))]
+    `(~'ns ~ns-sym ~@others ~reqs ~macros)))
 
 (defn move-cljs-to-body
   [[[first-tag & _ :as first-form] & more :as forms]]
   (case first-tag
     page  (let [html-forms      (process-styles (last forms)) 
                 [page & exprs]  (butlast forms)
-                cljs-forms      `(~(make-nsdecl page) (do ~@exprs nil))
+                printer         '(set-print-fn! #(.log js/console %))
+                cljs-forms      `(~(make-nsdecl page) (do ~printer ~@exprs nil))
                 body            (first (filter-tag 'body html-forms)) 
                 bnew            (prepend-children body cljs-forms)]
             (replace {body bnew} html-forms))

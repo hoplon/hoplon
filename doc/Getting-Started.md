@@ -26,7 +26,7 @@ Hoplon applications are built using the [boot][1] build tool. The following
  :version       "0.1.0-SNAPSHOT"
  :dependencies  [[org.clojure/clojurescript "0.0-1859"]
                  [tailrecursion/boot.task "0.1.1"]
-                 [tailrecursion/hoplon "2.0.0"]]
+                 [tailrecursion/hoplon "2.1.0"]]
  :require-tasks #{[tailrecursion.boot.task :refer :all]
                   [tailrecursion.hoplon.boot :refer :all]}
  :src-paths     #{"src/html" "src/clj" "src/cljs"}
@@ -377,6 +377,9 @@ each one requiring the library and having its own loop template.
   * the looper to loop over
   * a binding for the index of the current item (an int, not a cell)
   * bindings for the cells provided by the looper fn
+  * auto-gensym bindings
+    * name must end with `#`, like `foo#`
+    * are bound to a unique string, for use as element ids
 * one child: a template inside of which the bindings in the `:loop` argument can
   be referenced.
 

@@ -613,16 +613,3 @@
   (fn [f container]
     (into container (mapv #(apply f % (g things % (cell= (safe-nth things %))))
                           (range 0 (count @things))))))
-
-;;; Deprecated api---these functions are here for backward compatibility.
-(defn make-deprecated [key] (fn [elem & args] (apply do! elem key args)))
-(def class!         (make-deprecated :class))
-(def attr!          (make-deprecated :attr))
-(def value!         (make-deprecated :value))
-(def css!           (make-deprecated :css))
-(def toggle!        (make-deprecated :toggle))
-(def slide-toggle!  (make-deprecated :slide-toggle))
-(def fade-toggle!   (make-deprecated :fade-toggle))
-(def focus!         (make-deprecated :focus))
-(def select!        (make-deprecated :select))
-(def text!          (make-deprecated :text))

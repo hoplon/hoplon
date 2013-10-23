@@ -7,26 +7,28 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns tailrecursion.hoplon.util
+  (:refer-clojure :exclude [name nth])
+  (:require-macros
+    [tailrecursion.javelin  :refer [with-let]])
   (:require
-    [goog.debug.Console   :as console] 
-    [goog.debug.Logger    :as logger] 
-    [cljs.reader          :refer [read-string]]
-    [clojure.string       :as string]))
+    [clojure.string         :as string]
+    [cljs.reader            :refer [read-string]]
+    [tailrecursion.javelin  :refer [cell]]))
 
-(defn logger
-  [name]
-  (console/autoInstall)
-  (logger/getLogger name))
+(defn nth       [coll n]  (try (nth coll n) (catch js/Error e)))
+(defn name      [x]       (try (name x) (catch js/Error e)))
+(defn interval  [f msec]  (.setInterval js/window f msec))
 
-(defn safe-name
-  [x]
-  (try (name x) (catch js/Error e)))
+(defn route-cell [msec default]
+  (let [hash  #(.-hash (.-location js/window))] 
+    (with-let [ret (cell (hash))] 
+      (interval #(let [h (hash)] (reset! ret (if (empty? h) default h))) msec))))
 
 (let [qcache (atom ::none)]
   (defn query
     [& [k & _ :as args]]
     (if-not (= ::none @qcache)
-      (if k (@qcache (safe-name k)) @qcache)
+      (if k (@qcache (name k)) @qcache)
       (let [s (-> js/window .-location .-search)]
         (if (not (string/blank? s))
           (let [v (-> s (string/replace #"^\?" "") (string/split #"[&]"))
