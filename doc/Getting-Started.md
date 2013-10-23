@@ -256,7 +256,7 @@ Each Hoplon source file must have a `page` declaration as its first form.
 The page declaration
 * determines the path of the output file relative to the webserver document
   root.
-* creates a ClojureScript namespace for the page (the namespace name is
+* declares a ClojureScript namespace for the page (the namespace name is
   obtained by [munging][7] the output file path).
 * automatically adds `(:require ...)` and `(:require-macros ...)` clauses to
   refer all names and macros from the `tailrecursion.hoplon` and
