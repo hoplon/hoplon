@@ -239,10 +239,16 @@ Each Hoplon source file must have a `page` declaration as its first form.
 (page examples/lesson1/fractions.html
   ;;  ^ REQUIRED output file path
 
-  ;;  v OPTIONAL (:require ...) and/or (:require-macros ...) clauses 
+  ;;  v OPTIONAL (:refer-clojure ...) clause
+  (:refer-clojure :exclude [nth name])
+
+  ;;  v OPTIONAL (:require ...) clause
   (:require
-    [acme.widgets :as widgets :refer [stethescope jackhammer]]
-    [enemy.plans :as plans :refer [attack destroy fake-empathy]])
+    [needful.core :as needful :refer [nth name]]
+    [acme.widgets :as widgets :refer [stethescope binoculars]]
+    [enemy.plans  :as plans   :refer [attack! destroy! show-no-mercy!]])
+
+  ;;  v OPTIONAL (:require-macros ...) clause
   (:require-macros
     [acme.super-transform :refer [uberdef]]))
 ```
@@ -255,7 +261,8 @@ The page declaration
 * automatically adds `(:require ...)` and `(:require-macros ...)` clauses to
   refer all names and macros from the `tailrecursion.hoplon` and
   `tailrecursion.javelin` namespaces.
-* may contain `(:require ...)` and/or `(:require-macros ...)` clauses.
+* may contain `(:refer-clojure ...)`, `(:require ...)` and/or
+  `(:require-macros ...)` clauses.
 
 ## Functional Reactive Programming
 
