@@ -233,7 +233,7 @@ characters, etc.
 
 ### Page Declaration
 
-Each Hoplon source file must have a `page` declaration as its first form.
+Each Hoplon source file must have a page declaration as its first form.
 
 ```clojure
 (page examples/lesson1/fractions.html
