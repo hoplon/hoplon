@@ -385,8 +385,8 @@ each one requiring the library and having its own loop template.
   * a binding for the index of the current item (an int, not a cell)
   * bindings for the cells provided by the looper fn
   * auto-gensym bindings
-    * name must end with `#`, like `foo#`
-    * are bound to a unique string, for use as element ids
+      * name must end with `#`, like `foo#`
+      * are bound to a unique string, for use as element ids
 * one child: a template inside of which the bindings in the `:loop` argument can
   be referenced.
 
