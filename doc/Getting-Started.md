@@ -380,7 +380,7 @@ each one requiring the library and having its own loop template.
   template.
 
 ##### Loop Template
-* a container, denoted by the `:loop` attribute which takes the following
+* the container, denoted by the `:loop` attribute which takes the following
   arguments
   * the looper to loop over
   * a binding for the index of the current item (an int, not a cell)
