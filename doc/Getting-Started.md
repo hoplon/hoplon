@@ -111,7 +111,7 @@ when the file is compiled.)
 (page index.html)
 
 (html
-  head
+  (head)
   (body
     (h1 :id "main" :style "color:red" "Hello world")))
 ```
