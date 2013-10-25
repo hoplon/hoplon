@@ -26,7 +26,7 @@ Hoplon applications are built using the [boot][1] build tool. The following
  :version       "0.1.0-SNAPSHOT"
  :dependencies  [[org.clojure/clojurescript "0.0-1859"]
                  [tailrecursion/boot.task "0.1.1"]
-                 [tailrecursion/hoplon "3.0.0"]]
+                 [tailrecursion/hoplon "3.0.1"]]
  :require-tasks #{[tailrecursion.boot.task :refer :all]
                   [tailrecursion.hoplon.boot :refer :all]}
  :src-paths     #{"src/html" "src/clj" "src/cljs"}

@@ -87,14 +87,14 @@ Or, equivalently:
 Artifacts are published on [Clojars][4]. 
 
 ```clojure
-[tailrecursion/hoplon "3.0.0"]
+[tailrecursion/hoplon "3.0.1"]
 ```
 
 ```xml
 <dependency>
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
 </dependency>
 ```
 

@@ -84,12 +84,13 @@
             "on-" (recur (add 'on!) more)
             (recur (assoc ret k v) more)))))))
 
-(defn parse-e [[tag & [head & tail :as args]]]
-  (let [kw1? (comp keyword? first)
+(defn parse-e [[tag & [head & tail :as args]] & {:keys [prep?]}]
+  (let [prep (if-not (= prep? false) prep-attr identity)
+        kw1? (comp keyword? first)
         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
         drkw #(->> (partition 2 %) (drop-while kw1?) (mapcat identity))] 
-    (cond (map?     head) [tag (prep-attr head) tail]
-          (keyword? head) [tag (prep-attr (into {} (mkkw args))) (drkw args)]
+    (cond (map?     head) [tag (prep head) tail]
+          (keyword? head) [tag (prep (into {} (mkkw args))) (drkw args)]
           :else           [tag nil args])))
 
 (defn walk-do [d form]
@@ -139,9 +140,11 @@
 (defn norm [form]
   (if-not (listy? form)
     form
-    (let [[tag attr kids] (parse-e form)
-          [tag a* k*] (if (listy? tag) (parse-e (norm tag)) [tag nil nil])]
-      `(~tag ~@(when-let [a (merge a* attr)] [a]) ~@(concat k* (map norm kids))))))
+    (let [parse-node      #(parse-e % :prep? false)
+          [tag attr kids] (parse-node form)
+          [tag a* k*]     (if (listy? tag) (parse-node (norm tag)) [tag nil nil])
+          [attr kids]     [(merge a* attr) (concat k* (map norm kids))]]
+      (concat (list tag) (when attr [attr]) kids))))
 
 (defmacro with-frp [& forms]
   `(spliced ~@(map (comp walk norm) forms)))

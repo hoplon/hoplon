@@ -14,6 +14,7 @@
     [clojure.zip                            :as     zip]
     [clojure.string                         :as     string]
     [cljs.compiler                          :as     cljsc]
+    [tailrecursion.hoplon                   :as     hl]
     [tailrecursion.javelin                  :refer  [make-require make-require-macros]]
     [tailrecursion.hoplon.compiler.tagsoup  :as     ts]))
 
@@ -189,10 +190,14 @@
 
 (defn pp [form] (pprint/write form :dispatch pprint/code-dispatch))
 
+(defn norm-page [forms]
+  (let [[prelude html]  ((juxt butlast last) forms)]
+    (concat prelude (list (hl/norm html)))))
+
 (defn compile-file
   [f js-file cljsdir htmldir & {:keys [opts]}]
   (let [read-all  #(read-string (str "(" (slurp %) ")"))
-        do-move   #(move-cljs-to-body (read-all %))
+        do-move   #(move-cljs-to-body (norm-page (read-all %)))
         do-html   #(compile-string (slurp %) js-file)
         do-cljs   #(compile-forms (do-move %) js-file)
         domap     {"html" do-html "cljs" do-cljs}

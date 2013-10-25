@@ -1,5 +1,11 @@
 # hoplon
 
+## 3.0.1
+
+*Fri Oct 25 12:32:54 EDT 2013*
+
+* fix issue where html and head tags not being "normalized"
+
 ## 3.0.0
 
 *Fri Oct 25 05:07:03 EDT 2013*
