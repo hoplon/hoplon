@@ -1,5 +1,11 @@
 # hoplon
 
+## 3.0.2
+
+*Fri Oct 25 14:52:49 EDT 2013*
+
+* fix bug in normalization code
+
 ## 3.0.1
 
 *Fri Oct 25 12:32:54 EDT 2013*

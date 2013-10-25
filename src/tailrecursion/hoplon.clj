@@ -83,7 +83,7 @@
   (let [prep (if-not (= prep? false) prep-attr identity)
         kw1? (comp keyword? first)
         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
-        drkw #(->> (partition 2 %) (drop-while kw1?) (mapcat identity))] 
+        drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
     (cond (map?     head) [tag (prep head) tail]
           (keyword? head) [tag (prep (into {} (mkkw args))) (drkw args)]
           :else           [tag nil args])))
@@ -139,10 +139,10 @@
 (defn norm [form]
   (if-not (listy? form)
     form
-    (let [parse-node      #(parse-e % :prep? false)
-          [tag attr kids] (parse-node form)
-          [tag a* k*]     (if (listy? tag) (parse-node (norm tag)) [tag nil nil])
-          [attr kids]     [(merge a* attr) (concat k* (map norm kids))]]
+    (let [parse-node  #(parse-e % :prep? false)
+          [tag a  k]  (parse-node form)
+          [tag a* k*] (if (listy? tag) (parse-node (norm tag)) [tag nil nil])
+          [attr kids] [(merge a* a) (concat (map norm k*) (map norm k))]]
       (concat (list tag) (when attr [attr]) kids))))
 
 (defmacro with-frp [& forms]
