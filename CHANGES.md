@@ -1,5 +1,11 @@
 # hoplon
 
+## 3.0.0
+
+*Fri Oct 25 05:07:03 EDT 2013*
+
+* better perf all around, many changes.
+
 ## 2.1.0
 
 *Wed Oct 23 03:36:35 EDT 2013*
