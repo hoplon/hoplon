@@ -19,28 +19,26 @@
 (defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
 (defn read-string [s] (when (and (string? s) (not (blank? s))) (clojure.core/read-string s)))
 
-(let [add-doc (fn [docstring pair]
-                (if (string? docstring)
-                  (list (first pair) docstring (last pair))
-                  pair))
-      do-def  (fn [docstring bindings values]
-                (->>
-                  (macroexpand `(let [~bindings ~values]))
-                  (second)
-                  (partition 2)
-                  (map (partial add-doc docstring)) 
-                  (map #(cons 'def %))
-                  (list* 'do)))]
-  (defmacro def-values
-    "Destructuring def, similar to scheme's define-values."
-    ([bindings values] 
-     (do-def nil bindings values))
-    ([docstring bindings values]
-     (do-def docstring bindings values))))
+(defn add-doc [docstring pair]
+  (if (string? docstring)
+    (list (first pair) docstring (last pair))
+    pair))
 
-(defn terpol8 [s]
-  (let [parts (remove #(= "" %) (#'i/interpolate s))]
-    (if (every? string? parts) s `(str ~@parts))))
+(defn do-def [docstring bindings values]
+  (->>
+    (macroexpand `(let [~bindings ~values]))
+    (second)
+    (partition 2)
+    (map (partial add-doc docstring)) 
+    (map #(cons 'def %))
+    (list* 'do)))
+      
+(defmacro def-values
+  "Destructuring def, similar to scheme's define-values."
+  ([bindings values] 
+   (do-def nil bindings values))
+  ([docstring bindings values]
+   (do-def docstring bindings values)))
 
 (create-ns 'js)
 (create-ns 'tailrecursion.javelin)
@@ -124,6 +122,10 @@
     (-> [tag (when-not (empty? attr) attr) (map walk kids)]
       ((partial walk-loop l))
       ((partial walk-do d)))))
+
+(defn terpol8 [s]
+  (let [parts (remove #(= "" %) (#'i/interpolate s))]
+    (if (every? string? parts) s `(str ~@parts))))
 
 (defn walk-string [form]
   (let [i (terpol8 form)]
