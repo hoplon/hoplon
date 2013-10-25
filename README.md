@@ -24,8 +24,8 @@ the following libraries as dependencies to complete the stack:
   
   ;; definitions in this file are optional
   (defn my-list [& items]
-    (div {:class "my-list"}
-      (into ul (map #(li (div {:class "my-list-item"} %)) items))))
+    ((div :class "my-list")
+       (into ul (map #(li ((div :class "my-list-item") %)) items))))
 
   (def clicks (cell 0))
 </script>
@@ -58,8 +58,8 @@ Or, equivalently:
 (page index.html)
 
 (defn my-list [& items]
-  (div {:class "my-list"}
-    (into ul (map #(li (div {:class "my-list-item"} %)) items))))
+  ((div :class "my-list")
+     (into ul (map #(li ((div :class "my-list-item") %)) items))))
 
 (def clicks (cell 0))
 
@@ -75,7 +75,7 @@ Or, equivalently:
         (span "second thing"))
 
       (p "You've clicked ~{clicks} times, so far.")
-      (button {:on-click [#(swap! clicks inc)]} "click me"))))
+      ((button :on-click [#(swap! clicks inc)]) "click me"))))
 ```
 
 ### Demos

@@ -113,7 +113,7 @@ when the file is compiled.)
 (html
   head
   (body
-    (h1 {:id "main" :style "color:red"} "Hello world")))
+    ((h1 :id "main" :style "color:red") "Hello world")))
 ```
 
 Note that the script element has been removed in the sexp version. The script
@@ -283,13 +283,13 @@ Consider the following program:
   (body
     (with-frp
       ;; underlying cells wired to DOM using the :do-text attribute
-      (p {:do-text [(format "You've clicked %s times, so far." clicks)]})
+      (p :do-text [(format "You've clicked %s times, so far." clicks)])
 
       ;; underlying cells wired to DOM using interpolated text node
       (p "If you click again you'll have clicked ~(inc clicks) times.")
 
       ;; user input (click event) wired to change underlying cells
-      (button {:on-click [#(swap! clicks inc)]} "click me"))))
+      ((button :on-click [#(swap! clicks inc)]) "click me"))))
 ```
 
 Clicking on the "click me" button causes the paragraph element to update, its
@@ -361,8 +361,8 @@ For example:
     (title "looping"))
   (body
     (h1 "people")
-    (ul {:loop [loop-people i first last]}
-      (li "~{last}, ~{first}"))))
+    ((ul :loop [loop-people i first last])
+       (li "~{last}, ~{first}"))))
 ```
 
 As can be seen in the example above, the thing looper mechanism consists of two
