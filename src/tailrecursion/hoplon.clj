@@ -20,18 +20,15 @@
 (defn read-string [s] (when (and (string? s) (not (blank? s))) (clojure.core/read-string s)))
 
 (defn add-doc [docstring pair]
-  (if (string? docstring)
-    (list (first pair) docstring (last pair))
-    pair))
+  (if (string? docstring) (list (first pair) docstring (last pair)) pair))
 
 (defn do-def [docstring bindings values]
-  (->>
-    (macroexpand `(let [~bindings ~values]))
-    (second)
-    (partition 2)
-    (map (partial add-doc docstring)) 
-    (map #(cons 'def %))
-    (list* 'do)))
+  (->> (macroexpand `(let [~bindings ~values]))
+       (second)
+       (partition 2)
+       (map (partial add-doc docstring)) 
+       (map #(cons 'def %))
+       (list* 'do)))
       
 (defmacro def-values
   "Destructuring def, similar to scheme's define-values."
