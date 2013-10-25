@@ -57,7 +57,7 @@
      (when (seq args)
        (let [kw1? (comp keyword? first)
              mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
-             drkw #(->> (partition 2 %) (drop-while kw1?) (mapcat identity))
+             drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))
              [attr kids] (cond (map?     head) [head tail]
                                (keyword? head) [(into {} (mkkw args)) (drkw args)]
                                :else           [{} args])]

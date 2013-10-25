@@ -30,7 +30,7 @@ Hoplon applications are built using the [boot][1] build tool. The following
  :require-tasks #{[tailrecursion.boot.task :refer :all]
                   [tailrecursion.hoplon.boot :refer :all]}
  :src-paths     #{"src/html" "src/clj" "src/cljs"}
- :src-static    #{"src/static"}
+ :src-static    #{"resources/static"}
  :public        "resources/public"}
 ```
 
@@ -48,14 +48,15 @@ $ boot watch hoplon
 ### Compiler Source Directories
 
 For the purposes of this document (as specified in the `boot.edn` file above)
-the source paths are organized as follows:
+the project paths are organized as follows:
 
-| Directory    | Contents                                                     |
-|--------------|--------------------------------------------------------------|
-| _src/html_   | Hoplon source files.                                         |
-| _src/cljs_   | ClojureScript library source files.                          |
-| _src/clj_    | Clojure source files.                                        |
-| _src/static_ | Static content (CSS files, images, etc.), organized in directories reflecting the application's HTML page structure. |
+| Directory           | Contents                                              |
+|---------------------|-------------------------------------------------------|
+| _src/html_          | Hoplon source files.                                  |
+| _src/cljs_          | ClojureScript library source files.                   |
+| _src/clj_           | Clojure source files.                                 |
+| _resources/static_  | Static content (CSS files, images, etc.), organized in directories reflecting the application's HTML page structure. |
+| _resources/public_  | Compiled HTML and JavaScript files, with static content overlayed. |
 
 This particular directory structure was chosen simply as an example. In practice
 the source paths directory structure is completely arbitrary. Source files can
