@@ -113,7 +113,7 @@ when the file is compiled.)
 (html
   head
   (body
-    ((h1 :id "main" :style "color:red") "Hello world")))
+    (h1 :id "main" :style "color:red" "Hello world")))
 ```
 
 Note that the script element has been removed in the sexp version. The script
@@ -289,7 +289,7 @@ Consider the following program:
       (p "If you click again you'll have clicked ~(inc clicks) times.")
 
       ;; user input (click event) wired to change underlying cells
-      ((button :on-click [#(swap! clicks inc)]) "click me"))))
+      (button :on-click [#(swap! clicks inc)] "click me"))))
 ```
 
 Clicking on the "click me" button causes the paragraph element to update, its
