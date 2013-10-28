@@ -1,5 +1,21 @@
 # hoplon
 
+## 3.0.3
+
+*Wed Oct 30 16:36:22 EDT 2013*
+
+* back out normlization code
+* remove `with-frp` macro and `thing-looper` function
+* add `val-id` and `by-id` functions to fetch element/input-value by id
+* add `loop-tpl` macro to replace `thing-looper`
+* roll reactive attributes into Hoplon core, extending `IFn` to `Element` type
+* reactive attributes now take a single argument, no longer wrap attr values
+  in vectors
+* wrap cljs expressions in attr value string with `{{ }}` in html syntax source
+  files to remove ambiguous cases
+* add `prerender` task to populate html in output file by phantomjs scraping
+* add `html2cljs` tasks to convert between source file syntaxes
+
 ## 3.0.2
 
 *Fri Oct 25 14:52:49 EDT 2013*
