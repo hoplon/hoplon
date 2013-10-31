@@ -1,5 +1,11 @@
 # hoplon
 
+## 3.0.4
+
+*Thu Oct 31 04:16:47 EDT 2013*
+
+* prerender task now runs when hoplon task runs
+
 ## 3.0.3
 
 *Wed Oct 30 16:36:22 EDT 2013*

@@ -38,31 +38,36 @@ page.open(uri, function(status) {
 
 (deftask prerender
   "Prepopulates Hoplon page with content scraped from phantomjs."
-  [boot]
+  [boot & [public-dir]]
   (let [{:keys [public src-paths]} @boot
+        public    (or public-dir public)
         tmpdir    (mkdir! boot ::phantom-tmp)
-        rjs-path  (.getPath (file tmpdir "render.js"))]
-    (when-not (= 0 (:exit (sh "which" "phantomjs")))
-      (throw (Exception. "No phantomjs on path"))) 
+        rjs-path  (.getPath (file tmpdir "render.js"))
+        phantom?  (= 0 (:exit (sh "which" "phantomjs")))]
     (spit rjs-path renderjs) 
     (fn [continue]
       (fn [event]
-        (let [srcs (-> (->> (:src-files event) (map #(.getPath %)))
-                       (->> (filter #(.endsWith % ".hl")) (map output-path-for)))]
-          (doseq [path (map #(str public "/" %) srcs)]
-            (let [->frms #(-> % (as-forms-string "html") first pedanticize)
-                  forms1 (-> path slurp ->frms)
-                  forms2 (-> "phantomjs" (sh rjs-path path) :out ->frms)
-                  [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
-                  [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
-                  empt?  #(= % '(meta {}))
-                  att    (merge att1 att2)
-                  hatt   (merge hatt1 hatt2)
-                  head   (list* head* hatt (remove empt? (concat head1 head2))) 
-                  batt   (merge batt1 batt2)
-                  body   (list* body* batt (concat body1 body2)) 
-                  merged (list html* att head body)]
-              (spit path (pp-forms "html" merged)))))))))
+        (if-not phantom?
+          (println "Skipping prerender: phantomjs not found on path")
+          (let [srcs (->> (or (get-in event [:watch :time]) (:src-files event))
+                          (map #(.getPath %)) (filter #(.endsWith % ".hl"))
+                          (map output-path-for))]
+            (println "Prerendering Hoplon HTML pages...")
+            (doseq [path (map #(str public "/" %) srcs)]
+              (let [->frms #(-> % (as-forms-string "html") first pedanticize)
+                    forms1 (-> path slurp ->frms)
+                    forms2 (-> "phantomjs" (sh rjs-path path) :out ->frms)
+                    [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
+                    [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
+                    empt?  #(= % '(meta {}))
+                    att    (merge att1 att2)
+                    hatt   (merge hatt1 hatt2)
+                    head   (list* head* hatt (remove empt? (concat head1 head2))) 
+                    batt   (merge batt1 batt2)
+                    body   (list* body* batt (concat body1 body2)) 
+                    merged (list html* att head body)]
+                (spit path (pp-forms "html" merged))))))
+        (continue event)))))
 
 (deftask hoplon
   "Build Hoplon web application."
@@ -73,16 +78,18 @@ page.open(uri, function(status) {
         public-tmp  (mkdir! boot ::public-tmp)
         main-js     (file public-tmp "main.js")
         compile     #(compile-file % main-js cljs-tmp public-tmp :opts hoplon-opts)]
-    (add-sync! boot public (into [public-tmp] (map file src-static)))
+    (add-sync! boot public [public-tmp])
     (swap! boot update-in [:src-paths] conj (.getPath cljs-tmp))
     (comp
       #(fn [event]
+         (println "Compiling Hoplon pages...")
          (let [files (or (get-in event [:watch :time]) (:src-files event))]
            (mkdir! boot ::cljs-tmp) 
            (mkdir! boot ::public-tmp)
            (doseq [f files] (compile f))
            (% event)))
-      (t/cljs boot :output-to main-js :opts cljs-opts))))
+      (t/cljs boot :output-to main-js :opts cljs-opts)
+      (prerender boot public-tmp))))
 
 (deftask html2cljs
   "Convert file from html syntax to cljs syntax."
