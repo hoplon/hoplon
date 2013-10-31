@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>fbb5e60827afa28bb213de58f9644edcac5f0147</tag>
+    <tag>7884a9b9582e17584e94719380070a660203dc1e</tag>
     <url>https://github.com//</url>
   </scm>
   <build>
@@ -74,7 +74,7 @@
     <dependency>
       <groupId>tailrecursion</groupId>
       <artifactId>castra</artifactId>
-      <version>0.1.0</version>
+      <version>0.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jsr166-mirror</groupId>

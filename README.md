@@ -502,7 +502,7 @@ For example:
     (ul
       (loop-tpl
         :size 4
-        :binding [[i {:keys [done todo-text]}] (cell= (map-indexed list todos))]
+        :binding [{:keys [done todo-text]} todos]
         (li
           :do-class (cell= {:done done})
           (text "~{todo-text}"))))))
