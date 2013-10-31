@@ -84,4 +84,4 @@
 (defn pretty [x]
   (-pp x))
 
-(defprinter pprint pretty {:width 70})
+(defprinter pprint pretty {:width 110})
