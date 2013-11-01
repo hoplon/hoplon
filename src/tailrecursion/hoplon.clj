@@ -49,6 +49,11 @@
           (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
           :else           [tag nil args])))
 
+(defmacro defelem [sym bindings & body]
+  `(defn ~sym [& args#]
+     (let [~bindings (parse-args args#)]
+       ~@body)))
+
 (defmacro loop-tpl [& args]
   (let [[_ {:keys [bindings size bind-ids done reverse] :or {size 0 ids []}} [tpl]]
           (parse-e (cons '_ args))

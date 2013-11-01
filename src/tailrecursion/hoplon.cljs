@@ -69,15 +69,21 @@
           (keyword? head) [(into {} (mkkw args)) (drkw args)]
           :else           [{} args])))
 
+(defn merge-classes [cls1 cls2]
+  
+  )
+
 (defn add-attributes! [this attr]
   (let [prefix #(.substr % 0 3)
         suffix #(keyword (.substr % 3))
         dos    (atom {}) 
-        ons    (atom {})]
+        ons    (atom {})
+        addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
       (let [k (name k)]
         (cond (= k "style")              (set! (.-cssText (.-style this)) v)
-              (= k "class")              (set! (.-className this) v)
+              (= k "class")              (set! (.-className this)
+                                               (addcls (.-className this) v))
               (= k   "for")              (set! (.-htmlFor this) v)
               (contains? DIRECT-ATTRS k) (.setAttribute this (DIRECT-ATTRS k) v)
               (= "do-" (prefix k))       (swap! dos assoc (suffix k) v)

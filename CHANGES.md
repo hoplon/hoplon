@@ -1,5 +1,13 @@
 # hoplon
 
+## 3.2.0
+
+*Fri Nov  1 15:46:57 EDT 2013*
+
+* add `defelem` macro
+* merge CSS classes instead of replacing: `((div :class "foo") :class "bar")`
+  &rarr; `(div :class "foo bar")`
+
 ## 3.1.0
 
 *Fri Nov  1 02:26:31 EDT 2013*
