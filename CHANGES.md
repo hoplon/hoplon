@@ -1,5 +1,12 @@
 # hoplon
 
+## 3.1.0
+
+*Fri Nov  1 02:26:31 EDT 2013*
+
+* add compilation for .hl files that are libraries and not pages
+* fix issues with watch-mode operation where deleting files caused NPE
+
 ## 3.0.4
 
 *Thu Oct 31 04:16:47 EDT 2013*
