@@ -9,40 +9,50 @@
 (ns tailrecursion.hoplon.compiler.tagsoup
   (:refer-clojure :exclude [replace])
   (:require
-    [pl.danieljanus.tagsoup               :as ts]
-    [clojure.string                       :as cs :refer [replace]]
-    [tailrecursion.hoplon.compiler.pprint :as pp :refer [pprint]]
-    [clojure.walk                         :as cw :refer [postwalk]]))
+    [pl.danieljanus.tagsoup :as ts]
+    [clojure.pprint         :as pp :refer [pprint]]
+    [clojure.string         :as cs :refer [blank? replace replace-first]]
+    [clojure.walk           :as cw :refer [postwalk]]))
 
-(def parse          ts/parse)
-(def parse-string   ts/parse-string)
-(def children       ts/children)
-(def script?        #(and (vector? %) (= :script (first %))))
-(def hoplon-script? #(and (script? %) (= "text/hoplon" (:type (second %)))))
 (def cljs-attr?     #(and (string? %) (re-find #"^\s*\{\{.*\}\}\s*" %)))
 (def walk-attr      #(if-not (cljs-attr? %) % (-> % (replace #"^\s*\{\{\s*" "")
                                                     (replace #"\s*\}\}\s*$" "")
                                                     read-string)))
 
-(defn tagsoup->hoplon-1 [elem]
-  (cond (string? elem)        (list (list '$text elem)) 
-        (hoplon-script? elem) (read-string (str "(" (nth elem 2) ")"))
-        :else
-        (let [[t attrs & kids] elem
-              tag   (symbol (name t)) 
-              kids  (apply concat (map tagsoup->hoplon-1 kids)) 
-              expr  (concat (list tag) (when (seq attrs) (list attrs)) kids)]
-          (list (if (< 1 (count expr)) expr (first expr))))))
+(defn parse-hiccup [x]
+  (if (string? x)
+    x
+    (let [[tag attr & kids] x]
+      (list* (symbol (replace-first (name tag) #"\." "/"))
+             (concat (if (empty? attr) (list) (list attr)) 
+                     (map parse-hiccup kids))))))
 
-(defn tagsoup->hoplon [elem]
-  (let [first* #(if (seq? %) (first %))
-        last*  #(if (seq? %) (last %))
-        rest*  #(drop-while (fn [x] (or (= 'html x) (map? x))) %)
-        forms  (postwalk walk-attr (tagsoup->hoplon-1 elem))]
-    (if (= 'html (first* (last* (first* forms)))) (rest* (first forms)) forms)))
+(defn collapse [x]
+  (if (string? x)
+    x
+    (let [[tag attr & kids] x
+          ws? #(and (string? %) (blank? %))]
+      (into [tag attr] (map collapse (if (= :pre tag) kids (remove ws? kids)))))))
 
-(defn pedanticize
-  [form]
+(defn read-hiccup [s]
+  (collapse (ts/parse-string s :strip-whitespace false)))
+
+(defn parse-snip [s]
+  (let [[html attr body] (read-hiccup s)]
+    (parse-hiccup (nth body 2))))
+
+(defn parse-page [s]
+  (parse-hiccup (read-hiccup s)))
+
+(defn parse-string [s]
+  (let [hiccup  (read-hiccup s)
+        prelude (read-string (str "(" (-> hiccup (nth 2) (nth 2)) ")"))]
+    (concat prelude (list (parse-hiccup (postwalk walk-attr (nth hiccup 3)))))))
+
+(defn parse [f]
+  (parse-string (slurp f)))
+
+(defn pedanticize [form]
   (cond (string? form) (list '$text form)
         (symbol? form) (list form {})
         (seq? form)
@@ -53,6 +63,32 @@
                   kids (map pedanticize (if (map? (first tail)) (rest tail) tail))]
               (list* tag attr kids))))))
 
-(defn pp-forms
-  [doctype forms]
-  (str "<!DOCTYPE " doctype ">\n" (with-out-str (pprint forms))))
+(def void-elems
+  #{'area     'base     'br       'col      'embed    'hr       'img    'input
+    'keygen   'link     'menuitem 'meta     'param    'source   'track  'wbr})
+
+(defn attr->string [attr]
+  (->> (for [[k v] attr] 
+         (str (name k) "=" (pr-str (if (string? v) v (str "{{ " v " }}"))))) 
+       (cons "")
+       (interpose " ")
+       (apply str)))
+
+(defn html-escape [s]
+  (-> s (replace #"&" "&amp;") (replace #"<" "&lt;") (replace #">" "&gt;")))
+
+(defn hoplon->string* [[tag attr & kids :as form]]
+  (case tag
+    $text     (html-escape attr)
+    $comment  (str "<!-- " attr " -->")
+    (let [attr (attr->string attr)
+          kids (->> kids (map hoplon->string*) (apply str))]
+      (if (void-elems tag)
+        (str "<" tag attr ">")
+        (str "<" tag attr ">" kids "</" tag ">")))))
+
+(defn print-string [form]
+  (hoplon->string* (pedanticize form)))
+
+(defn print-page [doctype forms]
+  (str "<!DOCTYPE " doctype ">\n" (print-string forms)))

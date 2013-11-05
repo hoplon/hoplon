@@ -3,7 +3,7 @@
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
   <packaging>jar</packaging>
-  <version>3.1.0</version>
+  <version>3.2.1</version>
   <name>hoplon</name>
   <description>Hoplon web development environment.</description>
   <url>http://github.com/tailrecursion/hoplon</url>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>eba0274e7a354b0c6104b582510e007db7bfee38</tag>
+    <tag>318fc9d1fa7b7aa367a94f6ea795b610473c31bc</tag>
     <url>https://github.com//</url>
   </scm>
   <build>
@@ -75,26 +75,6 @@
       <groupId>tailrecursion</groupId>
       <artifactId>castra</artifactId>
       <version>0.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jsr166-mirror</groupId>
-      <artifactId>jsr166y</artifactId>
-      <version>1.7.0</version>
-    </dependency>
-    <dependency>
-      <groupId>fipp</groupId>
-      <artifactId>fipp</artifactId>
-      <version>0.4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>digest</groupId>
-      <artifactId>digest</artifactId>
-      <version>1.3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>criterium</groupId>
-      <artifactId>criterium</artifactId>
-      <version>0.3.0</version>
     </dependency>
     <dependency>
       <groupId>clj-tagsoup</groupId>

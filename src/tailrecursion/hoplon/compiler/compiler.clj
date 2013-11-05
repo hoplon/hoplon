@@ -8,15 +8,15 @@
 
 (ns tailrecursion.hoplon.compiler.compiler
   (:require
-    [clojure.java.io                        :refer  [file resource make-parents]]
-    [clojure.pprint                         :as     pprint]
-    [clojure.string                         :as     string]
-    [cljs.compiler                          :as     cljsc]
-    [tailrecursion.javelin                  :refer  [make-require make-require-macros]]
-    [tailrecursion.hoplon.compiler.tagsoup  :as     ts]))
+    [clojure.pprint                         :as pp]
+    [clojure.java.io                        :as io]
+    [clojure.string                         :as str]
+    [cljs.compiler                          :as cljs]
+    [tailrecursion.hoplon                   :as hl]
+    [tailrecursion.hoplon.compiler.tagsoup  :as tags]
+    [tailrecursion.hoplon.compiler.refer    :as refer]))
 
 (def ^:dynamic *printer* prn)
-(def file->page (atom {}))
 
 (def html-tags
   '[a abbr acronym address applet area article
@@ -34,41 +34,62 @@
     $comment spliced])
 
 (defn up-parents [path name]
-  (let [[f & dirs] (string/split path #"/")]
+  (let [[f & dirs] (str/split path #"/")]
     (->> [name] (concat (repeat (count dirs) "../")) (apply str))))
 
 (defn munge-path [path]
   (-> (str "__" path)
-    (string/replace "_" "__")
-    (string/replace "/" "_")
-    (string/replace ":" "__COLON__")))
+    (str/replace "_" "__")
+    (str/replace "/" "_")
+    (str/replace ":" "__COLON__")))
+
+(defn inline-code [s process]
+  (let [lines (str/split s #"\n")
+        start #";;\{\{\s*$"
+        end   #"^\s*;;\}\}\s*$"
+        pad   #"^\s*"
+        unpad #(str/replace %1 (re-pattern (format "^\\s{0,%d}" %2)) "")]
+    (loop [txt nil, i 0, [line & lines] lines, out []]
+      (if-not line
+        (str/join "\n" out) 
+        (if-not txt
+          (if (re-find start line)
+            (recur [] i lines out)
+            (recur txt i lines (conj out line)))
+          (if (re-find end line)
+            (let [s (process (str/trim (str/join "\n" txt)))]
+              (recur nil 0 (rest lines) (conj (pop out) (str (peek out) s (first lines)))))
+            (let [i (if-not (empty? txt) i (count (re-find pad line)))]
+              (recur (conj txt (unpad line i)) i lines out))))))))
 
 (defn as-forms [s]
-  (case (first (string/trim s))
-    \< (-> s ts/parse-string ts/tagsoup->hoplon)
-    (try
-    (read-string (str "(" s ")"))
-      (catch Throwable e (println s))
-      )))
+  (if (= \< (first (str/trim s))) 
+    (tags/parse-string (inline-code s tags/html-escape))
+    (read-string (str "(" (inline-code s pr-str) ")"))))
 
 (defn output-path     [forms] (-> forms first second str))
 (defn output-path-for [path]  (-> path slurp as-forms output-path))
 
 (defn make-nsdecl
   [[_ ns-sym & forms]]
-  (let [ns-syms '#{tailrecursion.hoplon tailrecursion.javelin}
+  (let [ns-sym  (symbol ns-sym)
+        ns-syms '#{tailrecursion.hoplon tailrecursion.javelin}
         rm?     #(or (contains? ns-syms %) (and (seq %) (contains? ns-syms (first %))))
-        mk-req  #(concat (remove rm? %2) (map %1 ns-syms))
+        mk-req  #(concat (remove rm? %2) (map %1 ns-syms (repeat %3)))
         clauses (->> (tree-seq list? seq forms) (filter list?) (group-by first))
+        exclude (when-let [e (:refer-hoplon clauses)] (nth (first e) 2))
         combine #(mapcat (partial drop 1) (% clauses))
-        reqs    `(:require ~@(mk-req make-require (combine :require)))
-        macros  `(:require-macros ~@(mk-req make-require-macros (combine :require-macros)))
-        other?  #(not (contains? #{:require :require-macros} (first %)))
+        req     (combine :require)
+        reqm    (combine :require-macros)
+        reqs    `(:require ~@(mk-req refer/make-require req exclude))
+        macros  `(:require-macros ~@(mk-req refer/make-require-macros reqm exclude))
+        other?  #(-> #{:require :require-macros :refer-hoplon :prepend-head}
+                   ((comp not contains?) (first %)))
         others  (->> forms (filter list?) (filter other?))]
     `(~'ns ~ns-sym ~@others ~reqs ~macros)))
 
 (defn forms-str [forms]
-  (string/join "\n" (map #(with-out-str (*printer* %)) forms)))
+  (str/join "\n" (map #(with-out-str (*printer* %)) forms)))
 
 (defn compile-lib [[[ns* & _ :as nsdecl] & tlfs]]
   (when (= 'ns ns*) (forms-str (cons (make-nsdecl nsdecl) tlfs))))
@@ -80,16 +101,17 @@
       (let [[[_ & setup] html] ((juxt butlast last) forms)
             outpath   (output-path forms)
             js-uri    (up-parents outpath (.getName js-file))
-            mkns      #(symbol (str "tailrecursion.hoplon.app-pages." (munge %)))
-            nsdecl    (let [[h n & t] (make-nsdecl nsdecl)] (list* h (mkns n) t))
-            nsname    (cljsc/munge (second nsdecl)) 
+            heads?    #(and (sequential? %) (= :prepend-head (first %)))
+            mkhead    #(let [[t a k] (hl/parse-e %)] (list* t (or a {}) k))
+            heads     (mapcat #(map mkhead (drop 1 %)) (filter heads? nsdecl))
+            mkns      #(symbol (str "tailrecursion.hoplon.app-pages." (gensym)))
+            nsdecl    (let [[h n & t] (make-nsdecl nsdecl)] (list* h (mkns) t))
+            nsname    (cljs/munge (second nsdecl)) 
             s-nodep   (list 'script {:type "text/javascript"} "var CLOSURE_NO_DEPS = true;")
             s-main    (list 'script {:type "text/javascript" :src js-uri})
             s-init    (list 'script {:type "text/javascript"} (str nsname ".hoploninit();"))
-            s-html    (list 'html
-                            (list 'head (list 'meta {:charset "utf-8"}))
-                            (list 'body s-nodep s-main s-init))
-            htmlstr   (ts/pp-forms "html" s-html)
+            s-html    (list 'html (list* 'head heads) (list 'body s-nodep s-main s-init))
+            htmlstr   (tags/print-page "html" s-html)
             cljs      (list nsdecl
                             (list 'defn (symbol "^:export") 'hoploninit []
                                   (cons 'do setup) 
@@ -97,27 +119,18 @@
             cljsstr   (forms-str cljs)]
         {:html htmlstr :cljs cljsstr :file outpath}))))
 
-(defn pp [form] (pprint/write form :dispatch pprint/code-dispatch))
-
-(defn delete-path [p]
-  (doseq [[k v] (get @file->page p)]
-    (when (and v (.exists v)) (.delete v)))
-  (swap! file->page dissoc p))
+(defn pp [form] (pp/write form :dispatch pp/code-dispatch))
 
 (defn compile-string
   [forms-str path js-file cljsdir htmldir & {:keys [opts]}]
   (when-let [forms (as-forms forms-str)]
     (binding [*printer* (if (:pretty-print opts) pp prn)]
       (let [compiled (compile-forms forms js-file)
-            cljs-out (file cljsdir (str (munge-path path) ".cljs"))
-            html-out (when-let [f (:file compiled)] (file htmldir f))
-            write    #(when (and %1 %2) (spit (doto %1 make-parents) %2))]
-        (delete-path path)
-        (swap! file->page assoc path {:cljs cljs-out :html html-out})
+            cljs-out (io/file cljsdir (str (munge-path path) ".cljs"))
+            html-out (when-let [f (:file compiled)] (io/file htmldir f))
+            write    #(when (and %1 %2) (spit (doto %1 io/make-parents) %2))]
         (write cljs-out (:cljs compiled))
         (write html-out (:html compiled))))))
 
 (defn compile-file [f & args]
-  (if (and (instance? java.io.File f) (not (.exists f)))
-    (delete-path (.getPath f))
-    (apply compile-string (slurp f) (.getPath f) args)))
+  (apply compile-string (slurp f) (.getPath f) args))
