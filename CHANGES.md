@@ -1,5 +1,14 @@
 # hoplon
 
+## 3.2.1
+
+*Wed Nov  6 13:00:12 EST 2013*
+
+* add `;;{{` `;;}}` multiline text escaping
+* add `:prepend-head` clause to page declaration to add tags to head of html
+  output document directly at compile time.
+* various bugfixes
+
 ## 3.2.0
 
 *Fri Nov  1 15:46:57 EDT 2013*
