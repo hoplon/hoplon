@@ -17,7 +17,8 @@
 
 (declare do! on! $text)
 
-(set-print-fn! #(.log js/console %))
+(set-print-fn!
+  #(when (and js/console (.-log js/console)) (.log js/console %)))
 
 (defn safe-nth
   ([coll index] (safe-nth coll index nil))
@@ -69,10 +70,6 @@
           (keyword? head) [(into {} (mkkw args)) (drkw args)]
           :else           [{} args])))
 
-(defn merge-classes [cls1 cls2]
-  
-  )
-
 (defn add-attributes! [this attr]
   (let [prefix #(.substr % 0 3)
         suffix #(keyword (.substr % 3))
@@ -98,6 +95,9 @@
     (doseq [x (keep node (unsplice kids))] (.appendChild this x))
     this))
 
+(defn on-append! [this f]
+  (set! (.-hoplonIFn this) f))
+
 (extend-type js/Element
   IPrintWithWriter
   (-pr-writer
@@ -107,7 +107,9 @@
   (-invoke
     ([this & args]
      (let [[attr kids] (parse-args args)]
-       (doto this (add-attributes! attr) (add-children! kids))))))
+       (if (.-hoplonIFn this)
+         (doto this (.hoplonIFn attr kids))
+         (doto this (add-attributes! attr) (add-children! kids)))))))
 
 (defn- make-elem-ctor [tag]
   (fn [& args]
@@ -288,7 +290,7 @@
 
 (defmethod do! :attr
   [elem _ kvs]
-  (add-attributes! elem kvs))
+  (elem kvs))
 
 (defmethod do! :class
   [elem _ kvs] 

@@ -1,5 +1,13 @@
 # hoplon
 
+## 3.3.0
+
+*Fri Nov  8 10:40:24 EST 2013*
+
+* fix issue with nonexistent `console.log` causing NPE in ie8
+* add `on-append!` function to allow overriding appendChild and setAttribute
+  behavior in user-defined types
+
 ## 3.2.1
 
 *Wed Nov  6 13:00:12 EST 2013*
