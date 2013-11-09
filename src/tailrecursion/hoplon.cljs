@@ -44,7 +44,8 @@
    "valign"       "vAlign"
    "height"       "height"
    "width"        "width"
-   "frameborder"  "frameBorder"})
+   "frameborder"  "frameBorder"
+   "readonly"     "readonly"})
 
 (defn node? [x] (instance? js/Node x))
 
