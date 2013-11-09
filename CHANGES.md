@@ -7,6 +7,7 @@
 * fix issue with nonexistent `console.log` causing NPE in ie8
 * add `on-append!` function to allow overriding appendChild and setAttribute
   behavior in user-defined types
+* add `readonly` to list of attributes that need to be set with `setAttribute`
 
 ## 3.2.1
 
