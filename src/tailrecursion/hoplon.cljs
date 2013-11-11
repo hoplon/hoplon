@@ -338,5 +338,12 @@
   [elem _ v]
   (.text (js/jQuery elem) (str v)))
 
+(defmethod do! :scroll-to
+  [elem _ v]
+  (when v
+    (let [body (js/jQuery "body")
+          elem (js/jQuery elem)]
+      (.animate body (clj->js {:scrollTop (.-top (.offset elem))})))))
+
 (defn on! [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
