@@ -110,4 +110,4 @@ page.open(uri, function(status) {
   "Convert file from html syntax to cljs syntax."
   [boot f]
   (assert (.exists (file (str f))))
-  (-> f str slurp pprint))
+  (-> f str slurp parse-page pprint))

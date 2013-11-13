@@ -83,7 +83,7 @@
         reqm    (combine :require-macros)
         reqs    `(:require ~@(mk-req refer/make-require req exclude))
         macros  `(:require-macros ~@(mk-req refer/make-require-macros reqm exclude))
-        other?  #(-> #{:require :require-macros :refer-hoplon :prepend-head}
+        other?  #(-> #{:require :require-macros :refer-hoplon}
                    ((comp not contains?) (first %)))
         others  (->> forms (filter list?) (filter other?))]
     `(~'ns ~ns-sym ~@others ~reqs ~macros)))
@@ -101,21 +101,24 @@
       (let [[[_ & setup] html] ((juxt butlast last) forms)
             outpath   (output-path forms)
             js-uri    (up-parents outpath (.getName js-file))
-            heads?    #(and (sequential? %) (= :prepend-head (first %)))
-            mkhead    #(let [[t a k] (hl/parse-e %)] (list* t (or a {}) k))
-            heads     (mapcat #(map mkhead (drop 1 %)) (filter heads? nsdecl))
             mkns      #(symbol (str "tailrecursion.hoplon.app-pages." (gensym)))
             nsdecl    (let [[h n & t] (make-nsdecl nsdecl)] (list* h (mkns) t))
             nsname    (cljs/munge (second nsdecl)) 
+            [_ htmlattr [head body]]  (hl/parse-e html)
+            [_ headattr heads]        (hl/parse-e head)
+            [_ bodyattr bodies]       (hl/parse-e body)
+            heads     (map #(let [[t a c] (hl/parse-e %)] (list* t (or a {}) c)) heads)
             s-nodep   (list 'script {:type "text/javascript"} "var CLOSURE_NO_DEPS = true;")
             s-main    (list 'script {:type "text/javascript" :src js-uri})
             s-init    (list 'script {:type "text/javascript"} (str nsname ".hoploninit();"))
-            s-html    (list 'html (list* 'head heads) (list 'body s-nodep s-main s-init))
+            s-html    (list 'html (or htmlattr {})
+                            (list* 'head (or headattr {}) heads)
+                            (list 'body (or bodyattr {}) s-nodep s-main s-init))
             htmlstr   (tags/print-page "html" s-html)
             cljs      (list nsdecl
                             (list 'defn (symbol "^:export") 'hoploninit []
                                   (cons 'do setup) 
-                                  (list (symbol "tailrecursion.hoplon/init") html)))
+                                  (list (symbol "tailrecursion.hoplon/init") (vec bodies))))
             cljsstr   (forms-str cljs)]
         {:html htmlstr :cljs cljsstr :file outpath}))))
 

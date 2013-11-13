@@ -1,5 +1,15 @@
 # hoplon
 
+## 4.0.0
+
+*Wed Nov 13 15:51:04 EST 2013*
+
+* The `html`, `head`, and `body` elements can't be reliably created at runtime
+  so head contents are inserted verbatim and not evaluated anymore (browser
+  compatibility)
+* Attributes are now set using jQuery (browser compatibility)
+* Various shims and workarounds for ie8 (browser compatibility)
+
 ## 3.3.0
 
 *Fri Nov  8 10:40:24 EST 2013*

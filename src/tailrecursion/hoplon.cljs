@@ -17,6 +17,18 @@
 
 (declare do! on! $text)
 
+(def is-ie8 (not (aget js/window "Node")))
+
+(def node?
+  (if-not is-ie8
+    #(instance? js/Node %)
+    #(try (.-nodeType %) (catch js/Error _))))
+
+(def vector?*
+  (if-not is-ie8
+    vector?
+    #(try (vector? %) (catch js/Error _))))
+
 (set-print-fn!
   #(when (and js/console (.-log js/console)) (.log js/console %)))
 
@@ -36,27 +48,8 @@
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def DIRECT-ATTRS
-  {"cellpadding"  "cellPadding"
-   "cellspacing"  "cellSpacing"
-   "colspan"      "colSpan"
-   "rowspan"      "rowSpan"
-   "valign"       "vAlign"
-   "height"       "height"
-   "width"        "width"
-   "frameborder"  "frameBorder"
-   "readonly"     "readonly"})
-
-(defn node? [x] (instance? js/Node x))
-
-(extend-type js/Text
-  IPrintWithWriter
-  (-pr-writer
-    ([this writer opts]
-     (write-all writer "#<Text: " (.-nodeValue this) ">"))))
-
 (defn unsplice [forms]
-  (mapcat #(if (vector? %) (unsplice %) [%]) forms))
+  (mapcat #(if (vector?* %) (unsplice %) [%]) forms))
 
 (defn when-dom [this f]
   (timeout
@@ -79,21 +72,21 @@
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
       (let [k (name k)]
-        (cond (= k "style")              (set! (.-cssText (.-style this)) v)
-              (= k "class")              (set! (.-className this)
-                                               (addcls (.-className this) v))
-              (= k   "for")              (set! (.-htmlFor this) v)
-              (contains? DIRECT-ATTRS k) (.setAttribute this (DIRECT-ATTRS k) v)
-              (= "do-" (prefix k))       (swap! dos assoc (suffix k) v)
-              (= "on-" (prefix k))       (swap! ons assoc (suffix k) v)
-              :else                      (aset this k v)))) 
-    (timeout (doseq [[k v] @ons] (on! this k v))) 
-    (timeout (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4))))
+        (cond (= k "class")         (let [e (js/jQuery this)]
+                                      (doseq [cls (split v #" ")]
+                                        (.addClass e cls)))
+              (= "do-" (prefix k))  (swap! dos assoc (suffix k) v)
+              (= "on-" (prefix k))  (swap! ons assoc (suffix k) v)
+              :else                 (.attr (js/jQuery this) k (str v)))))
+    (timeout (fn [] (doseq [[k v] @ons] (on! this k v)))) 
+    (timeout (fn [] (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4)))))
     this))
 
 (defn add-children! [this kids]
   (let [node #(cond (string? %) ($text %) (node? %) %)]
-    (doseq [x (keep node (unsplice kids))] (.appendChild this x))
+    (doseq [x (keep node (unsplice kids))]
+      (if (or (not is-ie8) (not= "LINK" (.-nodeName x)))
+        (.appendChild this x)))
     this))
 
 (defn on-append! [this f]
@@ -248,9 +241,13 @@
 (def add-initfn!  (partial swap! *initfns* conj))
 
 (defn init [html]
-  (timeout #(do (doto js/document (.open) (add-children! [html])) 
-                (-> "body" js/jQuery (.on "submit" (fn [e] (.preventDefault e))))
-                (doseq [f @*initfns*] (f)))))
+  (timeout
+    (fn []
+      (let [body (js/jQuery "body")]
+        (.empty body)
+        (doseq [x html] (.append body x))
+        (-> body (.on "submit" (fn [e] (.preventDefault e))))
+        (doseq [f @*initfns*] (f))))))
 
 ;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
