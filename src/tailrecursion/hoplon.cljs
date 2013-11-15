@@ -71,13 +71,14 @@
         ons    (atom {})
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
-      (let [k (name k)]
-        (cond (= k "class")         (let [e (js/jQuery this)]
-                                      (doseq [cls (split v #" ")]
-                                        (.addClass e cls)))
+      (let [k (name k), e (js/jQuery this)]
+        (cond (= k "class")         (doseq [cls (split v #" ")] (.addClass e cls))
+              (= k "css")           (.css e (clj->js v))
               (= "do-" (prefix k))  (swap! dos assoc (suffix k) v)
               (= "on-" (prefix k))  (swap! ons assoc (suffix k) v)
-              :else                 (.attr (js/jQuery this) k (str v)))))
+              :else                 (cond (= false v) (.removeAttr e k)
+                                          (= true v)  (.attr e k k)
+                                          :else       (.attr e k (str v))))))
     (timeout (fn [] (doseq [[k v] @ons] (on! this k v)))) 
     (timeout (fn [] (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4)))))
     this))

@@ -67,7 +67,8 @@ page.open(uri, function(status) {
                         [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
                         att    (merge att1 att2)
                         hatt   (merge hatt1 hatt2)
-                        head   (list* head* hatt (remove empt? (concat head1 head2))) 
+                        ;head   (list* head* hatt (remove empt? (concat head1 head2))) 
+                        head   (list* 'head hatt1 head1)
                         batt   (merge batt1 batt2)
                         body   (list* body* batt (concat body1 body2)) 
                         merged (list html* att head body)]

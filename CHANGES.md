@@ -1,5 +1,14 @@
 # hoplon
 
+## 4.0.1
+
+*Fri Nov 15 13:04:01 EST 2013*
+
+* Add special `:css` attribute to set styles on elements
+* Fix issue with setting/unsetting attributes via `:do-attr`
+* Remove `<head>` merging from prerender task since `<head>` is no longer
+  dynamically created.
+
 ## 4.0.0
 
 *Wed Nov 13 15:51:04 EST 2013*
