@@ -79,15 +79,15 @@
               :else                 (cond (= false v) (.removeAttr e k)
                                           (= true v)  (.attr e k k)
                                           :else       (.attr e k (str v))))))
-    (timeout (fn [] (doseq [[k v] @ons] (on! this k v)))) 
-    (timeout (fn [] (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4)))))
+    (when (seq @ons)
+      (timeout (fn [] (doseq [[k v] @ons] (on! this k v))))) 
+    (when (seq @dos)
+      (timeout (fn [] (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4))))))
     this))
 
 (defn add-children! [this kids]
   (let [node #(cond (string? %) ($text %) (node? %) %)]
-    (doseq [x (keep node (unsplice kids))]
-      (if (or (not is-ie8) (not= "LINK" (.-nodeName x)))
-        (.appendChild this x)))
+    (doseq [x (keep node (unsplice kids))] (.appendChild this x))
     this))
 
 (defn on-append! [this f]

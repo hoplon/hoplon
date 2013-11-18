@@ -1,5 +1,20 @@
 # hoplon
 
+## 4.0.2
+
+*Mon Nov 18 17:07:59 EST 2013*
+
+* Use currying to split page expression into separate function applications to
+  reduce imapct on JS stack when building page DOM. Safari especially couldn't
+  handle "broad" and moderately deep stack allocation and will freeze without
+  the currying.
+
+This involves a slight change to how the page expression is evaluated, so:
+
+* Macros in page expression can only take string arguments.
+* Page markup must consist of DOM elements, custom elements, or functions that
+  are curried (i.e. `f` such that `(f x y z)` is equivalent `(((f x) y) z)`).
+
 ## 4.0.1
 
 *Fri Nov 15 13:04:01 EST 2013*

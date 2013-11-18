@@ -3,7 +3,7 @@
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
   <packaging>jar</packaging>
-  <version>4.0.0</version>
+  <version>4.0.2</version>
   <name>hoplon</name>
   <description>Hoplon web development environment.</description>
   <url>http://github.com/tailrecursion/hoplon</url>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>bb90d32b36c5704a019eab574b4d9ec4cac04b9f</tag>
+    <tag>2c5633157eec0c4aa25df6d6e39fbde92ce902f1</tag>
     <url>https://github.com//</url>
   </scm>
   <build>
@@ -85,6 +85,11 @@
       <groupId>org.clojure</groupId>
       <artifactId>core.incubator</artifactId>
       <version>0.1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>clj-webdriver</groupId>
+      <artifactId>clj-webdriver</artifactId>
+      <version>0.6.0</version>
     </dependency>
   </dependencies>
 </project>
