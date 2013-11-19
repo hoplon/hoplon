@@ -1,5 +1,12 @@
 # hoplon
 
+## 4.0.3
+
+*Tue Nov 19 14:29:47 EST 2013*
+
+* Guard calls to `appendChild` method with try/catch block when building DOM
+  in ie8. **This does not affect other browsers.**
+
 ## 4.0.2
 
 *Mon Nov 18 17:07:59 EST 2013*

@@ -85,9 +85,14 @@
       (timeout (fn [] (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4))))))
     this))
 
+(def append-child
+  (if-not is-ie8
+    #(.appendChild %1 %2)
+    #(try (.appendChild %1 %2) (catch js/Error _))))
+
 (defn add-children! [this kids]
-  (let [node #(cond (string? %) ($text %) (node? %) %)]
-    (doseq [x (keep node (unsplice kids))] (.appendChild this x))
+  (let [node    #(cond (string? %) ($text %) (node? %) %)]
+    (doseq [x (keep node (unsplice kids))] (append-child this x))
     this))
 
 (defn on-append! [this f]
