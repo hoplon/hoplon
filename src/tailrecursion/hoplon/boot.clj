@@ -60,17 +60,15 @@ page.open(uri, function(status) {
                   (let [rel    (subs path (inc (count (.getPath tmpdir2))))
                         out    (file public rel)
                         ->frms #(-> % parse-page pedanticize)
-                        empt?  #(= % '(meta {}))
                         forms1 (-> path slurp ->frms)
                         forms2 (-> "phantomjs" (sh rjs-path path) :out ->frms)
                         [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
                         [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
                         att    (merge att1 att2)
                         hatt   (merge hatt1 hatt2)
-                        ;head   (list* head* hatt (remove empt? (concat head1 head2))) 
                         head   (list* 'head hatt1 head1)
                         batt   (merge batt1 batt2)
-                        body   (list* body* batt (concat body1 body2)) 
+                        body   (list* body* batt (concat body2 body1)) 
                         merged (list html* att head body)]
                     (println "•" rel)
                     (spit out (print-page "html" merged)))))))) 

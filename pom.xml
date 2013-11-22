@@ -3,7 +3,7 @@
   <groupId>tailrecursion</groupId>
   <artifactId>hoplon</artifactId>
   <packaging>jar</packaging>
-  <version>4.0.2</version>
+  <version>4.0.4</version>
   <name>hoplon</name>
   <description>Hoplon web development environment.</description>
   <url>http://github.com/tailrecursion/hoplon</url>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>13ed0d6c95b9ff55797b3329403fe743fc847fa8</tag>
+    <tag>561d4a26093469b1db10eb0fc43d48f2e1a7a8d3</tag>
     <url>https://github.com//</url>
   </scm>
   <build>
