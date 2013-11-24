@@ -1,5 +1,11 @@
 # hoplon
 
+## 4.0.5
+
+*Sun Nov 24 12:43:57 EST 2013*
+
+* update javelin dep
+
 ## 4.0.4
 
 *Fri Nov 22 00:11:36 EST 2013*
