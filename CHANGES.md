@@ -1,5 +1,11 @@
 # hoplon
 
+## 4.0.6
+
+*Thu Nov 28 01:29:29 EST 2013*
+
+* Bugfixes
+
 ## 4.0.5
 
 *Sun Nov 24 12:43:57 EST 2013*

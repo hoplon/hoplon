@@ -94,24 +94,6 @@
 (defn compile-lib [[[ns* & _ :as nsdecl] & tlfs]]
   (when (= 'ns ns*) (forms-str (cons (make-nsdecl nsdecl) tlfs))))
 
-(defn curry-dom* [parent form]
-  (let [sym (gensym)]
-    (if (string? form)
-      (if parent `[_# (~parent ~form)] `[~sym ~form])
-      (let [[tag attr kids] (hl/parse-e form)]
-        (if (every? string? kids)
-          (concat
-            `[~sym (~tag ~@(when attr [attr]) ~@kids)]
-            (if parent `[_# (~parent ~sym)] []))
-          (concat
-            `[~sym (~tag ~@(when attr [attr]))]
-            (mapcat #(curry-dom* sym %) kids)
-            (if parent `[_# (~parent ~sym)] [])))))))
-
-(defn curry-dom [form]
-  (let [bindings (curry-dom* nil form)]
-    `(let [~@bindings] ~(first bindings))))
-
 (defn compile-forms [forms js-file]
   (let [[nsdecl & tlfs] forms]
     (if (= 'ns (first nsdecl))
@@ -138,7 +120,7 @@
                                   (cons 'do setup) 
                                   (list
                                     (symbol "tailrecursion.hoplon/init")
-                                    (mapv curry-dom bodies))))
+                                    (mapv #(list 'flatten-expr %) bodies))))
             cljsstr   (forms-str cljs)]
         {:html htmlstr :cljs cljsstr :file outpath}))))
 
