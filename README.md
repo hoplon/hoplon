@@ -20,7 +20,7 @@ the following libraries as dependencies to complete the stack:
 ```xml
 <script type="text/hoplon">
   ;; Page declaration specifies output file path.
-  (page index.html)
+  (page "index.html")
   
   ;; definitions are optional
   (defn my-list [& items]
@@ -54,7 +54,7 @@ the following libraries as dependencies to complete the stack:
 Or, equivalently:
 
 ```clojure
-(page index.html)
+(page "index.html")
 
 (defn my-list [& items]
   (div
@@ -77,6 +77,11 @@ Or, equivalently:
     (button :on-click #(swap! clicks inc) "click me")))
 ```
 
+### Documentation
+
+* [http://hoplon.io][10]
+* [Design Document][6] (early version)
+
 ### Demos
 
 * [Hoplon demo applications repository][5]
@@ -96,11 +101,6 @@ Artifacts are published on [Clojars][4].
   <version>4.0.6</version>
 </dependency>
 ```
-
-### Documentation
-
-* [http://hoplon.io][10]
-* [Design Document][6] (early version)
 
 ## License
 
