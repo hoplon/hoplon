@@ -29,6 +29,11 @@
     vector?
     #(try (vector? %) (catch js/Error _))))
 
+(def seq?*
+  (if-not is-ie8
+    seq?
+    #(try (seq? %) (catch js/Error _))))
+
 (set-print-fn!
   #(when (and js/console (.-log js/console)) (.log js/console %)))
 
@@ -49,7 +54,7 @@
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn unsplice [forms]
-  (mapcat #(if (vector?* %) (unsplice %) [%]) forms))
+  (mapcat #(if (or (seq?* %) (vector?* %)) (unsplice %) [%]) forms))
 
 (defn when-dom [this f]
   (timeout
@@ -91,7 +96,7 @@
     #(try (.appendChild %1 %2) (catch js/Error _))))
 
 (defn add-children! [this kids]
-  (let [node    #(cond (string? %) ($text %) (node? %) %)]
+  (let [node #(cond (string? %) ($text %) (node? %) %)]
     (doseq [x (keep node (unsplice kids))] (append-child this x))
     this))
 
