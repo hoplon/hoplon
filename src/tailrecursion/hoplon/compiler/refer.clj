@@ -27,7 +27,7 @@
 
 (defn nsym->path [sym ext]
   (-> (str sym)
-      (s/replace "." "/" #_java.io.File/separator)
+      (s/replace "." "/")
       (s/replace "-" "_")
       (str "." ext)))
 
@@ -82,4 +82,6 @@
 
 (defmacro refer-all [ns-sym & more]
   `(do ~@(apply mirror-def-all ns-sym more)))
+
+
 
