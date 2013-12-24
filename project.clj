@@ -7,7 +7,4 @@
                        [tailrecursion/castra        "0.1.1"]
                        [clj-tagsoup                 "0.3.0"]
                        [org.clojure/core.incubator  "0.1.2"]
-                       [clj-webdriver               "0.6.0"]])
-
-
-
+                       [clj-webdriver               "0.6.0"]])
