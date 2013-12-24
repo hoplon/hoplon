@@ -27,7 +27,7 @@
 
 (defn nsym->path [sym ext]
   (-> (str sym)
-      (s/replace "." java.io.File/separator)
+      (s/replace "." "/")
       (s/replace "-" "_")
       (str "." ext)))
 
@@ -61,7 +61,7 @@
          remote-defns)))
 
 (defn mirror-def-all [ns-sym & {:keys [syms]}]
-  (let [syms (distinct (into ['def 'defn 'defmulti] syms)) 
+  (let [syms (distinct (into ['def 'defn 'defmulti] syms))
         defs (mapcat ops-in syms (repeat ns-sym) (repeat "cljs"))]
     (map (fn [r] `(def ~r ~(symbol (str ns-sym) (str r)))) defs)))
 
@@ -82,3 +82,6 @@
 
 (defmacro refer-all [ns-sym & more]
   `(do ~@(apply mirror-def-all ns-sym more)))
+
+
+
