@@ -19,7 +19,7 @@
     [tailrecursion.hoplon.compiler.compiler :refer [compile-string output-path-for as-forms]]
     [tailrecursion.hoplon.compiler.tagsoup  :refer [parse-page print-page pedanticize]]))
 
-(def renderjs 
+(def renderjs
   "
 var page = require('webpage').create(),
     sys  = require('system'),
@@ -43,8 +43,9 @@ page.open(uri, function(status) {
         tmpdir1   (mkdir! boot ::phantom-tmp1)
         tmpdir2   (mkdir! boot ::phantom-tmp2)
         rjs-path  (.getPath (file tmpdir1 "render.js"))
-        phantom?  (= 0 (:exit (sh "which" "phantomjs")))]
-    (spit rjs-path renderjs) 
+        win? (#{"Windows_NT"} (System/getenv "OS"))
+        phantom?  (= 0 (:exit (sh (if win? "where" "which") "phantomjs")))]
+    (spit rjs-path renderjs)
     (fn [continue]
       (fn [event]
         (when-not (= false (:prerender cljs-opts))
@@ -55,7 +56,7 @@ page.open(uri, function(status) {
               (let [srcs (->> (file-seq tmpdir2)
                               (map #(.getPath %))
                               (filter #(.endsWith % ".html")))]
-                (when (seq srcs) (println "Prerendering Hoplon HTML pages...")) 
+                (when (seq srcs) (println "Prerendering Hoplon HTML pages..."))
                 (doseq [path srcs]
                   (let [rel    (subs path (inc (count (.getPath tmpdir2))))
                         out    (file public rel)
@@ -68,10 +69,10 @@ page.open(uri, function(status) {
                         hatt   (merge hatt1 hatt2)
                         head   (list* 'head hatt1 head1)
                         batt   (merge batt1 batt2)
-                        body   (list* body* batt (concat body2 body1)) 
+                        body   (list* body* batt (concat body2 body1))
                         merged (list html* att head body)]
                     (println "•" rel)
-                    (spit out (print-page "html" merged)))))))) 
+                    (spit out (print-page "html" merged))))))))
         (continue event)))))
 
 (deftask hoplon
@@ -99,9 +100,9 @@ page.open(uri, function(status) {
           (mkdir! boot ::cljs-tmp)
           (mkdir! boot ::public-tmp)
           (let [files (->> event :src-files (filter hl-file?))]
-            (when (seq files) (println "Compiling Hoplon pages...") (flush)) 
+            (when (seq files) (println "Compiling Hoplon pages...") (flush))
             (doseq [f files] (compile (slurp f) (.getPath f) cljs-tmp))
-            (continue event)))) 
+            (continue event))))
       (t/cljs boot :output-to main-js :opts cljs-opts)
       (prerender boot public-tmp cljs-opts))))
 
@@ -110,3 +111,4 @@ page.open(uri, function(status) {
   [boot f]
   (assert (.exists (file (str f))))
   (-> f str slurp parse-page pprint))
+
