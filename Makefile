@@ -1,4 +1,4 @@
-.PHONY: help docs
+.PHONY: help docs deploy
 
 help:
 	@echo "USAGE: make [help|docs|deploy]"
@@ -12,4 +12,4 @@ docs/index.html: $(shell find src -type f)
 
 .deploy.time: docs/index.html
 	ghp-import -p docs
-	touch .deploy.time
+	date > .deploy.time
