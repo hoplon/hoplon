@@ -9,9 +9,6 @@
 (ns tailrecursion.hoplon
   (:refer-clojure :exclude [subs name])
   (:require
-    [cljs.compiler        :as comp]
-    [cljs.core            :as core]
-    [cljs.analyzer        :as ana]
     [clojure.walk         :as walk]
     [clojure.core.strint  :as strint]))
 
@@ -90,9 +87,15 @@
          t#))))
 
 (defn flatten-expr-1 [expr sym]
-  (let [apply?    #(and (seq? %) (symbol? (first %)))
-        special?  #(contains? ana/specials (first %))
-        macro?    #(ana/get-expander (first %) (ana/empty-env))
+  (require 'cljs.compiler)
+  (require 'cljs.core)
+  (require 'cljs.analyzer)
+  (let [ana-specials     (var-get (resolve 'cljs.analyzer/specials))
+        ana-get-expander (var-get (resolve 'cljs.analyzer/get-expander))
+        ana-empty-env    (var-get (resolve 'cljs.analyzer/empty-env))
+        apply?    #(and (seq? %) (symbol? (first %)))
+        special?  #(contains? ana-specials (first %))
+        macro?    #(ana-get-expander (first %) (ana-empty-env))
         flatten?  #(and (apply? %) (not (or (macro? %) (special? %))))
         flatten   (fn [[op & args]]
                     (let [args*  (map #(if (flatten? %) (gensym) %) args)

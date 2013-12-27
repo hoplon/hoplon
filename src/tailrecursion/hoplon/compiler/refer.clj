@@ -9,7 +9,6 @@
 (ns tailrecursion.hoplon.compiler.refer
   (:require
     [clojure.pprint  :as p]
-    [cljs.analyzer   :as a]
     [clojure.string  :as s]
     [clojure.java.io :as io]
     [clojure.walk    :refer [prewalk]]

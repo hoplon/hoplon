@@ -11,7 +11,6 @@
     [clojure.pprint                         :as pp]
     [clojure.java.io                        :as io]
     [clojure.string                         :as str]
-    [cljs.compiler                          :as cljs]
     [tailrecursion.hoplon                   :as hl]
     [tailrecursion.hoplon.compiler.tagsoup  :as tags]
     [tailrecursion.hoplon.compiler.refer    :as refer]))
@@ -95,7 +94,9 @@
   (when (= 'ns ns*) (forms-str (cons (make-nsdecl nsdecl) tlfs))))
 
 (defn compile-forms [forms js-file]
-  (let [[nsdecl & tlfs] forms]
+  (require 'cljs.compiler)
+  (let [[nsdecl & tlfs] forms
+        cljs-munge (resolve 'cljs.compiler/munge)]
     (if (= 'ns (first nsdecl))
       {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs))}
       (let [[[_ & setup] html] ((juxt butlast last) forms)
@@ -103,7 +104,7 @@
             js-uri    (up-parents outpath (.getName js-file))
             mkns      #(symbol (str "tailrecursion.hoplon.app-pages." (gensym)))
             nsdecl    (let [[h n & t] (make-nsdecl nsdecl)] (list* h (mkns) t))
-            nsname    (cljs/munge (second nsdecl)) 
+            nsname    (cljs-munge (second nsdecl)) 
             [_ htmlattr [head body]]  (hl/parse-e html)
             [_ headattr heads]        (hl/parse-e head)
             [_ bodyattr bodies]       (hl/parse-e body)
