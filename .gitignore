@@ -13,3 +13,4 @@
 /.lein-deps-sum
 test/src/
 /pom.xml
+/docs/
