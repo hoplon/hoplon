@@ -26,7 +26,7 @@
 
 (defn nsym->path [sym ext]
   (-> (str sym)
-      (s/replace "." java.io.File/separator)
+      (s/replace "." "/")
       (s/replace "-" "_")
       (str "." ext)))
 
