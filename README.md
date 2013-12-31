@@ -79,7 +79,7 @@ Or, equivalently:
 
 ### Documentation
 
-* [http://hoplon.io][10]
+* [http://hoplon.io][7]
 * [Design Document][6] (early version)
 
 ### Demos
@@ -90,17 +90,7 @@ Or, equivalently:
 
 Artifacts are published on [Clojars][4]. 
 
-```clojure
-[tailrecursion/hoplon "4.0.7"]
-```
-
-```xml
-<dependency>
-  <groupId>tailrecursion</groupId>
-  <artifactId>hoplon</artifactId>
-  <version>4.0.7</version>
-</dependency>
-```
+![latest version][8]
 
 ## License
 
@@ -120,16 +110,5 @@ this license. You must not remove this notice, or any other, from this software.
 [4]: https://clojars.org/tailrecursion/hoplon
 [5]: https://github.com/tailrecursion/hoplon-demos
 [6]: doc/Design.md
-[7]: #page-declaration
-[9]: #getting-started
-
-[10]: http://hoplon.io/
-[11]: https://github.com/tailrecursion/boot
-[12]: http://en.wikipedia.org/wiki/S-expression
-[13]: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
-[14]: https://github.com/tailrecursion/javelin
-[15]: https://github.com/tailrecursion/hoplon/blob/master/src/tailrecursion/hoplon.cljs
-[16]: #thing-looper
-[17]: http://clojuredocs.org/clojure_core/clojure.core/munge
-[18]: https://github.com/weavejester/hiccup
-[19]: https://github.com/tailrecursion/hoplon/blob/master/doc/Design.md
+[7]: http://hoplon.io/
+[8]: https://clojars.org/tailrecursion/hoplon/latest-version.svg
