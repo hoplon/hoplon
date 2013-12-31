@@ -43,7 +43,7 @@ page.open(uri, function(status) {
         tmpdir1   (mkdir! boot ::phantom-tmp1)
         tmpdir2   (mkdir! boot ::phantom-tmp2)
         rjs-path  (.getPath (file tmpdir1 "render.js"))
-        win? (#{"Windows_NT"} (System/getenv "OS"))
+        win?      (#{"Windows_NT"} (System/getenv "OS"))
         phantom?  (= 0 (:exit (sh (if win? "where" "which") "phantomjs")))]
     (spit rjs-path renderjs)
     (fn [continue]
@@ -111,4 +111,3 @@ page.open(uri, function(status) {
   [boot f]
   (assert (.exists (file (str f))))
   (-> f str slurp parse-page pprint))
-
