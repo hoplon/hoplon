@@ -50,29 +50,19 @@
        ~@body)))
 
 (defmacro loop-tpl [& args]
-  (let [[_ {:keys [bindings size bind-ids done reverse] :or {size 0 ids []}} [tpl]]
-          (parse-e (cons '_ args))
-        [bindings things] bindings
+  (let [[_ {:keys [bindings bind-ids] :as attrs} [tpl]]
+        (parse-e (cons '_ args))
+        [bindings items] bindings
+        attrs     (-> attrs (dissoc :bindings :bind-ids) (assoc :items items))
         mksym     (fn [& _] (gensym "hl-auto-"))
         gsyms     (into {} (map (juxt identity mksym) bind-ids))
         sym*      `(str (gensym "hl-auto-"))
         id-binds  (interleave (vals gsyms) (repeat sym*))
         body      (walk/postwalk #(get gsyms % %) tpl)]
-    `(let [things#  (tailrecursion.javelin/cell= (pad-seq ~size ~things))
-           frag#    (.createDocumentFragment js/document)
-           dummy#   (.createElement js/document "SPAN")]
-       (if (and ~done @~done) (reset! ~done false))
-       (add-initfn!
-         (fn []
-           (tailrecursion.javelin/cell-doseq [~bindings things#]
-             (let [~@id-binds]
-               (timeout
-                 #(if-not ~reverse
-                    (.appendChild frag# ~body)
-                    (.insertBefore frag# ~body (.-firstChild frag#)))))) 
-           (timeout #(.replaceChild (.-parentNode dummy#) frag# dummy#))
-           (timeout #(if ~done (reset! ~done true)))))
-       dummy#)))
+    `(loop-tpl* ~attrs
+       (fn [item#]
+         (let [~@id-binds]
+           (tailrecursion.javelin/cell-let [~bindings item#] ~body))))))
 
 (defn terpol8 [s]
   (let [parts (remove #(= "" %) (#'strint/interpolate s))]

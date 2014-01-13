@@ -12,5 +12,6 @@
 /.lein-plugins
 /.lein-deps-sum
 test/src/
+.nrepl-port
 /pom.xml
 /docs/

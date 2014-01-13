@@ -8,16 +8,14 @@
 
 (ns tailrecursion.hoplon.boot
   (:require
-    [clojure.string                         :as s]
-    [tailrecursion.boot.task                :as t]
-    [tailrecursion.boot.file                :as f]
-    [tailrecursion.boot.deps                :as d]
-    [clojure.pprint                         :refer [pprint]]
-    [clojure.java.io                        :refer [file make-parents]]
-    [clojure.java.shell                     :refer [sh]]
-    [tailrecursion.boot.core                :refer [ignored? deftask mk! mkdir! add-sync!]]
-    [tailrecursion.hoplon.compiler.compiler :refer [compile-string output-path-for as-forms]]
-    [tailrecursion.hoplon.compiler.tagsoup  :refer [parse-page print-page pedanticize]]))
+    [clojure.pprint                         :as pp]
+    [clojure.java.io                        :as io]
+    [clojure.java.shell                     :as sh]
+    [tailrecursion.boot.core                :as boot]
+    [tailrecursion.boot.task                :as task]
+    [tailrecursion.boot.file                :as file]
+    [tailrecursion.hoplon.compiler.compiler :as hl]
+    [tailrecursion.hoplon.compiler.tagsoup  :as ts]))
 
 (def renderjs
   "
@@ -37,32 +35,37 @@ page.open(uri, function(status) {
   }, 0);
 });")
 
-(defn prerender [boot public-dir cljs-opts]
-  (let [{:keys [public src-paths]} @boot
+(defn prerender [public-dir cljs-opts]
+  (let [{:keys [public src-paths]} (boot/get-env)
         public    (or public-dir public)
-        tmpdir1   (mkdir! boot ::phantom-tmp1)
-        tmpdir2   (mkdir! boot ::phantom-tmp2)
-        rjs-path  (.getPath (file tmpdir1 "render.js"))
+        tmpdir1   (boot/mkdir! ::phantom-tmp1)
+        tmpdir2   (boot/mkdir! ::phantom-tmp2)
+        skip?     (= false (:prerender cljs-opts))
+        rjs-path  (.getPath (io/file tmpdir1 "render.js"))
         win?      (#{"Windows_NT"} (System/getenv "OS"))
-        phantom?  (= 0 (:exit (sh (if win? "where" "which") "phantomjs")))]
+        phantom?  (= 0 (:exit (sh/sh (if win? "where" "which") "phantomjs")))
+        not-found #(println "Skipping prerender: phantomjs not found on path.")]
     (spit rjs-path renderjs)
-    (fn [continue]
-      (fn [event]
+    (cond
+      skip?          identity
+      (not phantom?) (do (not-found) identity)
+      :else
+      (boot/with-pre-wrap
         (when-not (= false (:prerender cljs-opts))
           (if-not phantom?
             (println "Skipping prerender: phantomjs not found on path")
             (do
-              (f/sync :hash tmpdir2 public)
+              (file/sync :hash tmpdir2 public)
               (let [srcs (->> (file-seq tmpdir2)
-                              (map #(.getPath %))
-                              (filter #(.endsWith % ".html")))]
+                           (map #(.getPath %))
+                           (filter #(.endsWith % ".html")))]
                 (when (seq srcs) (println "Prerendering Hoplon HTML pages..."))
                 (doseq [path srcs]
                   (let [rel    (subs path (inc (count (.getPath tmpdir2))))
-                        out    (file public rel)
-                        ->frms #(-> % parse-page pedanticize)
+                        out    (io/file public rel)
+                        ->frms #(-> % ts/parse-page ts/pedanticize)
                         forms1 (-> path slurp ->frms)
-                        forms2 (-> "phantomjs" (sh rjs-path path) :out ->frms)
+                        forms2 (-> "phantomjs" (sh/sh rjs-path path) :out ->frms)
                         [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
                         [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
                         att    (merge att1 att2)
@@ -72,42 +75,40 @@ page.open(uri, function(status) {
                         body   (list* body* batt (concat body2 body1))
                         merged (list html* att head body)]
                     (println "•" rel)
-                    (spit out (print-page "html" merged))))))))
-        (continue event)))))
+                    (spit out (ts/print-page "html" merged))))))))))))
 
-(deftask hoplon
+(boot/deftask hoplon
   "Build Hoplon web application."
-  [boot & [cljs-opts]]
-  (let [{:keys [public src-paths src-static system]} @boot
-        depfiles    (->> boot d/deps (map second) (mapcat identity)
+  [& [cljs-opts]]
+  (let [{:keys [public src-paths src-static system]} (boot/get-env)
+        depfiles    (->> (boot/deps) (map second) (mapcat identity)
                          (filter #(.endsWith (first %) ".hl")))
         hoplon-opts (select-keys cljs-opts [:pretty-print])
-        hoplon-tmp  (mkdir! boot ::hoplon-tmp)
-        cljs-tmp    (mkdir! boot ::cljs-tmp)
-        public-tmp  (mkdir! boot ::public-tmp)
-        main-js     (file public-tmp "main.js")
+        hoplon-tmp  (boot/mkdir! ::hoplon-tmp)
+        cljs-tmp    (boot/mkdir! ::cljs-tmp)
+        public-tmp  (boot/mkdir! ::public-tmp)
+        main-js     (io/file public-tmp "main.js")
         hl-file?    #(.endsWith (.getPath %) ".hl")
         compile     #(do (println "•" %2)
-                         (compile-string %1 %2 main-js %3 public-tmp :opts hoplon-opts))]
+                         (hl/compile-string %1 %2 main-js %3 public-tmp :opts hoplon-opts))]
     (when (seq depfiles)
-      (println "Installing Hoplon dependencies...") (flush)
+      (println "Installing Hoplon dependencies...")
       (doseq [[path dep] depfiles] (compile (slurp dep) path hoplon-tmp)))
-    (add-sync! boot public [public-tmp])
-    (swap! boot update-in [:src-paths] into (map #(.getPath %) [cljs-tmp hoplon-tmp]))
+    (boot/add-sync! public [public-tmp])
+    (boot/set-env! :src-paths (->> [cljs-tmp hoplon-tmp] (map #(.getPath %))))
     (comp
-      (fn [continue]
-        (fn [event]
-          (mkdir! boot ::cljs-tmp)
-          (mkdir! boot ::public-tmp)
-          (let [files (->> event :src-files (filter hl-file?))]
-            (when (seq files) (println "Compiling Hoplon pages...") (flush))
-            (doseq [f files] (compile (slurp f) (.getPath f) cljs-tmp))
-            (continue event))))
-      (t/cljs boot :output-to main-js :opts cljs-opts)
-      (prerender boot public-tmp cljs-opts))))
+      (boot/with-pre-wrap
+        (boot/mkdir! ::cljs-tmp)
+        (boot/mkdir! ::public-tmp)
+        (let [files (->> boot/*event* :src-files (filter hl-file?))]
+          (when (seq files) (println "Compiling Hoplon pages..."))
+          (doseq [f files] (compile (slurp f) (.getPath f) cljs-tmp))))
+      (task/cljs :output-to main-js :opts cljs-opts)
+      (prerender public-tmp cljs-opts))))
 
-(deftask html2cljs
+(boot/deftask html2cljs
   "Convert file from html syntax to cljs syntax."
-  [boot f]
-  (assert (.exists (file (str f))))
-  (-> f str slurp parse-page pprint))
+  [f]
+  (boot/with-pre-wrap
+    (assert (.exists (io/file (str f))))
+    (-> f str slurp ts/parse-page pp/pprint)))
