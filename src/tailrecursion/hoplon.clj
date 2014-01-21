@@ -50,7 +50,8 @@
        ~@body)))
 
 (defmacro loop-tpl [& args]
-  (let [[_ {:keys [bindings size bind-ids done reverse] :or {size 0 ids []}} [tpl]]
+  (let [[_ {:keys [bindings size bind-ids done reverse]
+            :or {size 0 ids []}} [tpl]]
           (parse-e (cons '_ args))
         [bindings things] bindings
         mksym     (fn [& _] (gensym "hl-auto-"))
@@ -58,7 +59,7 @@
         sym*      `(str (gensym "hl-auto-"))
         id-binds  (interleave (vals gsyms) (repeat sym*))
         body      (walk/postwalk #(get gsyms % %) tpl)]
-    `(let [things#  (tailrecursion.javelin/cell= (pad-seq ~size ~things))
+    `(let [things#  ((tailrecursion.javelin/lift pad-seq) ~size ~things)
            frag#    (.createDocumentFragment js/document)
            dummy#   (.createElement js/document "SPAN")]
        (if (and ~done @~done) (reset! ~done false))
