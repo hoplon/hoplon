@@ -248,8 +248,11 @@
 (def $text          #(.createTextNode js/document %))
 (def $comment       #(.createComment js/document %))
 
-(def *initfns*    (atom []))
-(def add-initfn!  (partial swap! *initfns* conj))
+(def ^:private initialized? (atom false))
+(def ^:private *initfns*    (atom []))
+
+(defn add-initfn! [f]
+  (if @initialized? (f) (swap! *initfns* conj f)))
 
 (defn init [html]
   (timeout
@@ -258,6 +261,7 @@
         (.empty body)
         (doseq [x html] (.append body x))
         (-> body (.on "submit" (fn [e] (.preventDefault e))))
+        (reset! initialized? true)
         (doseq [f @*initfns*] (f))))))
 
 ;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
