@@ -355,27 +355,20 @@
 (defn on! [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
-(defn loop-tpl* [& args]
-  (let [[{:keys [items reverse]} [tpl]] (parse-args args)
-        dummy      (span)
-        last-count (cell  0)
+(defn loop-tpl* [items reverse? tpl]
+  (let [pool-size  (cell  0)
         items-seq  (cell= (seq items))
         cur-count  (cell= (count items-seq))
-        ith-item   #(cell= (safe-nth items-seq %))
-        add-item   #(let [i (ith-item %2), e (tpl i)]
-                      (if-not reverse
-                        (.appendChild %1 e)
-                        (.insertBefore %1 e (.-firstChild %1)))
-                      (set! (.-hoplonDestroy e) (fn [] (destroy-cell! i))))
-        del-last   #(let [e (if reverse (.-firstChild %) (.-lastChild %))]
-                      (.removeChild % e)
-                      (timeout (fn [] (.hoplonDestroy e))))]
-    (with-let [d dummy]
+        show-ith?  #(cell= (< % cur-count))
+        ith-item   #(cell= (safe-nth items-seq %))]
+    (with-let [d (span)]
       (when-dom d
         #(let [p (.-parentNode d)]
            (.removeChild p d)
-           (cell= (when-not (= last-count cur-count)
-                    (if (> last-count cur-count)
-                      (dotimes [_ (- last-count cur-count)] (del-last p))
-                      (doseq [i (range last-count cur-count)] (add-item p i)))
-                    (reset! ~(cell last-count) cur-count))))))))
+           (cell= (when (< pool-size cur-count)
+                    (doseq [i (range pool-size cur-count)]
+                      (let [e ((tpl (ith-item i)) :do-toggle (show-ith? i))]
+                        (if-not reverse?
+                          (.appendChild p e)
+                          (.insertBefore p e (.-firstChild p)))))
+                    (reset! ~(cell pool-size) cur-count))))))))

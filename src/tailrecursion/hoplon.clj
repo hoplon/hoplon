@@ -12,6 +12,9 @@
     [clojure.walk         :as walk]
     [clojure.core.strint  :as strint]))
 
+(create-ns 'js)
+(create-ns 'tailrecursion.javelin)
+
 (defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
 (defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
 
@@ -26,16 +29,6 @@
        (map #(cons 'def %))
        (list* 'do)))
       
-(defmacro def-values
-  "Destructuring def, similar to scheme's define-values."
-  ([bindings values] 
-   (do-def nil bindings values))
-  ([docstring bindings values]
-   (do-def docstring bindings values)))
-
-(create-ns 'js)
-(create-ns 'tailrecursion.javelin)
-
 (defn parse-e [[tag & [head & tail :as args]]]
   (let [kw1? (comp keyword? first)
         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
@@ -44,31 +37,61 @@
           (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
           :else           [tag nil args])))
 
-(defmacro defelem [sym bindings & body]
+(defn terpol8 [s]
+  (let [parts (remove #(= "" %) (#'strint/interpolate s))]
+    (if (every? string? parts) s `(str ~@parts))))
+
+(defn flatten-expr-1 [expr sym]
+  (require 'cljs.compiler)
+  (require 'cljs.core)
+  (require 'cljs.analyzer)
+  (let [ana-spc  (var-get (resolve 'cljs.analyzer/specials))
+        ana-xpn  (var-get (resolve 'cljs.analyzer/get-expander))
+        ana-env  (var-get (resolve 'cljs.analyzer/empty-env))
+        apply?   #(and (seq? %) (symbol? (first %)))
+        special? #(contains? ana-spc (first %))
+        macro?   #(ana-xpn (first %) (ana-env))
+        flatten? #(and (apply? %) (not (or (macro? %) (special? %))))
+        flatten  (fn [[op & args]]
+                   (let [args* (map #(if (flatten? %) (gensym) %) args)
+                         flat  #(when (flatten? %1) (flatten-expr-1 %1 %2))
+                         prep  (mapcat identity (map flat args args*))]
+                     (concat prep [sym (list* op args*)])))]
+    (if-not (flatten? expr) [sym expr] (flatten expr))))
+
+(defmacro def-values
+  "Destructuring def, similar to scheme's define-values."
+  ([bindings values] 
+   (do-def nil bindings values))
+  ([docstring bindings values]
+   (do-def docstring bindings values)))
+
+(defmacro defelem
+  "FIXME: document this"
+  [sym bindings & body]
   `(defn ~sym [& args#]
      (let [~bindings (parse-args args#)]
        ~@body)))
 
-(defmacro loop-tpl [& args]
-  (let [[_ {:keys [bindings bind-ids] :as attrs} [tpl]]
+(defmacro loop-tpl
+  "FIXME: document this"
+  [& args]
+  (let [[_ {:keys [bindings bind-ids reverse]} [tpl]]
         (parse-e (cons '_ args))
         [bindings items] bindings
-        attrs     (-> attrs (dissoc :bindings :bind-ids) (assoc :items items))
         mksym     (fn [& _] (gensym "hl-auto-"))
         gsyms     (into {} (map (juxt identity mksym) bind-ids))
         sym*      `(str (gensym "hl-auto-"))
         id-binds  (interleave (vals gsyms) (repeat sym*))
         body      (walk/postwalk #(get gsyms % %) tpl)]
-    `(loop-tpl* ~attrs
+    `(loop-tpl* ~items ~reverse
        (fn [item#]
          (let [~@id-binds]
            (tailrecursion.javelin/cell-let [~bindings item#] ~body))))))
 
-(defn terpol8 [s]
-  (let [parts (remove #(= "" %) (#'strint/interpolate s))]
-    (if (every? string? parts) s `(str ~@parts))))
-
-(defmacro text [form]
+(defmacro text
+  "FIXME: document this"
+  [form]
   (let [i (terpol8 form)]
     (if-not (seq? i)
       `(.createTextNode js/document ~i) 
@@ -76,24 +99,8 @@
          (tailrecursion.javelin/cell= (set! (.-nodeValue t#) ~i))
          t#))))
 
-(defn flatten-expr-1 [expr sym]
-  (require 'cljs.compiler)
-  (require 'cljs.core)
-  (require 'cljs.analyzer)
-  (let [ana-specials     (var-get (resolve 'cljs.analyzer/specials))
-        ana-get-expander (var-get (resolve 'cljs.analyzer/get-expander))
-        ana-empty-env    (var-get (resolve 'cljs.analyzer/empty-env))
-        apply?    #(and (seq? %) (symbol? (first %)))
-        special?  #(contains? ana-specials (first %))
-        macro?    #(ana-get-expander (first %) (ana-empty-env))
-        flatten?  #(and (apply? %) (not (or (macro? %) (special? %))))
-        flatten   (fn [[op & args]]
-                    (let [args*  (map #(if (flatten? %) (gensym) %) args)
-                          flat   #(when (flatten? %1) (flatten-expr-1 %1 %2))
-                          prep   (mapcat identity (map flat args args*))]
-                      (concat prep [sym (list* op args*)])))]
-    (if-not (flatten? expr) [sym expr] (flatten expr))))
-
-(defmacro flatten-expr [expr]
+(defmacro flatten-expr
+  "FIXME: document this"
+  [expr]
   (let [sym (gensym)]
     `(let [~@(flatten-expr-1 expr sym)] ~sym)))
