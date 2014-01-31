@@ -8,12 +8,11 @@
 
 (ns tailrecursion.hoplon
   (:require-macros
-    [tailrecursion.javelin :refer [with-let cell=]])
+   [tailrecursion.javelin :refer [with-let cell=]])
   (:require
-    [tailrecursion.javelin :refer [lift]] 
-    [goog.dom         :as gdom]
-    [cljs.reader      :refer [read-string]]
-    [clojure.string   :refer [split join blank?]]))
+   [tailrecursion.javelin :refer [cell lift destroy-cell!]] 
+   [cljs.reader           :refer [read-string]]
+   [clojure.string        :refer [split join blank?]]))
 
 (declare do! on! $text)
 
@@ -359,3 +358,21 @@
 
 (defn on! [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+
+(defn loop-tpl* [items reverse? tpl]
+  (let [pool-size  (cell  0)
+        items-seq  (cell= (seq items))
+        cur-count  (cell= (count items-seq))
+        show-ith?  #(cell= (< % cur-count))
+        ith-item   #(cell= (safe-nth items-seq %))]
+    (with-let [d (span)]
+      (when-dom d
+        #(let [p (.-parentNode d)]
+           (.removeChild p d)
+           (cell= (when (< pool-size cur-count)
+                    (doseq [i (range pool-size cur-count)]
+                      (let [e ((tpl (ith-item i)) :do-toggle (show-ith? i))]
+                        (if-not reverse?
+                          (.appendChild p e)
+                          (.insertBefore p e (.-firstChild p)))))
+                    (reset! ~(cell pool-size) cur-count))))))))

@@ -88,9 +88,9 @@ Or, equivalently:
 
 ### Dependency
 
-Artifacts are published on [Clojars][4]. 
+Artifacts are published on Clojars. 
 
-![latest version][8]
+[![latest version][8]][4]
 
 ## License
 
