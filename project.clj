@@ -1,4 +1,4 @@
-(defproject tailrecursion/hoplon "5.0.0"
+(defproject tailrecursion/hoplon "5.1.0"
   :description        "Hoplon web development environment."
   :url                "http://github.com/tailrecursion/hoplon"
   :license            {:name "Eclipse Public License"

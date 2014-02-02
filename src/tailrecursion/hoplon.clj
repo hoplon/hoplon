@@ -104,3 +104,18 @@
   [expr]
   (let [sym (gensym)]
     `(let [~@(flatten-expr-1 expr sym)] ~sym)))
+
+(defmacro with-timeout
+  "FIXME: document this"
+  [msec & body]
+  `(js/setTimeout (fn [] ~@body) ~msec))
+
+(defmacro with-interval
+  "FIXME: document this"
+  [msec & body]
+  `(js/setInterval (fn [] ~@body) ~msec))
+
+(defmacro with-init!
+  "FIXME: document this"
+  [& body]
+  `(add-initfn! (fn [] ~@body)))

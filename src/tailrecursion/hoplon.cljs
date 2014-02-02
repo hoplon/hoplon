@@ -10,7 +10,7 @@
   (:require-macros
    [tailrecursion.javelin :refer [with-let cell=]])
   (:require
-   [tailrecursion.javelin :refer [cell lift destroy-cell!]] 
+   [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]] 
    [cljs.reader           :refer [read-string]]
    [clojure.string        :refer [split join blank?]]))
 
@@ -41,11 +41,6 @@
   ([coll index not-found]
    (try (nth coll index not-found) (catch js/Error _ not-found))))
 
-(defn pad-seq [n coll & [x]] 
-  (let [p (repeat n x)]
-    (let [z (- n (count coll))]
-      (if (pos? z) (concat coll (take z p)) coll))))
-
 (defn timeout
   ([f] (timeout f 0))
   ([f t] (.setTimeout js/window f t)))
@@ -71,12 +66,15 @@
 (defn add-attributes! [this attr]
   (let [prefix #(.substr % 0 3)
         suffix #(keyword (.substr % 3))
+        dokey  #(let [p (prefix %)] 
+                  (keyword (if-not (= "do-" p) % (.substr % 3))))
         dos    (atom {}) 
         ons    (atom {})
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
       (let [k (name k), e (js/jQuery this)]
-        (cond (= k "class")         (doseq [cls (split v #" ")] (.addClass e cls))
+        (cond (cell? v)             (swap! dos assoc (dokey k) v)
+              (= k "class")         (doseq [cls (split v #" ")] (.addClass e cls))
               (= k "css")           (.css e (clj->js v))
               (= "do-" (prefix k))  (swap! dos assoc (suffix k) v)
               (= "on-" (prefix k))  (swap! ons assoc (suffix k) v)
@@ -293,7 +291,11 @@
   ([e] (.is e ":checked"))
   ([e v] (-> e (.prop "checked" (boolean v)) (.trigger "change"))))
 
-(defmulti do! (fn [elem action & args] action))
+(defmulti do! (fn [elem action & args] action) :default ::default)
+
+(defmethod do! ::default
+  [elem key & [val]]
+  (do! elem :attr {key val}))
 
 (defmethod do! :value
   [elem _ & args] 
