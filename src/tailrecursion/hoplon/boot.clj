@@ -78,7 +78,7 @@ page.open(uri, function(status) {
   (let [depfiles    (->> (boot/deps) (map second) (mapcat identity)
                          (filter #(.endsWith (first %) ".hl")))
         hoplon-opts (select-keys cljs-opts [:pretty-print])
-        hoplon-tmp  (boot/mkoutdir! ::hoplon-tmp)
+        hoplon-tmp  (boot/mksrcdir! ::hoplon-tmp)
         cljs-tmp    (boot/mkoutdir! ::cljs-tmp)
         public-tmp  (boot/mkoutdir! ::public-tmp)
         main-js     (io/file public-tmp "main.js")
@@ -91,8 +91,6 @@ page.open(uri, function(status) {
       (boot/add-sync! (boot/get-env :out-path) static))
     (comp
       (boot/with-pre-wrap
-        (boot/mkoutdir! ::cljs-tmp)
-        (boot/mkoutdir! ::public-tmp)
         (let [files (boot/by-ext [".hl"] (boot/src-files))]
           (when (seq files) (println "Compiling Hoplon pages..."))
           (doseq [f files] (compile (slurp f) (.getPath f) cljs-tmp))))
