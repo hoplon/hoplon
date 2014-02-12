@@ -75,27 +75,32 @@ page.open(uri, function(status) {
   "Build Hoplon web application."
   [& [cljs-opts]]
   (boot/consume-src! (partial boot/by-ext [".hl"]))
-  (let [depfiles    (->> (boot/deps) (map second) (mapcat identity)
-                         (filter #(.endsWith (first %) ".hl")))
-        hoplon-opts (select-keys cljs-opts [:pretty-print])
-        hoplon-tmp  (boot/mksrcdir! ::hoplon-tmp)
-        cljs-tmp    (boot/mkoutdir! ::cljs-tmp)
-        public-tmp  (boot/mkoutdir! ::public-tmp)
-        main-js     (io/file public-tmp "main.js")
-        compile     #(do (println "•" %2)
-                         (hl/compile-string %1 %2 main-js %3 public-tmp :opts hoplon-opts))]
+  (let [depfiles     (->> (boot/deps) (map second) (mapcat identity)
+                          (filter #(.endsWith (first %) ".hl")))
+        hoplon-opts  (select-keys cljs-opts [:pretty-print])
+        hoplon-src   (boot/mksrcdir! ::hoplon-src)
+        cljs-tmp     (boot/mktmpdir! ::cljs-tmp)
+        public-tmp   (boot/mktmpdir! ::public-tmp)
+        cljs-stage   (boot/mkoutdir! ::cljs-stage)
+        public-stage (boot/mkoutdir! ::public-stage)
+        main-js      (io/file public-tmp "main.js")
+        compile      #(do (println "•" %2)
+                          (hl/compile-string %1 %2 main-js %3 public-tmp :opts hoplon-opts))]
     (when (seq depfiles)
       (println "Installing Hoplon dependencies...")
-      (doseq [[path dep] depfiles] (compile (slurp dep) path hoplon-tmp)))
+      (doseq [[path dep] depfiles] (compile (slurp dep) path hoplon-src)))
     (if-let [static (seq (boot/get-env :src-static))]
       (boot/add-sync! (boot/get-env :out-path) static))
     (comp
       (boot/with-pre-wrap
-        (let [files (boot/by-ext [".hl"] (boot/src-files))]
-          (when (seq files) (println "Compiling Hoplon pages..."))
-          (doseq [f files] (compile (slurp f) (.getPath f) cljs-tmp))))
-      (task/cljs :output-to main-js :opts cljs-opts)
-      (prerender public-tmp cljs-opts))))
+        (when-let [srcs (-> (boot/by-ext [".hl"] (boot/src-files))
+                          (boot/newer? cljs-stage public-stage))]
+          (println "Compiling Hoplon pages...")
+          (doseq [f srcs] (compile (slurp f) (.getPath f) cljs-tmp)))
+        (boot/sync! cljs-stage cljs-tmp)
+        (boot/sync! public-stage public-tmp))
+      (task/cljs :output-to "main.js" :opts cljs-opts)
+      (prerender public-stage cljs-opts))))
 
 (boot/deftask html2cljs
   "Convert file from html syntax to cljs syntax."
