@@ -64,27 +64,33 @@
           :else           [{} args])))
 
 (defn add-attributes! [this attr]
-  (let [prefix #(.substr % 0 3)
-        suffix #(keyword (.substr % 3))
-        dokey  #(let [p (prefix %)] 
-                  (keyword (if-not (= "do-" p) % (.substr % 3))))
+  (let [key*   #(let [p (.substr %2 0 3)] 
+                  (keyword (if-not (= %1 p) %2 (.substr %2 3))))
+        dokey  (partial key* "do-")
+        onkey  (partial key* "on-")
         dos    (atom {}) 
         ons    (atom {})
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
       (let [k (name k), e (js/jQuery this)]
-        (cond (cell? v)             (swap! dos assoc (dokey k) v)
-              (= k "class")         (doseq [cls (split v #" ")] (.addClass e cls))
-              (= k "css")           (.css e (clj->js v))
-              (= "do-" (prefix k))  (swap! dos assoc (suffix k) v)
-              (= "on-" (prefix k))  (swap! ons assoc (suffix k) v)
-              :else                 (cond (= false v) (.removeAttr e k)
-                                          (= true v)  (.attr e k k)
-                                          :else       (.attr e k (str v))))))
+        (cond (cell? v)     (swap! dos assoc (dokey k) v)
+              (fn? v)       (swap! ons assoc (onkey k) v)
+              (= k "class") (doseq [cls (split v #" ")] (.addClass e cls))
+              (= k "css")   (.css e (clj->js v))
+              :else         (cond (= false v) (.removeAttr e k)
+                                  (= true v)  (.attr e k k)
+                                  :else       (.attr e k (str v))))))
     (when (seq @ons)
-      (timeout (fn [] (doseq [[k v] @ons] (on! this k v))))) 
+      (timeout
+        (fn []
+          (doseq [[k v] @ons]
+            (on! this k v))))) 
     (when (seq @dos)
-      (timeout (fn [] (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4))))))
+      (timeout
+        (fn []
+          (doseq [[k v] @dos]
+            (do! this k @v)
+            (add-watch v (gensym) #(do! this k %4))))))
     this))
 
 (def append-child
@@ -358,7 +364,10 @@
           elem (js/jQuery elem)]
       (.animate body (clj->js {:scrollTop (.-top (.offset elem))})))))
 
-(defn on! [elem event callback]
+(defmulti on! (fn [elem event callback] event) :default ::default)
+
+(defmethod on! ::default
+  [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
 (defn loop-tpl* [items reverse? tpl]
