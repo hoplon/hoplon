@@ -49,14 +49,12 @@ page.open(uri, function(status) {
       (not phantom?) (do (not-found) identity)
       :else
       (boot/with-pre-wrap
-        (file/sync :hash tmpdir2 public)
-        (let [srcs (->> (file-seq tmpdir2)
-                     (map #(.getPath %))
-                     (filter #(.endsWith % ".html")))]
+        (apply file/sync :hash tmpdir2 @boot/outdirs)
+        (let [srcs (->> (boot/out-files) (boot/by-ext [".html"]))]
           (when (seq srcs) (println "Prerendering Hoplon HTML pages..."))
-          (doseq [path srcs]
-            (let [rel    (subs path (inc (count (.getPath tmpdir2))))
-                  out    (io/file public rel)
+          (doseq [out srcs]
+            (let [rel    (boot/relative-path out)
+                  path   (.getPath (io/file tmpdir2 rel))
                   ->frms #(-> % ts/parse-page ts/pedanticize)
                   forms1 (-> path slurp ->frms)
                   forms2 (-> "phantomjs" (sh/sh rjs-path path) :out ->frms)
