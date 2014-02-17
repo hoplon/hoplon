@@ -3028,8 +3028,8 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">4.0.8</h2><br /><p>Hoplon web development environment.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">2.4.0</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">0.1.1</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
+</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.2.0</h2><br /><p>Hoplon web development environment.</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">tailrecursion/boot.core</td><td class="dotted"><hr /></td><td class="dep-version">2.2.0</td></tr><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.1.0</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">1.0.1</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 which can be found in the file epl-v10.html at the root of this distribution.
@@ -3042,6 +3042,8 @@ You must not remove this notice, or any other, from this software.</p>
   (:require
     [clojure.walk         :as walk]
     [clojure.core.strint  :as strint]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(create-ns 'js)
+(create-ns 'tailrecursion.javelin)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn subs [&amp; args] (try (apply clojure.core/subs args) (catch Throwable _)))
 (defn name [&amp; args] (try (apply clojure.core/name args) (catch Throwable _)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-doc [docstring pair]
@@ -3052,14 +3054,7 @@ You must not remove this notice, or any other, from this software.</p>
        (partition 2)
        (map (partial add-doc docstring)) 
        (map #(cons 'def %))
-       (list* 'do)))</pre></td></tr><tr><td class="docs"><p>Destructuring def, similar to scheme's define-values.</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro def-values
-  ([bindings values] 
-   (do-def nil bindings values))
-  ([docstring bindings values]
-   (do-def docstring bindings values)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(create-ns 'js)
-(create-ns 'tailrecursion.javelin)</pre></td></tr><tr><td class="docs">
+       (list* 'do)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn parse-e [[tag &amp; [head &amp; tail :as args]]]
   (let [kw1? (comp keyword? first)
         mkkw #(-&gt;&gt; (partition 2 %) (take-while kw1?) (map vec))
@@ -3067,64 +3062,71 @@ You must not remove this notice, or any other, from this software.</p>
     (cond (map?     head) [tag head tail]
           (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
           :else           [tag nil args])))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro defelem [sym bindings &amp; body]
+</td><td class="codes"><pre class="brush: clojure">(defn terpol8 [s]
+  (let [parts (remove #(=  %) (#'strint/interpolate s))]
+    (if (every? string? parts) s `(str ~@parts))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn flatten-expr-1 [expr sym]
+  (require 'cljs.compiler)
+  (require 'cljs.core)
+  (require 'cljs.analyzer)
+  (let [ana-spc  (var-get (resolve 'cljs.analyzer/specials))
+        ana-xpn  (var-get (resolve 'cljs.analyzer/get-expander))
+        ana-env  (var-get (resolve 'cljs.analyzer/empty-env))
+        apply?   #(and (seq? %) (symbol? (first %)))
+        special? #(contains? ana-spc (first %))
+        macro?   #(ana-xpn (first %) (ana-env))
+        flatten? #(and (apply? %) (not (or (macro? %) (special? %))))
+        flatten  (fn [[op &amp; args]]
+                   (let [args* (map #(if (flatten? %) (gensym) %) args)
+                         flat  #(when (flatten? %1) (flatten-expr-1 %1 %2))
+                         prep  (mapcat identity (map flat args args*))]
+                     (concat prep [sym (list* op args*)])))]
+    (if-not (flatten? expr) [sym expr] (flatten expr))))</pre></td></tr><tr><td class="docs"><p>Destructuring def, similar to scheme's define-values.</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro def-values
+  ([bindings values] 
+   (do-def nil bindings values))
+  ([docstring bindings values]
+   (do-def docstring bindings values)))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro defelem
+  [sym bindings &amp; body]
   `(defn ~sym [&amp; args#]
      (let [~bindings (parse-args args#)]
-       ~@body)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro loop-tpl [&amp; args]
-  (let [[_ {:keys [bindings size bind-ids done reverse] :or {size 0 ids []}} [tpl]]
-          (parse-e (cons '_ args))
-        [bindings things] bindings
+       ~@body)))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro loop-tpl
+  [&amp; args]
+  (let [[_ {:keys [bindings bind-ids reverse]} [tpl]]
+        (parse-e (cons '_ args))
+        [bindings items] bindings
         mksym     (fn [&amp; _] (gensym &quot;hl-auto-&quot;))
         gsyms     (into {} (map (juxt identity mksym) bind-ids))
         sym*      `(str (gensym &quot;hl-auto-&quot;))
         id-binds  (interleave (vals gsyms) (repeat sym*))
         body      (walk/postwalk #(get gsyms % %) tpl)]
-    `(let [things#  (tailrecursion.javelin/cell= (pad-seq ~size ~things))
-           frag#    (.createDocumentFragment js/document)
-           dummy#   (.createElement js/document &quot;SPAN&quot;)]
-       (if (and ~done @~done) (reset! ~done false))
-       (add-initfn!
-         (fn []
-           (tailrecursion.javelin/cell-doseq [~bindings things#]
-             (let [~@id-binds]
-               (timeout
-                 #(if-not ~reverse
-                    (.appendChild frag# ~body)
-                    (.insertBefore frag# ~body (.-firstChild frag#)))))) 
-           (timeout #(.replaceChild (.-parentNode dummy#) frag# dummy#))
-           (timeout #(if ~done (reset! ~done true)))))
-       dummy#)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn terpol8 [s]
-  (let [parts (remove #(=  %) (#'strint/interpolate s))]
-    (if (every? string? parts) s `(str ~@parts))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro text [form]
+    `(loop-tpl* ~items ~reverse
+       (fn [item#]
+         (let [~@id-binds]
+           (tailrecursion.javelin/cell-let [~bindings item#] ~body))))))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro text
+  [form]
   (let [i (terpol8 form)]
     (if-not (seq? i)
       `(.createTextNode js/document ~i) 
-      `(let [t# (.createTextNode js/document )]
+      `(let [t# (.createTextNode js/document &quot;&quot;)]
          (tailrecursion.javelin/cell= (set! (.-nodeValue t#) ~i))
-         t#))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn flatten-expr-1 [expr sym]
-  (require 'cljs.compiler)
-  (require 'cljs.core)
-  (require 'cljs.analyzer)
-  (let [ana-specials     (var-get (resolve 'cljs.analyzer/specials))
-        ana-get-expander (var-get (resolve 'cljs.analyzer/get-expander))
-        ana-empty-env    (var-get (resolve 'cljs.analyzer/empty-env))
-        apply?    #(and (seq? %) (symbol? (first %)))
-        special?  #(contains? ana-specials (first %))
-        macro?    #(ana-get-expander (first %) (ana-empty-env))
-        flatten?  #(and (apply? %) (not (or (macro? %) (special? %))))
-        flatten   (fn [[op &amp; args]]
-                    (let [args*  (map #(if (flatten? %) (gensym) %) args)
-                          flat   #(when (flatten? %1) (flatten-expr-1 %1 %2))
-                          prep   (mapcat identity (map flat args args*))]
-                      (concat prep [sym (list* op args*)])))]
-    (if-not (flatten? expr) [sym expr] (flatten expr))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro flatten-expr [expr]
+         t#))))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro flatten-expr
+  [expr]
   (let [sym (gensym)]
-    `(let [~@(flatten-expr-1 expr sym)] ~sym)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.boot" name="tailrecursion.hoplon.boot"><h1 class="project-name">tailrecursion.hoplon.boot</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
+    `(let [~@(flatten-expr-1 expr sym)] ~sym)))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro with-timeout
+  [msec &amp; body]
+  `(js/setTimeout (fn [] ~@body) ~msec))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro with-interval
+  [msec &amp; body]
+  `(js/setInterval (fn [] ~@body) ~msec))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro with-init!
+  [&amp; body]
+  `(add-initfn! (fn [] ~@body)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.boot" name="tailrecursion.hoplon.boot"><h1 class="project-name">tailrecursion.hoplon.boot</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 which can be found in the file epl-v10.html at the root of this distribution.
@@ -3134,17 +3136,15 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns tailrecursion.hoplon.boot
   (:require
-    [clojure.string                         :as s]
-    [tailrecursion.boot.task                :as t]
-    [tailrecursion.boot.file                :as f]
-    [tailrecursion.boot.deps                :as d]
-    [clojure.pprint                         :refer [pprint]]
-    [clojure.java.io                        :refer [file make-parents]]
-    [clojure.java.shell                     :refer [sh]]
-    [tailrecursion.boot.core                :refer [ignored? deftask mk! mkdir! add-sync!]]
-    [tailrecursion.hoplon.compiler.compiler :refer [compile-string output-path-for as-forms]]
-    [tailrecursion.hoplon.compiler.tagsoup  :refer [parse-page print-page pedanticize]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def renderjs 
+    [clojure.pprint                         :as pp]
+    [clojure.java.io                        :as io]
+    [clojure.java.shell                     :as sh]
+    [tailrecursion.boot.core                :as boot]
+    [tailrecursion.boot.task                :as task]
+    [tailrecursion.boot.file                :as file]
+    [tailrecursion.hoplon.compiler.compiler :as hl]
+    [tailrecursion.hoplon.compiler.tagsoup  :as ts]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def renderjs
   &quot;
 var page = require('webpage').create(),
     sys  = require('system'),
@@ -3160,75 +3160,73 @@ page.open(uri, function(status) {
     phantom.exit();
   }, 0);
 });&quot;)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn prerender [boot public-dir cljs-opts]
-  (let [{:keys [public src-paths]} @boot
-        public    (or public-dir public)
-        tmpdir1   (mkdir! boot ::phantom-tmp1)
-        tmpdir2   (mkdir! boot ::phantom-tmp2)
-        rjs-path  (.getPath (file tmpdir1 &quot;render.js&quot;))
-        phantom?  (= 0 (:exit (sh &quot;which&quot; &quot;phantomjs&quot;)))]
-    (spit rjs-path renderjs) 
-    (fn [continue]
-      (fn [event]
-        (when-not (= false (:prerender cljs-opts))
-          (if-not phantom?
-            (println &quot;Skipping prerender: phantomjs not found on path&quot;)
-            (do
-              (f/sync :hash tmpdir2 public)
-              (let [srcs (-&gt;&gt; (file-seq tmpdir2)
-                              (map #(.getPath %))
-                              (filter #(.endsWith % &quot;.html&quot;)))]
-                (when (seq srcs) (println &quot;Prerendering Hoplon HTML pages...&quot;)) 
-                (doseq [path srcs]
-                  (let [rel    (subs path (inc (count (.getPath tmpdir2))))
-                        out    (file public rel)
-                        -&gt;frms #(-&gt; % parse-page pedanticize)
-                        forms1 (-&gt; path slurp -&gt;frms)
-                        forms2 (-&gt; &quot;phantomjs&quot; (sh rjs-path path) :out -&gt;frms)
-                        [_ att1 [_ hatt1 &amp; head1] [_ batt1 &amp; body1]] forms1
-                        [html* att2 [head* hatt2 &amp; head2] [body* batt2 &amp; body2]] forms2
-                        att    (merge att1 att2)
-                        hatt   (merge hatt1 hatt2)
-                        head   (list* 'head hatt1 head1)
-                        batt   (merge batt1 batt2)
-                        body   (list* body* batt (concat body2 body1)) 
-                        merged (list html* att head body)]
-                    (println &quot;•&quot; rel)
-                    (spit out (print-page &quot;html&quot; merged)))))))) 
-        (continue event)))))</pre></td></tr><tr><td class="docs"><p>Build Hoplon web application.</p>
-</td><td class="codes"><pre class="brush: clojure">(deftask hoplon
-  [boot &amp; [cljs-opts]]
-  (let [{:keys [public src-paths src-static system]} @boot
-        depfiles    (-&gt;&gt; boot d/deps (map second) (mapcat identity)
-                         (filter #(.endsWith (first %) &quot;.hl&quot;)))
-        hoplon-opts (select-keys cljs-opts [:pretty-print])
-        hoplon-tmp  (mkdir! boot ::hoplon-tmp)
-        cljs-tmp    (mkdir! boot ::cljs-tmp)
-        public-tmp  (mkdir! boot ::public-tmp)
-        main-js     (file public-tmp &quot;main.js&quot;)
-        hl-file?    #(.endsWith (.getPath %) &quot;.hl&quot;)
-        compile     #(do (println &quot;•&quot; %2)
-                         (compile-string %1 %2 main-js %3 public-tmp :opts hoplon-opts))]
+</td><td class="codes"><pre class="brush: clojure">(defn prerender [public cljs-opts]
+  (let [tmpdir1   (boot/mktmpdir! ::phantom-tmp1)
+        tmpdir2   (boot/mktmpdir! ::phantom-tmp2)
+        skip?     (= false (:prerender cljs-opts))
+        rjs-path  (.getPath (io/file tmpdir1 &quot;render.js&quot;))
+        win?      (#{&quot;Windows_NT&quot;} (System/getenv &quot;OS&quot;))
+        phantom?  (= 0 (:exit (sh/sh (if win? &quot;where&quot; &quot;which&quot;) &quot;phantomjs&quot;)))
+        not-found #(println &quot;Skipping prerender: phantomjs not found on path.&quot;)]
+    (spit rjs-path renderjs)
+    (cond
+      skip?          identity
+      (not phantom?) (do (not-found) identity)
+      :else
+      (boot/with-pre-wrap
+        (apply file/sync :hash tmpdir2 @boot/outdirs)
+        (let [srcs (-&gt;&gt; (boot/out-files) (boot/by-ext [&quot;.html&quot;]))]
+          (when (seq srcs) (println &quot;Prerendering Hoplon HTML pages...&quot;))
+          (doseq [out srcs]
+            (let [rel    (boot/relative-path out)
+                  path   (.getPath (io/file tmpdir2 rel))
+                  -&gt;frms #(-&gt; % ts/parse-page ts/pedanticize)
+                  forms1 (-&gt; path slurp -&gt;frms)
+                  forms2 (-&gt; &quot;phantomjs&quot; (sh/sh rjs-path path) :out -&gt;frms)
+                  [_ att1 [_ hatt1 &amp; head1] [_ batt1 &amp; body1]] forms1
+                  [html* att2 [head* hatt2 &amp; head2] [body* batt2 &amp; body2]] forms2
+                  att    (merge att1 att2)
+                  hatt   (merge hatt1 hatt2)
+                  head   (list* 'head hatt1 head1)
+                  batt   (merge batt1 batt2)
+                  body   (list* body* batt (concat body2 body1))
+                  merged (list html* att head body)]
+              (println &quot;•&quot; rel)
+              (spit out (ts/print-page &quot;html&quot; merged)))))))))</pre></td></tr><tr><td class="docs"><p>Build Hoplon web application.</p>
+</td><td class="codes"><pre class="brush: clojure">(boot/deftask hoplon
+  [&amp; [cljs-opts]]
+  (boot/consume-src! (partial boot/by-ext [&quot;.hl&quot;]))
+  (let [depfiles     (-&gt;&gt; (boot/deps) (map second) (mapcat identity)
+                          (filter #(.endsWith (first %) &quot;.hl&quot;)))
+        hoplon-opts  (select-keys cljs-opts [:pretty-print])
+        hoplon-src   (boot/mksrcdir! ::hoplon-src)
+        cljs-tmp     (boot/mktmpdir! ::cljs-tmp)
+        public-tmp   (boot/mktmpdir! ::public-tmp)
+        cljs-stage   (boot/mkoutdir! ::cljs-stage)
+        public-stage (boot/mkoutdir! ::public-stage)
+        main-js      (io/file public-tmp &quot;main.js&quot;)
+        compile      #(do (println &quot;•&quot; %2)
+                          (hl/compile-string %1 %2 main-js %3 public-tmp :opts hoplon-opts))]
     (when (seq depfiles)
-      (println &quot;Installing Hoplon dependencies...&quot;) (flush)
-      (doseq [[path dep] depfiles] (compile (slurp dep) path hoplon-tmp)))
-    (add-sync! boot public [public-tmp])
-    (swap! boot update-in [:src-paths] into (map #(.getPath %) [cljs-tmp hoplon-tmp]))
+      (println &quot;Installing Hoplon dependencies...&quot;)
+      (doseq [[path dep] depfiles] (compile (slurp dep) path hoplon-src)))
+    (if-let [static (seq (boot/get-env :src-static))]
+      (boot/add-sync! (boot/get-env :out-path) static))
     (comp
-      (fn [continue]
-        (fn [event]
-          (mkdir! boot ::cljs-tmp)
-          (mkdir! boot ::public-tmp)
-          (let [files (-&gt;&gt; event :src-files (filter hl-file?))]
-            (when (seq files) (println &quot;Compiling Hoplon pages...&quot;) (flush)) 
-            (doseq [f files] (compile (slurp f) (.getPath f) cljs-tmp))
-            (continue event)))) 
-      (t/cljs boot :output-to main-js :opts cljs-opts)
-      (prerender boot public-tmp cljs-opts))))</pre></td></tr><tr><td class="docs"><p>Convert file from html syntax to cljs syntax.</p>
-</td><td class="codes"><pre class="brush: clojure">(deftask html2cljs
-  [boot f]
-  (assert (.exists (file (str f))))
-  (-&gt; f str slurp parse-page pprint))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.compiler.compiler" name="tailrecursion.hoplon.compiler.compiler"><h1 class="project-name">tailrecursion.hoplon.compiler.compiler</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
+      (boot/with-pre-wrap
+        (when-let [srcs (-&gt; (boot/by-ext [&quot;.hl&quot;] (boot/src-files))
+                          (boot/newer? cljs-stage public-stage))]
+          (println &quot;Compiling Hoplon pages...&quot;)
+          (doseq [f srcs] (compile (slurp f) (.getPath f) cljs-tmp)))
+        (boot/sync! cljs-stage cljs-tmp)
+        (boot/sync! public-stage public-tmp))
+      (task/cljs :output-to &quot;main.js&quot; :opts cljs-opts)
+      (prerender public-stage cljs-opts))))</pre></td></tr><tr><td class="docs"><p>Convert file from html syntax to cljs syntax.</p>
+</td><td class="codes"><pre class="brush: clojure">(boot/deftask html2cljs
+  [f]
+  (boot/with-pre-wrap
+    (assert (.exists (io/file (str f))))
+    (-&gt; f str slurp ts/parse-page pp/pprint)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.compiler.compiler" name="tailrecursion.hoplon.compiler.compiler"><h1 class="project-name">tailrecursion.hoplon.compiler.compiler</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 which can be found in the file epl-v10.html at the root of this distribution.
@@ -3378,7 +3376,7 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn nsym-&gt;path [sym ext]
   (-&gt; (str sym)
-      (s/replace &quot;.&quot; java.io.File/separator)
+      (s/replace &quot;.&quot; &quot;/&quot;)
       (s/replace &quot;-&quot; &quot;_&quot;)
       (str &quot;.&quot; ext)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn all-list-forms [forms]
@@ -3509,12 +3507,11 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns tailrecursion.hoplon
   (:require-macros
-    [tailrecursion.javelin :refer [with-let cell=]])
+   [tailrecursion.javelin :refer [with-let cell=]])
   (:require
-    [tailrecursion.javelin :refer [lift]] 
-    [goog.dom         :as gdom]
-    [cljs.reader      :refer [read-string]]
-    [clojure.string   :refer [split join blank?]]))</pre></td></tr><tr><td class="docs">
+   [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]] 
+   [cljs.reader           :refer [read-string]]
+   [clojure.string        :refer [split join blank?]]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare do! on! $text)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def is-ie8 (not (aget js/window &quot;Node&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def node?
@@ -3535,10 +3532,6 @@ You must not remove this notice, or any other, from this software.</p>
   ([coll index] (safe-nth coll index nil))
   ([coll index not-found]
    (try (nth coll index not-found) (catch js/Error _ not-found))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn pad-seq [n coll &amp; [x]] 
-  (let [p (repeat n x)]
-    (let [z (- n (count coll))]
-      (if (pos? z) (concat coll (take z p)) coll))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn timeout
   ([f] (timeout f 0))
   ([f t] (.setTimeout js/window f t)))</pre></td></tr><tr><td class="docs"><p>env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</p>
@@ -3557,24 +3550,33 @@ You must not remove this notice, or any other, from this software.</p>
           (keyword? head) [(into {} (mkkw args)) (drkw args)]
           :else           [{} args])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-attributes! [this attr]
-  (let [prefix #(.substr % 0 3)
-        suffix #(keyword (.substr % 3))
+  (let [key*   #(let [p (.substr %2 0 3)] 
+                  (keyword (if-not (= %1 p) %2 (.substr %2 3))))
+        dokey  (partial key* &quot;do-&quot;)
+        onkey  (partial key* &quot;on-&quot;)
         dos    (atom {}) 
         ons    (atom {})
         addcls #(join &quot; &quot; (-&gt; %1 (split #&quot; &quot;) set (into (split %2 #&quot; &quot;))))]
     (doseq [[k v] attr]
       (let [k (name k), e (js/jQuery this)]
-        (cond (= k &quot;class&quot;)         (doseq [cls (split v #&quot; &quot;)] (.addClass e cls))
-              (= k &quot;css&quot;)           (.css e (clj-&gt;js v))
-              (= &quot;do-&quot; (prefix k))  (swap! dos assoc (suffix k) v)
-              (= &quot;on-&quot; (prefix k))  (swap! ons assoc (suffix k) v)
-              :else                 (cond (= false v) (.removeAttr e k)
-                                          (= true v)  (.attr e k k)
-                                          :else       (.attr e k (str v))))))
+        (cond (cell? v)     (swap! dos assoc (dokey k) v)
+              (fn? v)       (swap! ons assoc (onkey k) v)
+              (= k &quot;class&quot;) (doseq [cls (split v #&quot; &quot;)] (.addClass e cls))
+              (= k &quot;css&quot;)   (.css e (clj-&gt;js v))
+              :else         (cond (= false v) (.removeAttr e k)
+                                  (= true v)  (.attr e k k)
+                                  :else       (.attr e k (str v))))))
     (when (seq @ons)
-      (timeout (fn [] (doseq [[k v] @ons] (on! this k v))))) 
+      (timeout
+        (fn []
+          (doseq [[k v] @ons]
+            (on! this k v))))) 
     (when (seq @dos)
-      (timeout (fn [] (doseq [[k v] @dos] (do! this k @v) (add-watch v (gensym) #(do! this k %4))))))
+      (timeout
+        (fn []
+          (doseq [[k v] @dos]
+            (do! this k @v)
+            (add-watch v (gensym) #(do! this k %4))))))
     this))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def append-child
   (if-not is-ie8
@@ -3727,8 +3729,10 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"><pre class="brush: clojure">(def spliced        vector)
 (def $text          #(.createTextNode js/document %))
 (def $comment       #(.createComment js/document %))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def *initfns*    (atom []))
-(def add-initfn!  (partial swap! *initfns* conj))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^:private initialized? (atom false))
+(def ^:private *initfns*    (atom []))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn add-initfn! [f]
+  (if @initialized? (f) (swap! *initfns* conj f)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn init [html]
   (timeout
     (fn []
@@ -3736,6 +3740,7 @@ You must not remove this notice, or any other, from this software.</p>
         (.empty body)
         (doseq [x html] (.append body x))
         (-&gt; body (.on &quot;submit&quot; (fn [e] (.preventDefault e))))
+        (reset! initialized? true)
         (doseq [f @*initfns*] (f))))))</pre></td></tr><tr><td class="docs"><p>frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn by-id [id] (.getElementById js/document (name id)))</pre></td></tr><tr><td class="docs">
@@ -3758,7 +3763,10 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn check-val!
   ([e] (.is e &quot;:checked&quot;))
   ([e v] (-&gt; e (.prop &quot;checked&quot; (boolean v)) (.trigger &quot;change&quot;))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmulti do! (fn [elem action &amp; args] action))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmulti do! (fn [elem action &amp; args] action) :default ::default)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmethod do! ::default
+  [elem key &amp; [val]]
+  (do! elem :attr {key val}))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod do! :value
   [elem _ &amp; args] 
   (let [e (js/jQuery elem)]
@@ -3808,8 +3816,75 @@ You must not remove this notice, or any other, from this software.</p>
     (let [body (js/jQuery &quot;body&quot;)
           elem (js/jQuery elem)]
       (.animate body (clj-&gt;js {:scrollTop (.-top (.offset elem))})))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn on! [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.storage-atom" name="tailrecursion.hoplon.storage-atom"><h1 class="project-name">tailrecursion.hoplon.storage-atom</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
+</td><td class="codes"><pre class="brush: clojure">(defmulti on! (fn [elem event callback] event) :default ::default)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmethod on! ::default
+  [elem event callback]
+  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn loop-tpl* [items reverse? tpl]
+  (let [pool-size  (cell  0)
+        items-seq  (cell= (seq items))
+        cur-count  (cell= (count items-seq))
+        show-ith?  #(cell= (&lt; % cur-count))
+        ith-item   #(cell= (safe-nth items-seq %))]
+    (with-let [d (span)]
+      (when-dom d
+        #(let [p (.-parentNode d)]
+           (.removeChild p d)
+           (cell= (when (&lt; pool-size cur-count)
+                    (doseq [i (range pool-size cur-count)]
+                      (let [e ((tpl (ith-item i)) :do-toggle (show-ith? i))]
+                        (if-not reverse?
+                          (.appendChild p e)
+                          (.insertBefore p e (.-firstChild p)))))
+                    (reset! ~(cell pool-size) cur-count))))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.reload" name="tailrecursion.hoplon.reload"><h1 class="project-name">tailrecursion.hoplon.reload</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns tailrecursion.hoplon.reload
+  (:require
+   [clojure.string :as string]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- reload! [sheet]
+  (when-let [h (.-href sheet)]
+    (let [k &quot;___tailrecursion_hoplon_reload___=&quot;
+          q (str k (.getTime (js/Date.)))]
+      (set! (.. sheet -ownerNode -href)
+        (cond
+          (&lt; (.indexOf h &quot;?&quot;) 0) (str h &quot;?&quot; q)
+          (&lt; (.indexOf h   k) 0) (str h &quot;&amp;&quot; q)
+          :else   (string/replace h (re-pattern (str k &quot;\\d+&quot;)) q))))))</pre></td></tr><tr><td class="docs"><p>Returns an atom whose value reflects the last modified time of the resource
+  at the given <code>url</code>. The last modified time is obtained by polling the server
+  with the given <code>interval</code> with <code>HEAD</code> requests. If the response does not
+  contain the special <code>X-Dev-Mode</code> header with the value <code>true</code> polling is then
+  disabled.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn file-modified-atom
+  [url interval]
+  (let [last-mod (atom nil)
+        xhr-opts {:url url :type &quot;HEAD&quot; :dataType &quot;text&quot;}
+        xhr-dev? #(= &quot;true&quot; (.getResponseHeader % &quot;X-Dev-Mode&quot;))
+        do-ajax  #(.ajax js/jQuery (clj-&gt;js (assoc %1 :success %2)))
+        xhr-mod  #(.parse js/Date (.getResponseHeader % &quot;Last-Modified&quot;))]
+    ((fn do-poll [&amp; [_ _ xhr]]
+       (when xhr (reset! last-mod (xhr-mod xhr)))
+       (when (or (not xhr) (xhr-dev? xhr))
+         (js/setTimeout #(do-ajax xhr-opts do-poll) interval))))
+    last-mod))</pre></td></tr><tr><td class="docs"><p>Runs the given <code>callback</code> whenever the last modified time of the resource at
+  the given <code>url</code> changes, polling with the given <code>interval</code> as above.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn on-modified
+  [url interval callback]
+  (add-watch (file-modified-atom url interval) nil
+    #(when (and %3 (not= %3 %4)) (callback))))</pre></td></tr><tr><td class="docs"><p>Reloads the page whenever the <code>main.js</code> file is modified.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn reload-js
+  []
+  (on-modified &quot;main.js&quot; 100 #(.. js/window -location reload)))</pre></td></tr><tr><td class="docs"><p>Reloads CSS stylesheets whenever they are modified. The page itself is not
+  reloaded, just the stylesheets.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn reload-css
+  []
+  (let [css (.. js/document -styleSheets)]
+    (doseq [s (range 0 (.-length css))]
+      (when-let [sheet (aget css s)]
+        (when-let [href (.-href sheet)]
+          (on-modified href 100 #(reload! (aget css s))))))))</pre></td></tr><tr><td class="docs"><p>Reload the page when <code>main.js</code> is modified, and CSS stylesheets as needed.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn reload-all
+  []
+  (reload-js)
+  (reload-css))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.storage-atom" name="tailrecursion.hoplon.storage-atom"><h1 class="project-name">tailrecursion.hoplon.storage-atom</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 which can be found in the file epl-v10.html at the root of this distribution.
@@ -3846,7 +3921,34 @@ You must not remove this notice, or any other, from this software.</p>
   (html-storage atom js/localStorage k))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn session-storage
   [atom k]
-  (html-storage atom js/sessionStorage k))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.util" name="tailrecursion.hoplon.util"><h1 class="project-name">tailrecursion.hoplon.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
+  (html-storage atom js/sessionStorage k))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.svg" name="tailrecursion.hoplon.svg"><h1 class="project-name">tailrecursion.hoplon.svg</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns tailrecursion.hoplon.svg
+  (:refer-clojure :exclude [symbol]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn make-svg-ctor [tag]
+  (let [xmlns &quot;http://www.w3.org/2000/svg&quot;]
+    (fn [&amp; args]
+      (apply (.createElementNS js/document xmlns tag) args))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def svg      (make-svg-ctor       &quot;svg&quot;))
+(def g        (make-svg-ctor         &quot;g&quot;))
+(def rect     (make-svg-ctor      &quot;rect&quot;))
+(def circle   (make-svg-ctor    &quot;circle&quot;))
+(def ellipse  (make-svg-ctor   &quot;ellipse&quot;))
+(def line     (make-svg-ctor      &quot;line&quot;))
+(def polyline (make-svg-ctor  &quot;polyline&quot;))
+(def polygon  (make-svg-ctor   &quot;polygon&quot;))
+(def path     (make-svg-ctor      &quot;path&quot;))
+(def marker   (make-svg-ctor    &quot;marker&quot;))
+(def text     (make-svg-ctor      &quot;text&quot;))
+(def tspan    (make-svg-ctor     &quot;tspan&quot;))
+(def tref     (make-svg-ctor      &quot;tref&quot;))
+(def textpath (make-svg-ctor  &quot;textpath&quot;))
+(def switch   (make-svg-ctor    &quot;switch&quot;))
+(def image    (make-svg-ctor     &quot;image&quot;))
+(def a        (make-svg-ctor     &quot;svg:a&quot;))
+(def defs     (make-svg-ctor      &quot;defs&quot;))
+(def symbol   (make-svg-ctor    &quot;symbol&quot;))
+(def use      (make-svg-ctor       &quot;use&quot;))
+(def title    (make-svg-ctor &quot;svg:title&quot;))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.util" name="tailrecursion.hoplon.util"><h1 class="project-name">tailrecursion.hoplon.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 which can be found in the file epl-v10.html at the root of this distribution.
