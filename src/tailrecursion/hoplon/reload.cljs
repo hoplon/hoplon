@@ -15,9 +15,9 @@
 (defn file-modified-atom
   "Returns an atom whose value reflects the last modified time of the resource
   at the given `url`. The last modified time is obtained by polling the server
-  with the given `interval` with `HEAD` requests. If the response does not
-  contain the special `X-Dev-Mode` header with the value `true` polling is then
-  disabled."
+  with the given `interval` (in msec) with `HEAD` requests. If the response does
+  not contain the special `X-Dev-Mode` header with the value `true` polling is 
+  then disabled."
   [url interval]
   (let [last-mod (atom nil)
         xhr-opts {:url url :type "HEAD" :dataType "text"}
@@ -32,28 +32,33 @@
 
 (defn on-modified
   "Runs the given `callback` whenever the last modified time of the resource at
-  the given `url` changes, polling with the given `interval` as above."
+  the given `url` changes, polling with the given `interval` in milliseconds."
   [url interval callback]
-  (add-watch (file-modified-atom url interval) nil
+  (add-watch (file-modified-atom url (or interval 100)) nil
     #(when (and %3 (not= %3 %4)) (callback))))
 
 (defn reload-js
-  "Reloads the page whenever the `main.js` file is modified."
-  []
-  (on-modified "main.js" 100 #(.. js/window -location reload)))
+  "Reloads the page whenever the `main.js` file is modified. The optional
+  `interval` argument specifies how often to poll the server for changes, in
+  milliseconds."
+  [& [interval]]
+  (on-modified "main.js" interval #(.. js/window -location reload)))
 
 (defn reload-css
   "Reloads CSS stylesheets whenever they are modified. The page itself is not
-  reloaded, just the stylesheets."
-  []
+  reloaded, just the stylesheets. The optional `interval` argument specifies
+  how often to poll the server for changes, in milliseconds."
+  [& [interval]]
   (let [css (.. js/document -styleSheets)]
     (doseq [s (range 0 (.-length css))]
       (when-let [sheet (aget css s)]
         (when-let [href (.-href sheet)]
-          (on-modified href 100 #(reload! (aget css s))))))))
+          (on-modified href interval #(reload! (aget css s))))))))
 
 (defn reload-all
-  "Reload the page when `main.js` is modified, and CSS stylesheets as needed."
-  []
-  (reload-js)
-  (reload-css))
+  "Reload the page when `main.js` is modified, and CSS stylesheets as needed.
+  The optional `interval` argument specifies how often to poll the server for
+  changes, in milliseconds."
+  [& [interval]]
+  (reload-js interval)
+  (reload-css interval))

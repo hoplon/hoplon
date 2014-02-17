@@ -8,7 +8,8 @@
 
 (ns tailrecursion.hoplon
   (:require-macros
-   [tailrecursion.javelin :refer [with-let cell=]])
+   [tailrecursion.javelin :refer [with-let cell=]]
+   [tailrecursion.hoplon  :refer [with-timeout]])
   (:require
    [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]] 
    [cljs.reader           :refer [read-string]]
@@ -73,24 +74,24 @@
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
       (let [k (name k), e (js/jQuery this)]
-        (cond (cell? v)     (swap! dos assoc (dokey k) v)
-              (fn? v)       (swap! ons assoc (onkey k) v)
-              (= k "class") (doseq [cls (split v #" ")] (.addClass e cls))
-              (= k "css")   (.css e (clj->js v))
-              :else         (cond (= false v) (.removeAttr e k)
-                                  (= true v)  (.attr e k k)
-                                  :else       (.attr e k (str v))))))
-    (when (seq @ons)
-      (timeout
-        (fn []
-          (doseq [[k v] @ons]
-            (on! this k v))))) 
+        (cond
+          (cell? v)     (swap! dos assoc (dokey k) v)
+          (fn? v)       (swap! ons assoc (onkey k) v)
+          (= k "class") (doseq [cls (split v #" ")] (.addClass e cls))
+          (= k "css")   (.css e (clj->js v))
+          :else         (cond
+                          (= false v) (.removeAttr e k)
+                          (= true v)  (.attr e k k)
+                          :else       (.attr e k (str v))))))
     (when (seq @dos)
-      (timeout
-        (fn []
-          (doseq [[k v] @dos]
-            (do! this k @v)
-            (add-watch v (gensym) #(do! this k %4))))))
+      (with-timeout 0
+        (doseq [[k v] @dos]
+          (do! this k @v)
+          (add-watch v (gensym) #(do! this k %4)))))
+    (when (seq @ons)
+      (with-timeout 0
+        (doseq [[k v] @ons]
+          (on! this k v)))) 
     this))
 
 (def append-child
@@ -110,14 +111,14 @@
   IPrintWithWriter
   (-pr-writer
     ([this writer opts]
-     (write-all writer "#<Element: " (.-tagName this) ">")))
+       (write-all writer "#<Element: " (.-tagName this) ">")))
   IFn
   (-invoke
     ([this & args]
-     (let [[attr kids] (parse-args args)]
-       (if (.-hoplonIFn this)
-         (doto this (.hoplonIFn attr kids))
-         (doto this (add-attributes! attr) (add-children! kids)))))))
+       (let [[attr kids] (parse-args args)]
+         (if (.-hoplonIFn this)
+           (doto this (.hoplonIFn attr kids))
+           (doto this (add-attributes! attr) (add-children! kids)))))))
 
 (defn- make-elem-ctor [tag]
   (fn [& args]
@@ -258,14 +259,13 @@
   (if @initialized? (f) (swap! *initfns* conj f)))
 
 (defn init [html]
-  (timeout
-    (fn []
-      (let [body (js/jQuery "body")]
-        (.empty body)
-        (doseq [x html] (.append body x))
-        (-> body (.on "submit" (fn [e] (.preventDefault e))))
-        (reset! initialized? true)
-        (doseq [f @*initfns*] (f))))))
+  (with-timeout 0
+    (let [body (js/jQuery "body")]
+      (.empty body)
+      (doseq [x html] (.append body x))
+      (-> body (.on "submit" (fn [e] (.preventDefault e))))
+      (reset! initialized? true)
+      (doseq [f @*initfns*] (f)))))
 
 ;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -291,16 +291,16 @@
 
 (defn text-val!
   ([e] (.val e))
-  ([e v] (-> e (.val (str v)) (.trigger "change"))))
+  ([e v] (.val e (str v))))
 
 (defn check-val!
   ([e] (.is e ":checked"))
-  ([e v] (-> e (.prop "checked" (boolean v)) (.trigger "change"))))
+  ([e v] (.prop e "checked" (boolean v))))
 
-(defmulti do! (fn [elem action & args] action) :default ::default)
+(defmulti do! (fn [elem key val] key) :default ::default)
 
 (defmethod do! ::default
-  [elem key & [val]]
+  [elem key val]
   (do! elem :attr {key val}))
 
 (defmethod do! :value
@@ -341,9 +341,8 @@
 
 (defmethod do! :focus
   [elem _ v]
-  (if v
-    (timeout (fn [] (.focus (js/jQuery elem))))
-    (timeout (fn [] (.focusout (js/jQuery elem))))))
+  (with-timeout 0
+    (if v (.focus (js/jQuery elem) (.focusout (js/jQuery elem))))))
 
 (defmethod do! :select
   [elem _ _]
