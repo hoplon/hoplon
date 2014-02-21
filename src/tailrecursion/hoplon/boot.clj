@@ -9,6 +9,7 @@
 (ns tailrecursion.hoplon.boot
   (:require
     [clojure.pprint                         :as pp]
+    [clojure.string                         :as string]
     [clojure.java.io                        :as io]
     [clojure.java.shell                     :as sh]
     [tailrecursion.boot.core                :as boot]
@@ -42,6 +43,10 @@ page.open(uri, function(status) {
         rjs-path  (.getPath (io/file tmpdir1 "render.js"))
         win?      (#{"Windows_NT"} (System/getenv "OS"))
         phantom?  (= 0 (:exit (sh/sh (if win? "where" "which") "phantomjs")))
+        phantom!  #(let [{:keys [exit out err]} (sh/sh "phantomjs" %1 %2)
+                         warn? (and (zero? exit) (not (empty? err)))]
+                     (when warn? (println (string/trimr err)))
+                     (if (= 0 exit) out (throw (Exception. err))))
         not-found #(println "Skipping prerender: phantomjs not found on path.")]
     (spit rjs-path renderjs)
     (cond
@@ -53,19 +58,21 @@ page.open(uri, function(status) {
         (let [srcs (->> (boot/out-files) (boot/by-ext [".html"]))]
           (when (seq srcs) (println "Prerendering Hoplon HTML pages..."))
           (doseq [out srcs]
-            (let [rel    (boot/relative-path out)
-                  path   (.getPath (io/file tmpdir2 rel))
-                  ->frms #(-> % ts/parse-page ts/pedanticize)
-                  forms1 (-> path slurp ->frms)
-                  forms2 (-> "phantomjs" (sh/sh rjs-path path) :out ->frms)
+            (let [rel        (boot/relative-path out)
+                  path       (.getPath (io/file tmpdir2 rel))
+                  ->frms     #(-> % ts/parse-page ts/pedanticize)
+                  forms1     (-> path slurp ->frms)
+                  forms2     (-> (phantom! rjs-path path) ->frms)
                   [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
                   [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
-                  att    (merge att1 att2)
-                  hatt   (merge hatt1 hatt2)
-                  head   (list* 'head hatt1 head1)
-                  batt   (merge batt1 batt2)
-                  body   (list* body* batt (concat body2 body1))
-                  merged (list html* att head body)]
+                  script?    (comp (partial = 'script) first)
+                  rm-scripts #(remove script? %)
+                  att        (merge att1 att2)
+                  hatt       (merge hatt1 hatt2)
+                  head       (concat head1 (rm-scripts head2))
+                  batt       (merge batt1 batt2)
+                  body       (concat (rm-scripts body2) body1)
+                  merged     `(~'html (~'head ~hatt ~@head) (~'body ~batt ~@body))]
               (println "•" rel)
               (spit out (ts/print-page "html" merged)))))))))
 

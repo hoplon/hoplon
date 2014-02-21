@@ -1,6 +1,9 @@
 (ns tailrecursion.hoplon.reload
   (:require
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [tailrecursion.hoplon :as h])
+  (:require-macros
+   [tailrecursion.hoplon :refer [with-init!]]))
 
 (defn- reload! [sheet]
   (when-let [h (.-href sheet)]
@@ -49,11 +52,16 @@
   reloaded, just the stylesheets. The optional `interval` argument specifies
   how often to poll the server for changes, in milliseconds."
   [& [interval]]
-  (let [css (.. js/document -styleSheets)]
-    (doseq [s (range 0 (.-length css))]
-      (when-let [sheet (aget css s)]
-        (when-let [href (.-href sheet)]
-          (on-modified href interval #(reload! (aget css s))))))))
+  ((fn wait-css []
+     (let [css     (.. js/document -styleSheets)
+           each    (range 0 (.-length css))
+           css-seq (keep #(.-href %) (for [s each] (aget css s)))]
+       (if-not (seq css-seq)
+         (js/setTimeout wait-css (or interval 100))
+         (doseq [s (range 0 (.-length css))]
+           (when-let [sheet (aget css s)]
+             (when-let [href (.-href sheet)]
+               (on-modified href interval #(reload! (aget css s)))))))))))
 
 (defn reload-all
   "Reload the page when `main.js` is modified, and CSS stylesheets as needed.

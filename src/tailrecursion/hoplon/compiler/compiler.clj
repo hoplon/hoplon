@@ -102,30 +102,25 @@
         cljs-munge (resolve 'cljs.compiler/munge)]
     (if (= 'ns (first nsdecl))
       {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs))}
-      (let [[[[_ page & _] & setup] html] ((juxt butlast last) forms)
+      (let [[_ page & _] nsdecl
             outpath   (output-path forms)
             js-uri    (up-parents outpath js-path)
             app-pages "tailrecursion.hoplon.app-pages"
             page-ns   (symbol (str app-pages "." (munge-page page)))
-            nsdecl    (let [[h n & t] (make-nsdecl nsdecl)] (list* h page-ns t))
-            nsname    (cljs-munge (second nsdecl)) 
-            [_ htmlattr [head body]]  (hl/parse-e html)
-            [_ headattr heads]        (hl/parse-e head)
-            [_ bodyattr bodies]       (hl/parse-e body)
-            heads     (map #(let [[t a c] (hl/parse-e %)] (list* t (or a {}) c)) heads)
-            s-nodep   (list 'script {:type "text/javascript"} "var CLOSURE_NO_DEPS = true;")
-            s-main    (list 'script {:type "text/javascript" :src js-uri})
-            s-init    (list 'script {:type "text/javascript"} (str nsname ".hoploninit();"))
-            s-html    (list 'html (or htmlattr {})
-                            (list* 'head (or headattr {}) heads)
-                            (list 'body (or bodyattr {}) s-nodep s-main s-init))
+            nsdecl    (let [[h n & t] (make-nsdecl nsdecl)]
+                        `(~h ~page-ns ~@t))
+            s-html    `(~'html {}
+                         (~'head {}
+                           (~'meta {:charset "utf-8"}))
+                         (~'body {}
+                           (~'script {:type "text/javascript" :src ~js-uri})
+                           (~'script {:type "text/javascript"}
+                             ~(str (cljs-munge (second nsdecl)) ".hoploninit();"))))
             htmlstr   (tags/print-page "html" s-html)
-            cljs      (list nsdecl
-                            (list 'defn (symbol "^:export") 'hoploninit []
-                                  (cons 'do setup) 
-                                  (list
-                                    (symbol "tailrecursion.hoplon/init")
-                                    (mapv #(list 'flatten-expr %) bodies))))
+            cljs      `(~nsdecl
+                         (defn ~(symbol "^:export") ~'hoploninit []
+                           ~@tlfs
+                           (~'tailrecursion.hoplon/init)))
             cljsstr   (forms-str cljs)]
         {:html htmlstr :cljs cljsstr :file outpath}))))
 

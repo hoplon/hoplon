@@ -105,6 +105,19 @@
   (let [sym (gensym)]
     `(let [~@(flatten-expr-1 expr sym)] ~sym)))
 
+(defmacro head
+  "FIXME: document this"
+  [& forms]
+  (let [[_ attr kids] (parse-e (cons '_ forms))]
+    `(html-head ~(or attr {}) (let [~'meta html-meta] [~@kids]))))
+
+(defmacro body
+  "FIXME: document this"
+  [& forms]
+  (let [[_ attr kids] (parse-e (cons '_ forms))
+        flatten       (fn [x] `(flatten-expr ~x))]
+    `(html-body ~(or attr {}) ~@(map flatten kids))))
+
 (defmacro with-timeout
   "FIXME: document this"
   [msec & body]

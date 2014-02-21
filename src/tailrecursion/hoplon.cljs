@@ -120,9 +120,20 @@
            (doto this (.hoplonIFn attr kids))
            (doto this (add-attributes! attr) (add-children! kids)))))))
 
+(defn- make-singleton-ctor [tag]
+  (fn [& args]
+    (let [old (aget (.getElementsByTagName js/document tag) 0)
+          new (.createElement js/document tag)]
+      (when old (.replaceChild (.-parentNode old) new old))
+      (apply new args))))
+
 (defn- make-elem-ctor [tag]
   (fn [& args]
     (apply (.createElement js/document tag) args)))
+
+(def html-body      (make-singleton-ctor "body"))
+(def html-head      (make-singleton-ctor "head"))
+(def html           (make-singleton-ctor "html"))
 
 (def a              (make-elem-ctor "a"))
 (def abbr           (make-elem-ctor "abbr"))
@@ -140,7 +151,6 @@
 (def bdo            (make-elem-ctor "bdo"))
 (def big            (make-elem-ctor "big"))
 (def blockquote     (make-elem-ctor "blockquote"))
-(def body           (make-elem-ctor "body"))
 (def br             (make-elem-ctor "br"))
 (def button         (make-elem-ctor "button"))
 (def canvas         (make-elem-ctor "canvas"))
@@ -178,11 +188,9 @@
 (def h4             (make-elem-ctor "h4"))
 (def h5             (make-elem-ctor "h5"))
 (def h6             (make-elem-ctor "h6"))
-(def head           (make-elem-ctor "head"))
 (def header         (make-elem-ctor "header"))
 (def hgroup         (make-elem-ctor "hgroup"))
 (def hr             (make-elem-ctor "hr"))
-(def html           (make-elem-ctor "html"))
 (def i              (make-elem-ctor "i"))
 (def iframe         (make-elem-ctor "iframe"))
 (def img            (make-elem-ctor "img"))
@@ -258,14 +266,10 @@
 (defn add-initfn! [f]
   (if @initialized? (f) (swap! *initfns* conj f)))
 
-(defn init [html]
+(defn init []
   (with-timeout 0
-    (let [body (js/jQuery "body")]
-      (.empty body)
-      (doseq [x html] (.append body x))
-      (-> body (.on "submit" (fn [e] (.preventDefault e))))
-      (reset! initialized? true)
-      (doseq [f @*initfns*] (f)))))
+    (reset! initialized? true)
+    (doseq [f @*initfns*] (f))))
 
 ;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
