@@ -80,6 +80,7 @@ Or, equivalently:
 ### Documentation
 
 * [http://hoplon.io][7]
+* [API Documentation][9]
 * [Design Document][6] (early version)
 
 ### Demos
@@ -112,3 +113,4 @@ this license. You must not remove this notice, or any other, from this software.
 [6]: doc/Design.md
 [7]: http://hoplon.io/
 [8]: https://clojars.org/tailrecursion/hoplon/latest-version.svg?bustcache=5.4.1
+[9]: http://tailrecursion.github.io/hoplon/
