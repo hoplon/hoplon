@@ -3029,14 +3029,7 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.4.1</h2><br /><p>Hoplon web development environment.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">tailrecursion/boot.core</td><td class="dotted"><hr /></td><td class="dep-version">2.2.1</td></tr><tr><td class="dep-name">tailrecursion/boot.task</td><td class="dotted"><hr /></td><td class="dep-version">2.1.0</td></tr><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.1.0</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">1.0.1</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
-The use and distribution terms for this software are covered by the
-Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-which can be found in the file epl-v10.html at the root of this distribution.
-By using this software in any fashion, you are agreeing to be bound by
-the terms of this license.
-You must not remove this notice, or any other, from this software.</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">tailrecursion/boot.core</td><td class="dotted"><hr /></td><td class="dep-version">2.2.1</td></tr><tr><td class="dep-name">tailrecursion/boot.task</td><td class="dotted"><hr /></td><td class="dep-version">2.1.0</td></tr><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.1.0</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">1.0.1</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns tailrecursion.hoplon
   (:refer-clojure :exclude [subs name])
   (:require
@@ -3054,18 +3047,47 @@ You must not remove this notice, or any other, from this software.</p>
        (partition 2)
        (map (partial add-doc docstring)) 
        (map #(cons 'def %))
-       (list* 'do)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn parse-e [[tag &amp; [head &amp; tail :as args]]]
+       (list* 'do)))</pre></td></tr><tr><td class="docs"><p>Given an s-expression formatted snippet of markup, returns the expression in
+  "normal" form--that is, a list <code>(tag attr-map child1 child2 ...)</code>.</p>
+
+<p>  Example:</p>
+
+<pre><code>(div)
+=&gt; (div {})
+
+(div (span "hello")) 
+=&gt; (div {} (span {} "hello"))
+
+(div {:id "main"} (span "hello"))
+=&gt; (div {:id "main"} (span "hello"))
+
+(div :id "main" (span "hello"))
+=&gt; (div {:id "main"} (span "hello"))
+</code></pre>
+</td><td class="codes"><pre class="brush: clojure">(defn parse-e
+  [[tag &amp; [head &amp; tail :as args]]]
   (let [kw1? (comp keyword? first)
         mkkw #(-&gt;&gt; (partition 2 %) (take-while kw1?) (map vec))
         drkw #(-&gt;&gt; (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
     (cond (map?     head) [tag head tail]
           (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
-          :else           [tag nil args])))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn terpol8 [s]
-  (let [parts (remove #(=  %) (#'strint/interpolate s))]
+          :else           [tag nil args])))</pre></td></tr><tr><td class="docs"><p>Given a string <code>s</code>, returns a clj expression wherein <code>~{...}</code> and <code>~(...)</code>
+  forms are broken out and evaluated when the string is constructed.</p>
+
+<p>  Example:</p>
+
+<pre><code>(terpol8 "foo ~{bar} baz")
+=&gt; (str "foo " bar " baz")
+
+(terpol8 "foo ~(inc bar) baz")
+=&gt; (str "foo " (inc bar) " baz")
+</code></pre>
+</td><td class="codes"><pre class="brush: clojure">(defn terpol8
+  [s]
+  (let [parts (remove #(= &quot;&quot; %) (#'strint/interpolate s))]
     (if (every? string? parts) s `(str ~@parts))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn flatten-expr-1 [expr sym]
+</td><td class="codes"><pre class="brush: clojure">(defn flatten-expr-1
+  [expr sym]
   (require 'cljs.compiler)
   (require 'cljs.core)
   (require 'cljs.analyzer)
