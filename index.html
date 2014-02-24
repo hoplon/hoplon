@@ -3048,21 +3048,21 @@ net.brehaut.ClojureTools = (function (SH) {
        (map (partial add-doc docstring)) 
        (map #(cons 'def %))
        (list* 'do)))</pre></td></tr><tr><td class="docs"><p>Given an s-expression formatted snippet of markup, returns the expression in
-  "normal" form--that is, a list <code>(tag attr-map child1 child2 ...)</code>.</p>
+  "normal" form--that is, a list <code>(tag attr-map children)</code>.</p>
 
 <p>  Example:</p>
 
-<pre><code>(div)
-=&gt; (div {})
+<pre><code>(parse-e '(div))
+=&gt; (div nil ())
 
-(div (span "hello")) 
-=&gt; (div {} (span {} "hello"))
+(parse-e '(div (span "hello") (p "testing")))
+=&gt; (div nil ((span "hello") (p "testing")))
 
-(div {:id "main"} (span "hello"))
-=&gt; (div {:id "main"} (span "hello"))
+(parse-e '(div {:id "main"} (span "hello")))
+=&gt; (div {:id "main"} ((span "hello")))
 
-(div :id "main" (span "hello"))
-=&gt; (div {:id "main"} (span "hello"))
+(parse-e '(div :id "main" (span "hello")))
+=&gt; (div {:id "main"} ((span "hello")))
 </code></pre>
 </td><td class="codes"><pre class="brush: clojure">(defn parse-e
   [[tag &amp; [head &amp; tail :as args]]]
