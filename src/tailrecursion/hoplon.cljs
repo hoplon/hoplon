@@ -373,7 +373,13 @@
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
-(defn loop-tpl* [items reverse? tpl]
+(defmethod on! :submit
+  [elem event callback]
+  ((get-method on! ::default)
+   elem event (fn [e] (.preventDefault e) (callback e))))
+
+(defn loop-tpl*
+  [items reverse? tpl]
   (let [pool-size  (cell  0)
         items-seq  (cell= (seq items))
         cur-count  (cell= (count items-seq))
