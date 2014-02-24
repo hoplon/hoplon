@@ -3034,7 +3034,10 @@ net.brehaut.ClojureTools = (function (SH) {
   (:refer-clojure :exclude [subs name])
   (:require
     [clojure.walk         :as walk]
-    [clojure.core.strint  :as strint]))</pre></td></tr><tr><td class="docs">
+    [clojure.core.strint  :as strint]))</pre></td></tr><tr><td class="docs"><h3>Utility Functions</h3>
+
+<p>These functions are not part of the public API.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(create-ns 'js)
 (create-ns 'tailrecursion.javelin)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn subs [&amp; args] (try (apply clojure.core/subs args) (catch Throwable _)))
@@ -3047,23 +3050,7 @@ net.brehaut.ClojureTools = (function (SH) {
        (partition 2)
        (map (partial add-doc docstring)) 
        (map #(cons 'def %))
-       (list* 'do)))</pre></td></tr><tr><td class="docs"><p>Given an s-expression formatted snippet of markup, returns the expression in
-  "normal" form--that is, a list <code>(tag attr-map children)</code>.</p>
-
-<p>  Example:</p>
-
-<pre><code>(parse-e '(div))
-=&gt; (div nil ())
-
-(parse-e '(div (span "hello") (p "testing")))
-=&gt; (div nil ((span "hello") (p "testing")))
-
-(parse-e '(div {:id "main"} (span "hello")))
-=&gt; (div {:id "main"} ((span "hello")))
-
-(parse-e '(div :id "main" (span "hello")))
-=&gt; (div {:id "main"} ((span "hello")))
-</code></pre>
+       (list* 'do)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn parse-e
   [[tag &amp; [head &amp; tail :as args]]]
   (let [kw1? (comp keyword? first)
@@ -3071,20 +3058,10 @@ net.brehaut.ClojureTools = (function (SH) {
         drkw #(-&gt;&gt; (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
     (cond (map?     head) [tag head tail]
           (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
-          :else           [tag nil args])))</pre></td></tr><tr><td class="docs"><p>Given a string <code>s</code>, returns a clj expression wherein <code>~{...}</code> and <code>~(...)</code>
-  forms are broken out and evaluated when the string is constructed.</p>
-
-<p>  Example:</p>
-
-<pre><code>(terpol8 "foo ~{bar} baz")
-=&gt; (str "foo " bar " baz")
-
-(terpol8 "foo ~(inc bar) baz")
-=&gt; (str "foo " (inc bar) " baz")
-</code></pre>
+          :else           [tag nil args])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn terpol8
   [s]
-  (let [parts (remove #(= &quot;&quot; %) (#'strint/interpolate s))]
+  (let [parts (remove #(=  %) (#'strint/interpolate s))]
     (if (every? string? parts) s `(str ~@parts))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn flatten-expr-1
   [expr sym]
@@ -3103,7 +3080,19 @@ net.brehaut.ClojureTools = (function (SH) {
                          flat  #(when (flatten? %1) (flatten-expr-1 %1 %2))
                          prep  (mapcat identity (map flat args args*))]
                      (concat prep [sym (list* op args*)])))]
-    (if-not (flatten? expr) [sym expr] (flatten expr))))</pre></td></tr><tr><td class="docs"><p>Destructuring def, similar to scheme's define-values.</p>
+    (if-not (flatten? expr) [sym expr] (flatten expr))))</pre></td></tr><tr><td class="docs"><h3>Macros for ClojureScript.</h3>
+
+<p>These macros are part of the Hoplon public API.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Destructuring def, similar to scheme's define-values.</p>
+
+<p>  Example:</p>
+
+<pre><code>;; equivalent to (do (def x 1) (def y 0))
+(def-values [x y] [1 0])
+
+;; equivalent to (do (def x 1) (def y 0))
+(def-values {:keys [x y]} {:x 1 :y 0})
+</code></pre>
 </td><td class="codes"><pre class="brush: clojure">(defmacro def-values
   ([bindings values] 
    (do-def nil bindings values))
