@@ -3264,14 +3264,7 @@ page.open(uri, function(status) {
   [f]
   (boot/with-pre-wrap
     (assert (.exists (io/file (str f))))
-    (-&gt; f str slurp ts/parse-page pp/pprint)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.compiler.compiler" name="tailrecursion.hoplon.compiler.compiler"><h1 class="project-name">tailrecursion.hoplon.compiler.compiler</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
-The use and distribution terms for this software are covered by the
-Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-which can be found in the file epl-v10.html at the root of this distribution.
-By using this software in any fashion, you are agreeing to be bound by
-the terms of this license.
-You must not remove this notice, or any other, from this software.</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
+    (-&gt; f str slurp ts/parse-page pp/pprint)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon.compiler.compiler" name="tailrecursion.hoplon.compiler.compiler"><h1 class="project-name">tailrecursion.hoplon.compiler.compiler</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns tailrecursion.hoplon.compiler.compiler
   (:require
     [clojure.pprint                         :as pp]
@@ -3547,14 +3540,7 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn print-string [form]
   (hoplon-&gt;string* (pedanticize form)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn print-page [doctype forms]
-  (str &quot;&lt;!DOCTYPE &quot; doctype &quot;&gt;\n&quot; (print-string forms)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
-The use and distribution terms for this software are covered by the
-Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-which can be found in the file epl-v10.html at the root of this distribution.
-By using this software in any fashion, you are agreeing to be bound by
-the terms of this license.
-You must not remove this notice, or any other, from this software.</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
+  (str &quot;&lt;!DOCTYPE &quot; doctype &quot;&gt;\n&quot; (print-string forms)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns tailrecursion.hoplon
   (:require-macros
    [tailrecursion.javelin :refer [with-let cell=]]
