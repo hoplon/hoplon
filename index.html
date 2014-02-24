@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.4.0</h2><br /><p>Hoplon web development environment.</p>
+</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.4.1</h2><br /><p>Hoplon web development environment.</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">tailrecursion/boot.core</td><td class="dotted"><hr /></td><td class="dep-version">2.2.1</td></tr><tr><td class="dep-name">tailrecursion/boot.task</td><td class="dotted"><hr /></td><td class="dep-version">2.1.0</td></tr><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.1.0</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">1.0.1</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
@@ -3871,7 +3871,12 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmethod on! ::default
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn loop-tpl* [items reverse? tpl]
+</td><td class="codes"><pre class="brush: clojure">(defmethod on! :submit
+  [elem event callback]
+  ((get-method on! ::default)
+   elem event (fn [e] (.preventDefault e) (callback e))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn loop-tpl*
+  [items reverse? tpl]
   (let [pool-size  (cell  0)
         items-seq  (cell= (seq items))
         cur-count  (cell= (count items-seq))
