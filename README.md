@@ -112,5 +112,5 @@ this license. You must not remove this notice, or any other, from this software.
 [5]: https://github.com/tailrecursion/hoplon-demos
 [6]: doc/Design.md
 [7]: http://hoplon.io/
-[8]: https://clojars.org/tailrecursion/hoplon/latest-version.svg?bustcache=5.4.1
+[8]: https://clojars.org/tailrecursion/hoplon/latest-version.svg?bustcache=5.5.0
 [9]: http://tailrecursion.github.io/hoplon/

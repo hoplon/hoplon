@@ -268,6 +268,7 @@
 
 (defn init []
   (with-timeout 0
+    (.on (js/jQuery "body") "submit" #(.preventDefault %))
     (reset! initialized? true)
     (doseq [f @*initfns*] (f))))
 
@@ -372,11 +373,6 @@
 (defmethod on! ::default
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
-
-(defmethod on! :submit
-  [elem event callback]
-  ((get-method on! ::default)
-   elem event (fn [e] (.preventDefault e) (callback e))))
 
 (defn loop-tpl*
   [items reverse? tpl]
