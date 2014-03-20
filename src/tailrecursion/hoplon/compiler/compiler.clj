@@ -111,11 +111,11 @@
                         `(~h ~page-ns ~@t))
             s-html    `(~'html {}
                          (~'head {}
-                           (~'meta {:charset "utf-8"}))
-                         (~'body {}
+                           (~'meta {:charset "utf-8"})
                            (~'script {:type "text/javascript" :src ~js-uri})
                            (~'script {:type "text/javascript"}
-                             ~(str (cljs-munge (second nsdecl)) ".hoploninit();"))))
+                             ~(str (cljs-munge (second nsdecl)) ".hoploninit();")))
+                         (~'body {}))
             htmlstr   (tags/print-page "html" s-html)
             cljs      `(~nsdecl
                          (defn ~(symbol "^:export") ~'hoploninit []
