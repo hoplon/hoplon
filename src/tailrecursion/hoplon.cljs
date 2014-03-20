@@ -75,14 +75,9 @@
     (doseq [[k v] attr]
       (let [k (name k), e (js/jQuery this)]
         (cond
-          (cell? v)     (swap! dos assoc (dokey k) v)
-          (fn? v)       (swap! ons assoc (onkey k) v)
-          (= k "class") (doseq [cls (split v #" ")] (.addClass e cls))
-          (= k "css")   (.css e (clj->js v))
-          :else         (cond
-                          (= false v) (.removeAttr e k)
-                          (= true v)  (.attr e k k)
-                          :else       (.attr e k (str v))))))
+          (cell? v) (swap! dos assoc (dokey k) v)
+          (fn? v)   (swap! ons assoc (onkey k) v)
+          :else     (do! this (dokey k) v))))
     (when (seq @dos)
       (with-timeout 0
         (doseq [[k v] @dos]
@@ -99,10 +94,14 @@
     #(.appendChild %1 %2)
     #(try (.appendChild %1 %2) (catch js/Error _))))
 
-(defn add-children! [this kids]
-  (let [node #(cond (string? %) ($text %) (node? %) %)]
-    (doseq [x (keep node (unsplice kids))] (append-child this x))
-    this))
+(defn add-children! [this [child-cell & _ :as kids]]
+  (let [replace-kids! #(doto (js/jQuery this) (.empty) (.append %))]
+    (if (cell? child-cell)
+      (do (replace-kids! @child-cell)
+          (add-watch child-cell (gensym) #(replace-kids! %4)))
+      (let [node #(cond (string? %) ($text %) (node? %) %)]
+        (doseq [x (keep node (unsplice kids))] (append-child this x)))))
+  this)
 
 (defn on-append! [this f]
   (set! (.-hoplonIFn this) f))
@@ -315,13 +314,21 @@
 
 (defmethod do! :attr
   [elem _ kvs]
-  (elem kvs))
+  (let [e (js/jQuery elem)]
+    (doseq [[k v] kvs]
+      (let [k (name k)]
+        (if (= false v)
+          (.removeAttr e k)
+          (.attr e k (if (= true v) k v)))))))
 
 (defmethod do! :class
   [elem _ kvs] 
-  (let [elem (js/jQuery elem)]
-    (doseq [[c p?] kvs]
-      (.toggleClass elem (name c) (boolean p?)))))
+  (let [elem  (js/jQuery elem)
+        ->map #(zipmap % (repeat true))
+        clmap (if (map? kvs)
+                kvs
+                (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))]
+    (doseq [[c p?] clmap] (.toggleClass elem (name c) (boolean p?)))))
 
 (defmethod do! :css
   [elem _ kvs]
@@ -360,6 +367,10 @@
 (defmethod do! :text
   [elem _ v]
   (.text (js/jQuery elem) (str v)))
+
+(defmethod do! :html
+  [elem _ v]
+  (.html (js/jQuery elem) v))
 
 (defmethod do! :scroll-to
   [elem _ v]
