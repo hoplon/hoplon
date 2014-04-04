@@ -4,9 +4,7 @@
   :license      {:name "Eclipse Public License"
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
   :plugins      [[lein-marginalia             "0.7.1"]]
-  :dependencies [[tailrecursion/boot.core     "2.2.2-SNAPSHOT"]
-                 [tailrecursion/boot.task     "2.1.2-SNAPSHOT"]
-                 [tailrecursion/javelin       "3.1.0"]
+  :dependencies [[tailrecursion/javelin       "3.1.0"]
                  [tailrecursion/castra        "1.0.1"]
                  [clj-tagsoup                 "0.3.0"]
                  [org.clojure/core.incubator  "0.1.2"]])
