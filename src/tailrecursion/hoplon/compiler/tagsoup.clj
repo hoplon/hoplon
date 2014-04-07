@@ -11,21 +11,30 @@
   (:require
     [pl.danieljanus.tagsoup :as ts]
     [clojure.pprint         :as pp :refer [pprint]]
-    [clojure.string         :as cs :refer [blank? replace replace-first]]
+    [clojure.string         :as cs :refer [blank? replace replace-first split join]]
     [clojure.walk           :as cw :refer [postwalk]]))
 
-(def cljs-attr?     #(and (string? %) (re-find #"^\s*\{\{.*\}\}\s*" %)))
-(def walk-attr      #(if-not (cljs-attr? %) % (-> % (replace #"^\s*\{\{\s*" "")
-                                                    (replace #"\s*\}\}\s*$" "")
-                                                    read-string)))
+(def cljs-attr? #(and (string? %) (re-find #"^\s*\{\{.*\}\}\s*" %)))
+(def walk-attr  #(if-not (cljs-attr? %) % (-> % (replace #"^\s*\{\{\s*" "")
+                                            (replace #"\s*\}\}\s*$" "")
+                                            read-string)))
+
+(defn split-ns [x]
+  (let [[_ ns? & _ :as p] (split (name x) #"\.")]
+    [(when ns? (join "." (butlast p))) (last p)]))
+
+(defn ns-keys [attr]
+  (into {} (for [[k v] attr] [(apply keyword (split-ns k)) v])))
 
 (defn parse-hiccup [x]
   (if (string? x)
     x
     (let [[tag attr & kids] x]
-      (list* (symbol (replace-first (name tag) #"\." "/"))
-             (concat (if (empty? attr) (list) (list attr)) 
-                     (map parse-hiccup kids))))))
+      (list*
+        (apply symbol (split-ns tag))
+        (concat
+          (if (empty? attr) (list) (list (ns-keys attr))) 
+          (map parse-hiccup kids))))))
 
 (defn collapse [x]
   (if (string? x)

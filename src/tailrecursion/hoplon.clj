@@ -68,10 +68,9 @@
 
 (defmacro defelem
   "FIXME: document this"
-  [sym bindings & body]
-  `(defn ~sym [& args#]
-     (let [~bindings (parse-args args#)]
-       ~@body)))
+  [name & forms]
+  (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
+    `(def ~name (fn [& args#] (let [~bind (parse-args args#)] ~@body)))))
 
 (defmacro loop-tpl
   "FIXME: document this"
