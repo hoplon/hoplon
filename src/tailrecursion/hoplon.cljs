@@ -305,7 +305,9 @@
 
 (defmethod do! ::default
   [elem key val]
-  (do! elem :attr {key val}))
+  (if (= (namespace key) "css")
+    (do! elem :css {(name key) val})
+    (do! elem :attr {key val})))
 
 (defmethod do! :value
   [elem _ & args] 
