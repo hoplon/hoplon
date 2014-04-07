@@ -74,11 +74,10 @@
         ons    (atom {})
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
-      (let [e (js/jQuery this)]
-        (cond
-          (cell? v) (swap! dos assoc (dokey k) v)
-          (fn? v)   (swap! ons assoc (onkey k) v)
-          :else     (do! this (dokey k) v))))
+      (cond
+        (cell? v) (swap! dos assoc (dokey k) v)
+        (fn? v)   (swap! ons assoc (onkey k) v)
+        :else     (do! this (dokey k) v)))
     (when (seq @dos)
       (with-timeout 0
         (doseq [[k v] @dos]
