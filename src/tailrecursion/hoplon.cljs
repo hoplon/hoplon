@@ -65,15 +65,16 @@
           :else           [{} args])))
 
 (defn add-attributes! [this attr]
-  (let [key*   #(let [p (.substr %2 0 3)] 
-                  (keyword (if-not (= %1 p) %2 (.substr %2 3))))
+  (let [key*   #(let [n (name %2)
+                      p (.substr n 0 3)] 
+                  (keyword (namespace %2) (if-not (= %1 p) n (.substr n 3))))
         dokey  (partial key* "do-")
         onkey  (partial key* "on-")
         dos    (atom {}) 
         ons    (atom {})
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
-      (let [k (name k), e (js/jQuery this)]
+      (let [e (js/jQuery this)]
         (cond
           (cell? v) (swap! dos assoc (dokey k) v)
           (fn? v)   (swap! ons assoc (onkey k) v)
