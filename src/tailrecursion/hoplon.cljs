@@ -52,9 +52,11 @@
   (mapcat #(if (or (seq?* %) (vector?* %)) (unsplice %) [%]) forms))
 
 (defn when-dom [this f]
-  (timeout
-    (fn doit []
-      (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20)))))
+  (if-not (instance? js/Element this)
+    (f)
+    (timeout
+      (fn doit []
+        (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
 
 (defn parse-args [[head & tail :as args]]
   (let [kw1? (comp keyword? first)
