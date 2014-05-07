@@ -103,8 +103,8 @@
 
 (defn add-children! [this [child-cell & _ :as kids]]
   (if (cell? child-cell)
-    (do (replace-children! @child-cell)
-        (add-watch child-cell (gensym) #(replace-children! %4)))
+    (do (replace-children! this @child-cell)
+        (add-watch child-cell (gensym) #(replace-children! this %4)))
     (let [node #(cond (string? %) ($text %) (node? %) %)]
       (doseq [x (keep node (unsplice kids))] (append-child this x))))
   this)
