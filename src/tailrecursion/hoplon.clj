@@ -131,3 +131,9 @@
   "FIXME: document this"
   [& body]
   `(add-initfn! (fn [] ~@body)))
+
+(defmacro route-cell
+  "FIXME: document this"
+  ([] `(tailrecursion.javelin/prop-cell (.. js/window -location -href)))
+  ([setter & callback]
+     `(tailrecursion.javelin/prop-cell (.. js/window -location -href) ~setter ~@callback)))

@@ -15,7 +15,7 @@
    [cljs.reader           :refer [read-string]]
    [clojure.string        :refer [split join blank?]]))
 
-(declare do! on! $text)
+(declare do! on! $text add-children!)
 
 (def is-ie8 (not (aget js/window "Node")))
 
@@ -97,13 +97,16 @@
     #(.appendChild %1 %2)
     #(try (.appendChild %1 %2) (catch js/Error _))))
 
+(defn replace-children! [this new-children]
+  (.empty (js/jQuery this))
+  (add-children! this (if (sequential? new-children) new-children [new-children])))
+
 (defn add-children! [this [child-cell & _ :as kids]]
-  (let [replace-kids! #(doto (js/jQuery this) (.empty) (.append %))]
-    (if (cell? child-cell)
-      (do (replace-kids! @child-cell)
-          (add-watch child-cell (gensym) #(replace-kids! %4)))
-      (let [node #(cond (string? %) ($text %) (node? %) %)]
-        (doseq [x (keep node (unsplice kids))] (append-child this x)))))
+  (if (cell? child-cell)
+    (do (replace-children! @child-cell)
+        (add-watch child-cell (gensym) #(replace-children! %4)))
+    (let [node #(cond (string? %) ($text %) (node? %) %)]
+      (doseq [x (keep node (unsplice kids))] (append-child this x))))
   this)
 
 (defn on-append! [this f]
@@ -378,7 +381,7 @@
 (defmethod do! :scroll-to
   [elem _ v]
   (when v
-    (let [body (js/jQuery "body")
+    (let [body (js/jQuery "body,html")
           elem (js/jQuery elem)]
       (.animate body (clj->js {:scrollTop (.-top (.offset elem))})))))
 

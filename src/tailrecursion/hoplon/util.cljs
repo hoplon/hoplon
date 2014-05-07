@@ -19,7 +19,7 @@
 (defn name      [x]       (try (name x) (catch js/Error e)))
 (defn interval  [f msec]  (.setInterval js/window f msec))
 
-(defn route-cell [msec default]
+(defn ^:deprecated route-cell [msec default]
   (let [hash  #(.-hash (.-location js/window))] 
     (with-let [ret (cell (hash))] 
       (interval #(let [h (hash)] (reset! ret (if (empty? h) default h))) msec))))
