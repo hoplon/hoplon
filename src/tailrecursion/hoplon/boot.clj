@@ -109,12 +109,14 @@ page.open(uri, function(status) {
         cljs-out       (boot/mkoutdir! ::cljs-out)
         public-out     (boot/mkoutdir! ::public-out)
         hoplon-opts    (-> cljs-opts (select-keys [:cache :pretty-print]))
+        out-path       (or (:output-path cljs-opts) "main.js")
+        cljs-opts      (dissoc cljs-opts :output-path :cache)
         compile-file   #(do (println "•" (.getPath %1))
                             (hl/compile-file
-                              %1 "main.js" %2 public-out :opts hoplon-opts))
+                              %1 out-path %2 public-out :opts hoplon-opts))
         compile-string #(do (println "•" %2)
                             (hl/compile-string
-                              %1 %2 "main.js" %3 public-out :opts hoplon-opts))]
+                              %1 %2 out-path %3 public-out :opts hoplon-opts))]
     (when (seq depfiles)
       (println "Installing Hoplon dependencies...")
       (doseq [[path dep] depfiles]
@@ -125,7 +127,7 @@ page.open(uri, function(status) {
           (println "Compiling Hoplon pages...")
           (doseq [f srcs]
             (compile-file f cljs-out))))
-      (task/cljs :output-path "main.js" :opts cljs-opts)
+      (task/cljs :output-path out-path :opts cljs-opts)
       (prerender public-out cljs-opts))))
 
 (boot/deftask html2cljs
