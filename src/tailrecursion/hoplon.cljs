@@ -8,7 +8,7 @@
 
 (ns tailrecursion.hoplon
   (:require-macros
-   [tailrecursion.javelin :refer [with-let cell=]]
+   [tailrecursion.javelin :refer [with-let cell= prop-cell]]
    [tailrecursion.hoplon  :refer [with-timeout]])
   (:require
    [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]] 
@@ -409,3 +409,29 @@
                           (.appendChild p e)
                           (.insertBefore p e (.-firstChild p)))))
                     (reset! ~(cell pool-size) cur-count))))))))
+
+(defn route-cell
+  "Manage the URL hash via Javelin cells. There are three arities:
+
+  - When called with no arguments this function returns a formula cell whose 
+    value is the URL hash or nil.
+
+  - When called with a single string argument, the argument is taken as the
+    default value, which is returned in place of nil when there is no hash.
+
+  - When a single cell argument is provided, the URL hash is kept synced to the
+    value of the cell.
+
+  - When a cell and a callback function are both provided, the URL hash is kept
+    synced to the value of the cell as above, and any attempt to change the hash
+    other than via the setter cell causes the callback to be called. The callback
+    should be a function of one argument, the requested URL hash."
+  ([]
+     (let [r (prop-cell (.. js/window -location -hash))]
+       (cell= (when (not= "" r) r))))
+  ([setter-or-dfl] 
+     (if (cell? setter-or-dfl)
+       (prop-cell (.. js/window -location -hash) setter-or-dfl)
+       (let [r (route-cell)] (cell= (or r setter-or-dfl)))))
+  ([setter callback]
+     (prop-cell (.. js/window -location -hash) setter callback)))
