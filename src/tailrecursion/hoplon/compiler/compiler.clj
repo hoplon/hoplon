@@ -96,7 +96,7 @@
 (defn compile-lib [[[ns* & _ :as nsdecl] & tlfs]]
   (when (= 'ns ns*) (forms-str (cons (make-nsdecl nsdecl) tlfs))))
 
-(defn compile-forms [forms js-path]
+(defn compile-forms [forms js-path css-inc-path]
   (require 'cljs.compiler)
   (let [[nsdecl & tlfs] forms
         cljs-munge (resolve 'cljs.compiler/munge)]
@@ -114,7 +114,9 @@
                            (~'meta {:charset "utf-8"})
                            (~'script {:type "text/javascript" :src ~js-uri})
                            (~'script {:type "text/javascript"}
-                             ~(str (cljs-munge (second nsdecl)) ".hoploninit();")))
+                             ~(str
+                                "window._hoplon_main_css = '" css-inc-path "'; "
+                                (cljs-munge (second nsdecl)) ".hoploninit();")))
                          (~'body {}))
             htmlstr   (tags/print-page "html" s-html)
             cljs      `(~nsdecl
@@ -130,7 +132,7 @@
 
 (defn compile-string
   [forms-str path js-path cljsdir htmldir & {:keys [opts]}]
-  (let [{cache? :cache :keys [pretty-print]} opts
+  (let [{cache? :cache :keys [pretty-print css-inc-path]} opts
         cached      (get @cache path)
         cljs-out    (io/file cljsdir (str (munge-path path) ".cljs"))
         last-mod    (.lastModified (io/file path))
@@ -144,7 +146,7 @@
             cached
             (when-let [forms (as-forms forms-str)]
               (binding [*printer* (if pretty-print pp prn)]
-                (let [compiled (-> (compile-forms forms js-path)
+                (let [compiled (-> (compile-forms forms js-path css-inc-path)
                                  (assoc :last-modified last-mod))]
                   (if (= cache? false)
                     compiled

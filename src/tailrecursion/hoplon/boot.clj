@@ -76,6 +76,47 @@ page.open(uri, function(status) {
               (println "•" rel)
               (spit out (ts/print-page "html" merged)))))))))
 
+(defn srcfiles []
+  (->> (boot/get-env :src-paths)
+    (mapcat (comp file-seq io/file))
+    (filter #(.isFile %))
+    (sort-by #(.getName %))
+    (map (juxt boot/relative-path identity))))
+
+(defn depfiles []
+  (->> (boot/deps)
+    (map second)
+    reverse
+    (mapcat (partial sort-by #(.getName (io/file (first %)))))))
+
+(defn copy-resource
+  [resource-path out-path]
+  (with-open [in  (io/input-stream (io/resource resource-path))
+              out (io/output-stream (io/file out-path))]
+    (io/copy in out)))
+
+(defn install-css [dep-inc-dir src-inc-dir]
+  (let [dep-out (io/file dep-inc-dir "main.css") 
+        src-out (io/file src-inc-dir "main.css")
+        filter* (partial filter #(re-find #"\.inc\.css$" (first %)))
+        cat     #(->> % (map (comp slurp second)) (string/join "\n"))
+        write   #(do (doall (spit %2 (cat (filter* %1)) :append %3)) ::ok)
+        do-deps (memoize #(write (depfiles) dep-out false))]
+    (do-deps)
+    (io/copy dep-out src-out)
+    (write (srcfiles) src-out true)))
+
+(defn install-res [dep-res-dir src-res-dir]
+  (let [outpath #(subs % (count "_hoplon/"))
+        outfile #(doto (io/file %1 %2) io/make-parents)
+        filter* (partial filter #(re-find #"^_hoplon/.+$" (first %)))
+        copysrc #(io/copy (second %) (outfile src-res-dir (outpath (first %))))
+        copyres #(copy-resource (first %) (outfile dep-res-dir (outpath (first %))))
+        write   #(do (doall (map %2 (filter* %1))) ::ok)
+        do-deps (memoize #(write (depfiles) copyres))]
+    (do-deps)
+    (write (srcfiles) copysrc)))
+
 (boot/deftask hoplon
   "Build Hoplon web application.
 
@@ -95,6 +136,14 @@ page.open(uri, function(status) {
 
     :source-map    If set to `true` source maps will be created for the build.
 
+    :output-path   Specify the path (relative to the docroot) where the compiled
+                   JavaScript file should be created. Default is \"main.js\".
+
+    :css-inc-path  Specify the path (relative to the docroot) where the included
+                   CSS files (i.e. the stylesheets on the classpath with the
+                   `.inc.css` extension) should be concatenated and written to.
+                   Default is \"main.css\".
+
   Certain ClojureScript compiler options are overridden by the hoplon task, as
   follows: `:output-to`, `:output-dir`, `:source-map`, `:source-map-path`, and
   `:externs`.
@@ -103,28 +152,38 @@ page.open(uri, function(status) {
   the ClojureScript compiler as-is."
   [& [cljs-opts]]
   (boot/consume-src! (partial boot/by-ext [".hl"]))
-  (let [depfiles       (->> (boot/deps) (map second) (mapcat identity)
-                            (filter #(.endsWith (first %) ".hl")))
+  (let [depjars        (boot/deps)
+        depfiles       (->> depjars (map second) (mapcat identity)
+                         (filter #(.endsWith (first %) ".hl")))
         hoplon-src     (boot/mksrcdir! ::hoplon-src)
         cljs-out       (boot/mkoutdir! ::cljs-out)
         public-out     (boot/mkoutdir! ::public-out)
-        hoplon-opts    (-> cljs-opts (select-keys [:cache :pretty-print]))
+        dep-inc-css    (boot/mktmpdir! ::hoplon-dep-inc-css)
+        src-inc-css    (boot/mkoutdir! ::hoplon-src-inc-css)
+        dep-inc-res    (boot/mktmpdir! ::hoplon-dep-inc-res)
+        src-inc-res    (boot/mktmpdir! ::hoplon-src-inc-res)
+        hoplon-opts    (-> cljs-opts
+                         (select-keys [:cache :pretty-print :css-inc-path])
+                         (update-in [:css-inc-path] #(or % "main.css")))
         out-path       (or (:output-path cljs-opts) "main.js")
-        cljs-opts      (dissoc cljs-opts :output-path :cache)
+        cljs-opts      (dissoc cljs-opts :output-path :css-inc-path :cache)
         compile-file   #(do (println "•" (.getPath %1))
                             (hl/compile-file
                               %1 out-path %2 public-out :opts hoplon-opts))
         compile-string #(do (println "•" %2)
                             (hl/compile-string
                               %1 %2 out-path %3 public-out :opts hoplon-opts))]
+    (boot/add-sync! (boot/get-env :out-path) #{dep-inc-res src-inc-res})
     (when (seq depfiles)
-      (println "Installing Hoplon dependencies...")
       (doseq [[path dep] depfiles]
         (compile-string (slurp dep) path hoplon-src)))
     (comp
       (boot/with-pre-wrap
-        (let [srcs (boot/by-ext [".hl"] (boot/src-files))]
+        (let [srcs        (boot/by-ext [".hl"] (boot/src-files))
+              src-inc-res (boot/mktmpdir! ::hoplon-src-inc-res)]
           (println "Compiling Hoplon pages...")
+          (install-css dep-inc-css src-inc-css)
+          (install-res dep-inc-res src-inc-res)
           (doseq [f srcs]
             (compile-file f cljs-out))))
       (task/cljs :output-path out-path :opts cljs-opts)
