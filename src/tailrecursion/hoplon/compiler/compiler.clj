@@ -96,12 +96,15 @@
 (defn compile-lib [[[ns* & _ :as nsdecl] & tlfs]]
   (when (= 'ns ns*) (forms-str (cons (make-nsdecl nsdecl) tlfs))))
 
+(defn ns->path [ns]
+  (-> ns munge (str/replace \. \/) (str ".cljs")))
+
 (defn compile-forms [forms js-path css-inc-path]
   (require 'cljs.compiler)
   (let [[nsdecl & tlfs] forms
         cljs-munge (resolve 'cljs.compiler/munge)]
     (if (= 'ns (first nsdecl))
-      {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs))}
+      {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs)) :ns (second nsdecl)}
       (let [[_ page & _] nsdecl
             outpath   (output-path forms)
             js-uri    (up-parents outpath js-path)
@@ -124,7 +127,7 @@
                            ~@tlfs
                            (~'tailrecursion.hoplon/init)))
             cljsstr   (forms-str cljs)]
-        {:html htmlstr :cljs cljsstr :file outpath}))))
+        {:html htmlstr :cljs cljsstr :ns page-ns :file outpath}))))
 
 (defn pp [form] (pp/write form :dispatch pp/code-dispatch))
 
@@ -134,14 +137,14 @@
   [forms-str path js-path cljsdir htmldir & {:keys [opts]}]
   (let [{cache? :cache :keys [pretty-print css-inc-path]} opts
         cached      (get @cache path)
-        cljs-out    (io/file cljsdir (str (munge-path path) ".cljs"))
         last-mod    (.lastModified (io/file path))
-        use-cached? (<= last-mod (get cached :last-modified 0))
+        use-cached? (and (pos? last-mod)
+                      (<= last-mod (get cached :last-modified 0)))
         write       (fn [f s m]
                       (when (and f s)
                         (spit (doto f io/make-parents) s)
                         (when m (.setLastModified f m))))]
-    (let [{mod :last-modified :keys [file cljs html]}
+    (let [{mod :last-modified :keys [file cljs html ns]}
           (if use-cached?
             cached
             (when-let [forms (as-forms forms-str)]
@@ -150,7 +153,8 @@
                                  (assoc :last-modified last-mod))]
                   (if (= cache? false)
                     compiled
-                    (get (swap! cache assoc path compiled) path))))))]
+                    (get (swap! cache assoc path compiled) path))))))
+          cljs-out (io/file cljsdir (ns->path ns))]
       (write cljs-out cljs mod)
       (write (when file (io/file htmldir file)) html mod))))
 
