@@ -62,9 +62,10 @@
   (let [kw1? (comp keyword? first)
         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
         drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
-    (cond (map?     head) [head tail]
-          (keyword? head) [(into {} (mkkw args)) (drkw args)]
-          :else           [{} args])))
+    (cond
+      (map?     head) [head (unsplice tail)]
+      (keyword? head) [(into {} (mkkw args)) (unsplice (drkw args))]
+      :else           [{} (unsplice args)])))
 
 (defn add-attributes! [this attr]
   (let [key*   #(let [n (let [s (name %2), c (last s)]
