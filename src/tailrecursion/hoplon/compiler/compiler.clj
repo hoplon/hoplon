@@ -11,36 +11,14 @@
     [clojure.pprint                         :as pp]
     [clojure.java.io                        :as io]
     [clojure.string                         :as str]
-    [tailrecursion.hoplon                   :as hl]
     [tailrecursion.hoplon.compiler.tagsoup  :as tags]
     [tailrecursion.hoplon.compiler.refer    :as refer]))
 
 (def ^:dynamic *printer* prn)
 
-(def html-tags
-  '[a abbr acronym address applet area article
-    aside audio b base basefont bdi bdo big blockquote body br
-    button canvas caption center cite code col colgroup command
-    data datalist dd del details dfn dir div dl dt em embed
-    eventsource fieldset figcaption figure font footer form frame
-    frameset h1 h2 h3 h4 h5 h6 head header hgroup hr html i
-    iframe img input ins isindex kbd keygen label legend li link
-    html-map mark menu html-meta meter nav noframes noscript object
-    ol optgroup option output p param pre progress q rp rt ruby
-    s samp script section select small source span strike strong
-    style sub summary sup table tbody td textarea tfoot th thead
-    html-time title tr track tt u ul html-var video wbr $text
-    $comment spliced])
-
 (defn up-parents [path name]
   (let [[f & dirs] (str/split path #"/")]
     (->> [name] (concat (repeat (count dirs) "../")) (apply str))))
-
-(defn munge-path [path]
-  (-> (str "__" path)
-    (str/replace "_" "__")
-    (str/replace "/" "_")
-    (str/replace ":" "__COLON__")))
 
 (defn munge-page [x]
   (-> (str "_" (name x)) (str/replace #"\." "_DOT_") munge))
@@ -67,7 +45,7 @@
 (defn as-forms [s]
   (if (= \< (first (str/trim s))) 
     (tags/parse-string (inline-code s tags/html-escape))
-    (read-string (str "(" (inline-code s pr-str) ")"))))
+    (read-string (str "(" (inline-code s pr-str) "\n)"))))
 
 (defn output-path     [forms] (-> forms first second str))
 (defn output-path-for [path]  (-> path slurp as-forms output-path))
@@ -106,27 +84,28 @@
     (if (= 'ns (first nsdecl))
       {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs)) :ns (second nsdecl)}
       (let [[_ page & _] nsdecl
-            outpath   (output-path forms)
-            js-uri    (up-parents outpath js-path)
-            app-pages "tailrecursion.hoplon.app-pages"
-            page-ns   (symbol (str app-pages "." (munge-page page)))
-            nsdecl    (let [[h n & t] (make-nsdecl nsdecl)]
-                        `(~h ~page-ns ~@t))
-            s-html    `(~'html {}
-                         (~'head {}
-                           (~'meta {:charset "utf-8"})
-                           (~'script {:type "text/javascript" :src ~js-uri})
-                           (~'script {:type "text/javascript"}
-                             ~(str
-                                "window._hoplon_main_css = '" css-inc-path "'; "
-                                (cljs-munge (second nsdecl)) ".hoploninit();")))
-                         (~'body {}))
-            htmlstr   (tags/print-page "html" s-html)
-            cljs      `(~nsdecl
-                         (defn ~(symbol "^:export") ~'hoploninit []
-                           ~@tlfs
-                           (~'tailrecursion.hoplon/init)))
-            cljsstr   (forms-str cljs)]
+            outpath    (output-path forms)
+            js-uri     (up-parents outpath js-path)
+            css-uri    (up-parents outpath css-inc-path)
+            app-pages  "tailrecursion.hoplon.app-pages"
+            page-ns    (symbol (str app-pages "." (munge-page page)))
+            nsdecl     (let [[h n & t] (make-nsdecl nsdecl)]
+                         `(~h ~page-ns ~@t))
+            script     #(list 'script {:type "text/javascript"} (str %))
+            script-src #(list 'script {:type "text/javascript" :src (str %)})
+            s-html     `(~'html {}
+                          (~'head {}
+                            (~'meta {:charset "utf-8"})
+                            ~(script (str "window._hoplon_main_css = '" css-uri "';"))
+                            ~(script-src js-uri)
+                            ~(script (str (cljs-munge (second nsdecl)) ".hoploninit();")))
+                          (~'body {}))
+            htmlstr    (tags/print-page "html" s-html)
+            cljs       `(~nsdecl
+                          (defn ~(symbol "^:export") ~'hoploninit []
+                            ~@tlfs
+                            (~'tailrecursion.hoplon/init)))
+            cljsstr    (forms-str cljs)]
         {:html htmlstr :cljs cljsstr :ns page-ns :file outpath}))))
 
 (defn pp [form] (pp/write form :dispatch pp/code-dispatch))

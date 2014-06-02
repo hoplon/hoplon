@@ -1,0 +1,17 @@
+(ns hoplon.jquery.daterangepicker)
+
+(defn create [elem opts]
+  (.dateRangePicker elem (clj->js (or opts {}))))
+
+(defn destroy [elem]
+  (with-let [e elem]
+    (when (.-destroy e) (.destroy e))))
+
+(defn on-change! [state]
+  (fn [_ dates]
+    (reset! state [(aget dates "date1") (aget dates "date2")])))
+
+(defelem daterange
+  [{:keys [state opts] :as attr} _]
+  (with-let [elem ((input (dissoc attr :opts)) :datepicker-change (on-change! state))]
+    (with-init! (cell= (doto (js/jQuery elem) destroy (create opts))))))
