@@ -18,6 +18,10 @@
     [tailrecursion.hoplon.compiler.compiler :as hl]
     [tailrecursion.hoplon.compiler.tagsoup  :as ts]))
 
+(defn trim    [s]       (try (string/trim s) (catch Throwable _)))
+(defn do-once [state f] #(when (compare-and-set! state nil true) (f)))
+(defn trans   [coll]    (when-not (empty? coll) (apply map vector coll)))
+
 (def renderjs
   "
 var page = require('webpage').create(),
@@ -94,18 +98,27 @@ page.open(uri, function(status) {
               out (io/output-stream (io/file out-path))]
     (io/copy in out)))
 
-(defn do-once [state f] #(when (compare-and-set! state nil true) (f)))
+(defn get-imports
+  "Separates out the @imports from the stylesheet, preserving leading comments.
+  Returns a vector with two strings: `[imports-str rules-str]`."
+  [css-str]
+  (let [re-import  #"(?is)^\s*(@import[^;]+;)(.*)"
+        re-comment #"(?is)^\s*(/\*[^*]*\*+([^/*][^*]*\*+)*/)(.*)"]
+    (loop [imports [] comments [] css css-str]
+      (let [[_ m1 s1]   (map trim (re-find re-import css))
+            [_ m2 _ s2] (map trim (re-find re-comment css))]
+        (cond
+          s1    (recur (conj imports m1) comments s1)
+          s2    (recur imports (conj comments m2) s2)
+          :else [(string/join "\n" (remove string/blank? imports))
+                 (string/join "\n" (remove string/blank? (conj comments css)))])))))
 
-(defn install-css [state dep-inc-dir src-inc-dir]
-  (let [dep-out (io/file dep-inc-dir "main.css") 
-        src-out (io/file src-inc-dir "main.css")
-        filter* (partial filter #(re-find #"\.inc\.css$" (first %)))
-        cat     #(->> % (map (comp slurp second)) (string/join "\n"))
-        write   #(do (doall (spit %2 (cat (filter* %1)) :append %3)) ::ok)
-        do-deps (do-once state #(write (depfiles) dep-out false))]
-    (do-deps)
-    (io/copy dep-out src-out)
-    (write (srcfiles) src-out true)))
+(defn get-css [files]
+  (->> files
+    (filter #(re-find #"\.inc\.css$" (first %)))
+    (map (comp get-imports slurp second))
+    trans
+    (map (partial string/join "\n"))))
 
 (defn install-res [state dep-res-dir src-res-dir]
   (let [outpath #(subs % (count "_hoplon/"))
@@ -153,18 +166,18 @@ page.open(uri, function(status) {
   the ClojureScript compiler as-is."
   [& [cljs-opts]]
   (boot/consume-src! (partial boot/by-ext [".hl"]))
-  (let [hoplon-src     (boot/mksrcdir! ::hoplon-src)
+  (let [[css-imports css-rules] (get-css (depfiles))
+        hoplon-src     (boot/mksrcdir! ::hoplon-src)
         cljs-out       (boot/mkoutdir! ::cljs-out)
         public-out     (boot/mkoutdir! ::public-out)
-        dep-inc-css    (boot/mktmpdir! ::hoplon-dep-inc-css)
         src-inc-css    (boot/mkoutdir! ::hoplon-src-inc-css)
         dep-inc-res    (boot/mktmpdir! ::hoplon-dep-inc-res)
         src-inc-res    (boot/mktmpdir! ::hoplon-src-inc-res)
-        install-css?   (atom nil)
         install-res?   (atom nil)
         hoplon-opts    (-> cljs-opts
                          (select-keys [:cache :pretty-print :css-inc-path])
                          (update-in [:css-inc-path] #(or % "main.css")))
+        css-inc-file   (io/file src-inc-css (:css-inc-path hoplon-opts))
         out-path       (or (:output-path cljs-opts) "main.js")
         cljs-opts      (dissoc cljs-opts :output-path :css-inc-path :cache)
         compile-file   #(do (println "•" (.getPath %1))
@@ -182,7 +195,11 @@ page.open(uri, function(status) {
         (let [srcs        (boot/by-ext [".hl"] (boot/src-files))
               src-inc-res (boot/mktmpdir! ::hoplon-src-inc-res)]
           (println "Compiling Hoplon pages...")
-          (install-css install-css? dep-inc-css src-inc-css)
+          (let [[imports rules] (get-css (srcfiles))]
+            (->> [css-imports imports css-rules rules]
+              (remove string/blank?)
+              (string/join "\n")
+              (spit css-inc-file)))
           (install-res install-res? dep-inc-res src-inc-res)
           (doseq [f srcs]
             (compile-file f cljs-out))))
