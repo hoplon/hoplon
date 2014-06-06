@@ -28,6 +28,12 @@ package:
   include these things please create a [vendor][6] project containing
   the 3rd party code.
 
+* **Resources:** Resources specific to your project (images, stylesheets,
+  etc.) can be included by creating a `_hoplon` directory that is in your
+  project's build classpath. These files will be emitted into the application's
+  document root (so please try to avoid collisions by using unique names as
+  much possible).
+
 * **Project group id:** Use the `io.hoplon` group id, please. When we merge
   your pull request we'll push artifacts to [Clojars][2] for everyone to use.
 
