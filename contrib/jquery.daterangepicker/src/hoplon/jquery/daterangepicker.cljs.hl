@@ -7,11 +7,19 @@
   (with-let [e elem]
     (when (.-destroy e) (.destroy e))))
 
+(defn set-range! [elem start end]
+  (.. (js/jQuery elem) (data "dateRangePicker") (setDateRange start end)))
+
 (defn on-change! [state]
   (fn [_ dates]
     (reset! state [(aget dates "date1") (aget dates "date2")])))
 
 (defelem daterange
   [{:keys [state opts] :as attr} _]
-  (with-let [elem ((input (dissoc attr :opts)) :datepicker-change (on-change! state))]
-    (with-init! (cell= (doto (js/jQuery elem) destroy (create opts))))))
+  (cell-let [{:keys [format] :as opts} (merge {:format "YYYY-MM-DD"} opts)
+             format #(.format (js/moment %) format)]
+    (with-let [elem ((input (dissoc attr :state :opts))
+                     :datepicker-change (on-change! state))]
+      (with-init!
+        (cell= (doto (js/jQuery elem) destroy (create opts)))
+        (cell= (when state (apply set-range! elem (map format state))))))))
