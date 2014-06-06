@@ -2,7 +2,7 @@ Hoplon Contrib Libraries
 ========================
 
 This is a collection of useful [Hoplon][1] libraries, packaged to be easily
-incorporated into your own applictions.
+incorporated into your own applications.
 
 * UI kits
 * Widget libraries
