@@ -1,5 +1,7 @@
 (ns hoplon.jquery.daterangepicker)
 
+(defc open-picker nil)
+
 (defn create [elem opts]
   (.dateRangePicker elem (clj->js (or opts {}))))
 
@@ -10,16 +12,36 @@
 (defn set-range! [elem start end]
   (.. (js/jQuery elem) (data "dateRangePicker") (setDateRange start end)))
 
+(defn clear! [elem]
+  (.. (js/jQuery elem) (data "dateRangePicker") (clear)))
+
+(defn open! [elem]
+  (.. (js/jQuery elem) (data "dateRangePicker") (open)))
+
+(defn close! [elem]
+  (.. (js/jQuery elem) (data "dateRangePicker") (close)))
+
 (defn on-change! [state]
   (fn [_ dates]
     (reset! state [(aget dates "date1") (aget dates "date2")])))
+
+(defmethod do! :jquery.datepicker/open [elem key val]
+  (let [close? (and (not val) (= elem @open-picker))]
+    (with-init!
+      (if-not val
+        (reset! open-picker nil)
+        (do (reset! open-picker elem) (open! elem))))))
 
 (defelem daterange
   [{:keys [state opts] :as attr} _]
   (cell-let [{:keys [format] :as opts} (merge {:format "YYYY-MM-DD"} opts)
              format #(.format (js/moment %) format)]
-    (with-let [elem ((input (dissoc attr :state :opts))
-                     :datepicker-change (on-change! state))]
+    (with-let [elem (input (dissoc attr :state :opts))]
+      (elem
+        :click #(do (reset! open-picker elem) false)
+        :datepicker-change (on-change! state)
+        :datepicker-close #(when (= elem @open-picker) (do! elem :d/close true)))
       (with-init!
         (cell= (doto (js/jQuery elem) destroy (create opts)))
-        (cell= (when state (apply set-range! elem (map format state))))))))
+        (cell= (when-not (= open-picker elem) (close! elem)))
+        (cell= (if-not state (clear! elem) (apply set-range! elem (map format state))))))))

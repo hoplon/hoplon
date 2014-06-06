@@ -1,4 +1,4 @@
-(defproject io.hoplon/jquery.daterangepicker "0.1.1"
+(defproject io.hoplon/jquery.daterangepicker "0.1.2"
   :description  "Hoplon wrapper for the jQuery daterange picker plugin."
   :url          "http://github.com/tailrecursion/hoplon-util/hoplon/jquery.daterangepicker"
   :license      {:name "Eclipse Public License"
