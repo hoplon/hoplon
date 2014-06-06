@@ -1,6 +1,6 @@
 (defproject io.hoplon/jquery.daterangepicker "0.1.2"
   :description  "Hoplon wrapper for the jQuery daterange picker plugin."
-  :url          "http://github.com/tailrecursion/hoplon-util/hoplon/jquery.daterangepicker"
+  :url          "http://github.com/tailrecursion/hoplon/tree/master/contrib/jquery.daterangepicker"
   :license      {:name "Eclipse Public License"
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
