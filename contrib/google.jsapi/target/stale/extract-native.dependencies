@@ -1,1 +1,0 @@
-([:dependencies ([org.clojure/clojure "1.5.1"] [tailrecursion/hoplon "5.10.3"] [io.hoplon.vendor/google.jsapi "0.1.0"])])
