@@ -1,4 +1,4 @@
-# jquery.selectize
+# Goggle JSAPI
 
 A [Hoplon][hoplon] wrapper for the [Google JSAPI][3].
 

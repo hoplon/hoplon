@@ -1,4 +1,4 @@
-# Google.JSAPI1
+# Google JSAPI
 
 The [Google JSAPI][2] packaged as a [Hoplon][1] dependency.
 
