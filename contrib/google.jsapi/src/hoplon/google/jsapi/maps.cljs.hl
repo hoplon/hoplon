@@ -1,11 +1,9 @@
 (ns hoplon.google.jsapi.maps
-  (:require [hoplon.google.jsapi.load     :refer [queued ensure-api]]))
+  (:require [hoplon.google.jsapi.loader   :refer [queued ensure-api]]))
 
 
-(defc  api-key      nil)
 (defc  maps-version "3")
 (defc  maps-options {:other_params "sensor=false"})
-(defc= api-url      (str "http://www.google.com/jsapi?key=" api-key))
 
 
 (def ensure-maps

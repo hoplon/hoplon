@@ -1,5 +1,9 @@
 (ns hoplon.google.jsapi.loader)
 
+(defc  api-key      nil)
+(defc= api-url      (str "http://www.google.com/jsapi?key=" api-key))
+
+
 (defn queued [load-fn]
   (let [callbacks (atom [])
         status    (atom nil)]
