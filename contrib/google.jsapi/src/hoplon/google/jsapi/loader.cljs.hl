@@ -1,0 +1,18 @@
+(ns hoplon.google.jsapi.loader)
+
+(defn queued [load-fn]
+  (let [callbacks (atom [])
+        status    (atom nil)]
+    (fn [callback]
+      (if (= :complete @status)
+        (callback)
+        (do (swap! callbacks conj callback)
+            (when-not @status
+              (reset! status :loading)
+              (load-fn #(do (reset! status :complete)
+                            (doseq [f @callbacks] (f))))))))))
+(def ensure-api
+  (queued
+    (fn [callback]
+      (with-init! (.getScript js/jQuery @api-url callback)))))
+ 
