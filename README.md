@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready)](https://waffle.io/tailrecursion/hoplon)
 <img src="img/Hoplite.jpg">
 
 # Hoplon
