@@ -1,4 +1,4 @@
-(defproject io.hoplon/google.jsapi "0.1.0"
+(defproject io.hoplon/google.jsapi "0.2.0"
   :description  "Hoplon wrapper for the Google JSAPI"
   :url          "http://github.com/tailrecursion/hoplon/tree/master/contrib/google.jsapi"
   :license      {:name "Eclipse Public License"
