@@ -3028,8 +3028,8 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.8.3</h2><br /><p>Hoplon web development environment.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.2.0</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
+</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.10.7</h2><br /><p>Hoplon web development environment.</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">io.hoplon.vendor/jquery</td><td class="dotted"><hr /></td><td class="dep-version">1.8.2-0</td></tr><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.3.1</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">2.0.0</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 which can be found in the file epl-v10.html at the root of this distribution.
@@ -3120,7 +3120,13 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro head
   [&amp; forms]
   (let [[_ attr kids] (parse-e (cons '_ forms))]
-    `(html-head ~(or attr {}) (let [~'meta html-meta] [~@kids]))))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
+    `(html-head ~(or attr {})
+       (let [~'meta html-meta]
+         [(link
+            :rel &quot;stylesheet&quot;
+            :type &quot;text/css&quot;
+            :href (aget js/window &quot;_hoplon_main_css&quot;))
+          ~@kids]))))</pre></td></tr><tr><td class="docs"><p>FIXME: document this</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro body
   [&amp; forms]
   (let [[_ attr kids] (parse-e (cons '_ forms))
@@ -3153,6 +3159,9 @@ You must not remove this notice, or any other, from this software.</p>
     [tailrecursion.boot.file                :as file]
     [tailrecursion.hoplon.compiler.compiler :as hl]
     [tailrecursion.hoplon.compiler.tagsoup  :as ts]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn trim    [s]       (try (string/trim s) (catch Throwable _)))
+(defn do-once [state f] #(when (compare-and-set! state nil true) (f)))
+(defn trans   [coll]    (when-not (empty? coll) (apply map vector coll)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def renderjs
   &quot;
 var page = require('webpage').create(),
@@ -3207,7 +3216,51 @@ page.open(uri, function(status) {
                   body       (concat (rm-scripts body2) body1)
                   merged     `(~'html (~'head ~hatt ~@head) (~'body ~batt ~@body))]
               (println &quot;•&quot; rel)
-              (spit out (ts/print-page &quot;html&quot; merged)))))))))</pre></td></tr><tr><td class="docs"><p>Build Hoplon web application.</p>
+              (spit out (ts/print-page &quot;html&quot; merged)))))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn srcfiles []
+  (-&gt;&gt; (boot/get-env :src-paths)
+    (mapcat (comp file-seq io/file))
+    (filter #(.isFile %))
+    (sort-by #(.getName %))
+    (map (juxt boot/relative-path identity))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn depfiles []
+  (-&gt;&gt; (boot/deps)
+    (map second)
+    (mapcat (partial sort-by #(.getName (io/file (first %)))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn copy-resource
+  [resource-path out-path]
+  (with-open [in  (io/input-stream (io/resource resource-path))
+              out (io/output-stream (io/file out-path))]
+    (io/copy in out)))</pre></td></tr><tr><td class="docs"><p>Separates out the @imports from the stylesheet, preserving leading comments.
+  Returns a vector with two strings: <code>[imports-str rules-str]</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn get-imports
+  [css-str]
+  (let [re-import  #&quot;(?is)^\s*(@import[^;]+;)(.*)&quot;
+        re-comment #&quot;(?is)^\s*(/\*[^*]*\*+([^/*][^*]*\*+)*/)(.*)&quot;]
+    (loop [imports [] comments [] css css-str]
+      (let [[_ m1 s1]   (map trim (re-find re-import css))
+            [_ m2 _ s2] (map trim (re-find re-comment css))]
+        (cond
+          s1    (recur (conj imports m1) comments s1)
+          s2    (recur imports (conj comments m2) s2)
+          :else [(string/join &quot;\n&quot; (remove string/blank? imports))
+                 (string/join &quot;\n&quot; (remove string/blank? (conj comments css)))])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-css [files]
+  (-&gt;&gt; files
+    (filter #(re-find #&quot;\.inc\.css$&quot; (first %)))
+    (map (comp get-imports slurp second))
+    trans
+    (map (partial string/join &quot;\n&quot;))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn install-res [state dep-res-dir src-res-dir]
+  (let [outpath #(subs % (count &quot;_hoplon/&quot;))
+        outfile #(doto (io/file %1 %2) io/make-parents)
+        filter* (partial filter #(re-find #&quot;^_hoplon/.+$&quot; (first %)))
+        copysrc #(io/copy (second %) (outfile src-res-dir (outpath (first %))))
+        copyres #(copy-resource (first %) (outfile dep-res-dir (outpath (first %))))
+        write   #(do (doall (map %2 (filter* %1))) ::ok)
+        do-deps (do-once state #(write (depfiles) copyres))]
+    (do-deps)
+    (write (srcfiles) copysrc)))</pre></td></tr><tr><td class="docs"><p>Build Hoplon web application.</p>
 
 <p>  This task accepts an optional map of options to pass to the ClojureScript 
   compiler and/or the Hoplon compiler. The Hoplon compiler recognizes the
@@ -3224,6 +3277,14 @@ page.open(uri, function(status) {
                created by the Hoplon compiler.
 
 :source-map    If set to `true` source maps will be created for the build.
+
+:output-path   Specify the path (relative to the docroot) where the compiled
+               JavaScript file should be created. Default is "main.js".
+
+:css-inc-path  Specify the path (relative to the docroot) where the included
+               CSS files (i.e. the stylesheets on the classpath with the
+               `.inc.css` extension) should be concatenated and written to.
+               Default is "main.css".
 </code></pre>
 
 <p>  Certain ClojureScript compiler options are overridden by the hoplon task, as
@@ -3235,28 +3296,41 @@ page.open(uri, function(status) {
 </td><td class="codes"><pre class="brush: clojure">(boot/deftask hoplon
   [&amp; [cljs-opts]]
   (boot/consume-src! (partial boot/by-ext [&quot;.hl&quot;]))
-  (let [depfiles       (-&gt;&gt; (boot/deps) (map second) (mapcat identity)
-                            (filter #(.endsWith (first %) &quot;.hl&quot;)))
+  (let [[css-imports css-rules] (get-css (depfiles))
         hoplon-src     (boot/mksrcdir! ::hoplon-src)
         cljs-out       (boot/mkoutdir! ::cljs-out)
         public-out     (boot/mkoutdir! ::public-out)
-        hoplon-opts    (-&gt; cljs-opts (select-keys [:cache :pretty-print]))
+        src-inc-css    (boot/mkoutdir! ::hoplon-src-inc-css)
+        dep-inc-res    (boot/mktmpdir! ::hoplon-dep-inc-res)
+        src-inc-res    (boot/mktmpdir! ::hoplon-src-inc-res)
+        install-res?   (atom nil)
+        hoplon-opts    (-&gt; cljs-opts
+                         (select-keys [:cache :pretty-print :css-inc-path])
+                         (update-in [:css-inc-path] #(or % &quot;main.css&quot;)))
+        css-inc-file   (io/file src-inc-css (:css-inc-path hoplon-opts))
         out-path       (or (:output-path cljs-opts) &quot;main.js&quot;)
-        cljs-opts      (dissoc cljs-opts :output-path :cache)
+        cljs-opts      (dissoc cljs-opts :output-path :css-inc-path :cache)
         compile-file   #(do (println &quot;•&quot; (.getPath %1))
                             (hl/compile-file
                               %1 out-path %2 public-out :opts hoplon-opts))
         compile-string #(do (println &quot;•&quot; %2)
                             (hl/compile-string
                               %1 %2 out-path %3 public-out :opts hoplon-opts))]
-    (when (seq depfiles)
-      (println &quot;Installing Hoplon dependencies...&quot;)
-      (doseq [[path dep] depfiles]
-        (compile-string (slurp dep) path hoplon-src)))
+    (boot/add-sync! (boot/get-env :out-path) #{dep-inc-res src-inc-res})
+    (println &quot;Compiling Hoplon dependencies...&quot;)
+    (doseq [[path dep] (filter #(re-find #&quot;\.hl$&quot; (first %)) (depfiles))]
+      (compile-string (slurp dep) path hoplon-src))
     (comp
       (boot/with-pre-wrap
-        (let [srcs (boot/by-ext [&quot;.hl&quot;] (boot/src-files))]
+        (let [srcs        (boot/by-ext [&quot;.hl&quot;] (boot/src-files))
+              src-inc-res (boot/mktmpdir! ::hoplon-src-inc-res)]
           (println &quot;Compiling Hoplon pages...&quot;)
+          (let [[imports rules] (get-css (srcfiles))]
+            (-&gt;&gt; [css-imports imports css-rules rules]
+              (remove string/blank?)
+              (string/join &quot;\n&quot;)
+              (spit css-inc-file)))
+          (install-res install-res? dep-inc-res src-inc-res)
           (doseq [f srcs]
             (compile-file f cljs-out))))
       (task/cljs :output-path out-path :opts cljs-opts)
@@ -3278,32 +3352,12 @@ You must not remove this notice, or any other, from this software.</p>
     [clojure.pprint                         :as pp]
     [clojure.java.io                        :as io]
     [clojure.string                         :as str]
-    [tailrecursion.hoplon                   :as hl]
     [tailrecursion.hoplon.compiler.tagsoup  :as tags]
     [tailrecursion.hoplon.compiler.refer    :as refer]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *printer* prn)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def html-tags
-  '[a abbr acronym address applet area article
-    aside audio b base basefont bdi bdo big blockquote body br
-    button canvas caption center cite code col colgroup command
-    data datalist dd del details dfn dir div dl dt em embed
-    eventsource fieldset figcaption figure font footer form frame
-    frameset h1 h2 h3 h4 h5 h6 head header hgroup hr html i
-    iframe img input ins isindex kbd keygen label legend li link
-    html-map mark menu html-meta meter nav noframes noscript object
-    ol optgroup option output p param pre progress q rp rt ruby
-    s samp script section select small source span strike strong
-    style sub summary sup table tbody td textarea tfoot th thead
-    html-time title tr track tt u ul html-var video wbr $text
-    $comment spliced])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn up-parents [path name]
   (let [[f &amp; dirs] (str/split path #&quot;/&quot;)]
     (-&gt;&gt; [name] (concat (repeat (count dirs) &quot;../&quot;)) (apply str))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn munge-path [path]
-  (-&gt; (str &quot;__&quot; path)
-    (str/replace &quot;_&quot; &quot;__&quot;)
-    (str/replace &quot;/&quot; &quot;_&quot;)
-    (str/replace &quot;:&quot; &quot;__COLON__&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn munge-page [x]
   (-&gt; (str &quot;_&quot; (name x)) (str/replace #&quot;\.&quot; &quot;_DOT_&quot;) munge))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn inline-code [s process]
@@ -3327,7 +3381,7 @@ You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn as-forms [s]
   (if (= \&lt; (first (str/trim s))) 
     (tags/parse-string (inline-code s tags/html-escape))
-    (read-string (str &quot;(&quot; (inline-code s pr-str) &quot;)&quot;))))</pre></td></tr><tr><td class="docs">
+    (read-string (str &quot;(&quot; (inline-code s pr-str) &quot;\n)&quot;))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn output-path     [forms] (-&gt; forms first second str))
 (defn output-path-for [path]  (-&gt; path slurp as-forms output-path))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn make-nsdecl
@@ -3351,56 +3405,62 @@ You must not remove this notice, or any other, from this software.</p>
   (str/join &quot;\n&quot; (map #(with-out-str (*printer* %)) forms)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn compile-lib [[[ns* &amp; _ :as nsdecl] &amp; tlfs]]
   (when (= 'ns ns*) (forms-str (cons (make-nsdecl nsdecl) tlfs))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn compile-forms [forms js-path]
+</td><td class="codes"><pre class="brush: clojure">(defn ns-&gt;path [ns]
+  (-&gt; ns munge (str/replace \. \/) (str &quot;.cljs&quot;)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn compile-forms [forms js-path css-inc-path]
   (require 'cljs.compiler)
   (let [[nsdecl &amp; tlfs] forms
         cljs-munge (resolve 'cljs.compiler/munge)]
     (if (= 'ns (first nsdecl))
-      {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs))}
+      {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs)) :ns (second nsdecl)}
       (let [[_ page &amp; _] nsdecl
-            outpath   (output-path forms)
-            js-uri    (up-parents outpath js-path)
-            app-pages &quot;tailrecursion.hoplon.app-pages&quot;
-            page-ns   (symbol (str app-pages &quot;.&quot; (munge-page page)))
-            nsdecl    (let [[h n &amp; t] (make-nsdecl nsdecl)]
-                        `(~h ~page-ns ~@t))
-            s-html    `(~'html {}
-                         (~'head {}
-                           (~'meta {:charset &quot;utf-8&quot;})
-                           (~'script {:type &quot;text/javascript&quot; :src ~js-uri})
-                           (~'script {:type &quot;text/javascript&quot;}
-                             ~(str (cljs-munge (second nsdecl)) &quot;.hoploninit();&quot;)))
-                         (~'body {}))
-            htmlstr   (tags/print-page &quot;html&quot; s-html)
-            cljs      `(~nsdecl
-                         (defn ~(symbol &quot;^:export&quot;) ~'hoploninit []
-                           ~@tlfs
-                           (~'tailrecursion.hoplon/init)))
-            cljsstr   (forms-str cljs)]
-        {:html htmlstr :cljs cljsstr :file outpath}))))</pre></td></tr><tr><td class="docs">
+            outpath    (output-path forms)
+            js-uri     (up-parents outpath js-path)
+            css-uri    (up-parents outpath css-inc-path)
+            app-pages  &quot;tailrecursion.hoplon.app-pages&quot;
+            page-ns    (symbol (str app-pages &quot;.&quot; (munge-page page)))
+            nsdecl     (let [[h n &amp; t] (make-nsdecl nsdecl)]
+                         `(~h ~page-ns ~@t))
+            script     #(list 'script {:type &quot;text/javascript&quot;} (str %))
+            script-src #(list 'script {:type &quot;text/javascript&quot; :src (str %)})
+            s-html     `(~'html {}
+                          (~'head {}
+                            (~'meta {:charset &quot;utf-8&quot;})
+                            ~(script (str &quot;window._hoplon_main_css = '&quot; css-uri &quot;';&quot;))
+                            ~(script-src js-uri)
+                            ~(script (str (cljs-munge (second nsdecl)) &quot;.hoploninit();&quot;)))
+                          (~'body {}))
+            htmlstr    (tags/print-page &quot;html&quot; s-html)
+            cljs       `(~nsdecl
+                          (defn ~(symbol &quot;^:export&quot;) ~'hoploninit []
+                            ~@tlfs
+                            (~'tailrecursion.hoplon/init)))
+            cljsstr    (forms-str cljs)]
+        {:html htmlstr :cljs cljsstr :ns page-ns :file outpath}))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pp [form] (pp/write form :dispatch pp/code-dispatch))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def cache (atom {}))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn compile-string
   [forms-str path js-path cljsdir htmldir &amp; {:keys [opts]}]
-  (let [{cache? :cache :keys [pretty-print]} opts
+  (let [{cache? :cache :keys [pretty-print css-inc-path]} opts
         cached      (get @cache path)
-        cljs-out    (io/file cljsdir (str (munge-path path) &quot;.cljs&quot;))
         last-mod    (.lastModified (io/file path))
-        use-cached? (&lt;= last-mod (get cached :last-modified 0))
+        use-cached? (and (pos? last-mod)
+                      (&lt;= last-mod (get cached :last-modified 0)))
         write       (fn [f s m]
                       (when (and f s)
                         (spit (doto f io/make-parents) s)
                         (when m (.setLastModified f m))))]
-    (let [{mod :last-modified :keys [file cljs html]}
+    (let [{mod :last-modified :keys [file cljs html ns]}
           (if use-cached?
             cached
             (when-let [forms (as-forms forms-str)]
               (binding [*printer* (if pretty-print pp prn)]
-                (let [compiled (-&gt; (compile-forms forms js-path)
+                (let [compiled (-&gt; (compile-forms forms js-path css-inc-path)
                                  (assoc :last-modified last-mod))]
                   (if (= cache? false)
                     compiled
-                    (get (swap! cache assoc path compiled) path))))))]
+                    (get (swap! cache assoc path compiled) path))))))
+          cljs-out (io/file cljsdir (ns-&gt;path ns))]
       (write cljs-out cljs mod)
       (write (when file (io/file htmldir file)) html mod))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn compile-file [f &amp; args]
@@ -3607,9 +3667,10 @@ You must not remove this notice, or any other, from this software.</p>
   (let [kw1? (comp keyword? first)
         mkkw #(-&gt;&gt; (partition 2 %) (take-while kw1?) (map vec))
         drkw #(-&gt;&gt; (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
-    (cond (map?     head) [head tail]
-          (keyword? head) [(into {} (mkkw args)) (drkw args)]
-          :else           [{} args])))</pre></td></tr><tr><td class="docs">
+    (cond
+      (map?     head) [head (unsplice tail)]
+      (keyword? head) [(into {} (mkkw args)) (unsplice (drkw args))]
+      :else           [{} (unsplice args)])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-attributes! [this attr]
   (let [key*   #(let [n (let [s (name %2), c (last s)]
                           (if-not (= \= c) s (.slice s 0 -1)))
