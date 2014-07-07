@@ -11,4 +11,6 @@
   [{:keys [cell id class render] :as attrs} options]
   (with-let [s (select :id id :class (str "selectized " class) options)]
     (let [new-attrs (wrap-render (merge attrs (if cell {:onChange #(reset! cell %)})))]
-      (add-initfn! #(.selectize (js/jQuery s) (clj->js new-attrs))))))
+      (with-init!
+        (.selectize (js/jQuery s) (clj->js new-attrs))
+        (let [$s (.-selectize s)] (.on $s "dropdown_open" #(.clear $s)))))))
