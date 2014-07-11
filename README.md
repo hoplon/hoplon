@@ -3,6 +3,8 @@
 
 # Hoplon
 
+[![epicycles][10][11]
+
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
 the following libraries as dependencies to complete the stack:
@@ -115,3 +117,5 @@ this license. You must not remove this notice, or any other, from this software.
 [7]: http://hoplon.io/
 [8]: https://clojars.org/tailrecursion/hoplon/latest-version.svg?bustcache=2
 [9]: http://tailrecursion.github.io/hoplon/
+[10]: http://en.wikipedia.org/wiki/Deferent_and_epicycle
+[11]: http://img.shields.io/badge/epicycles-0-green.svg
