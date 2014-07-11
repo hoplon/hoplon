@@ -1,9 +1,9 @@
 [![Stories in Ready](https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready)](https://waffle.io/tailrecursion/hoplon)
+[![epicycles][10]][11]
+
 <img src="img/Hoplite.jpg">
 
 # Hoplon
-
-[![epicycles][10][11]
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
