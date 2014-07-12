@@ -3028,8 +3028,8 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.10.7</h2><br /><p>Hoplon web development environment.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">io.hoplon.vendor/jquery</td><td class="dotted"><hr /></td><td class="dep-version">1.8.2-0</td></tr><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.3.1</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">2.0.0</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
+</script><title>tailrecursion/hoplon -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">tailrecursion/hoplon</h1><h2 class="project-version">5.10.9</h2><br /><p>Hoplon web development environment.</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">io.hoplon.vendor/jquery</td><td class="dotted"><hr /></td><td class="dep-version">1.8.2-0</td></tr><tr><td class="dep-name">tailrecursion/javelin</td><td class="dotted"><hr /></td><td class="dep-version">3.3.1</td></tr><tr><td class="dep-name">tailrecursion/castra</td><td class="dotted"><hr /></td><td class="dep-version">2.1.0</td></tr><tr><td class="dep-name">clj-tagsoup</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">org.clojure/core.incubator</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr><tr><td class="dep-name">org.clojure/clojurescript</td><td class="dotted"><hr /></td><td class="dep-version">0.0-2234</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.boot">tailrecursion.hoplon.boot</a></li><li><a href="#tailrecursion.hoplon.compiler.compiler">tailrecursion.hoplon.compiler.compiler</a></li><li><a href="#tailrecursion.hoplon.compiler.refer">tailrecursion.hoplon.compiler.refer</a></li><li><a href="#tailrecursion.hoplon.compiler.tagsoup">tailrecursion.hoplon.compiler.tagsoup</a></li><li><a href="#tailrecursion.hoplon">tailrecursion.hoplon</a></li><li><a href="#tailrecursion.hoplon.reload">tailrecursion.hoplon.reload</a></li><li><a href="#tailrecursion.hoplon.storage-atom">tailrecursion.hoplon.storage-atom</a></li><li><a href="#tailrecursion.hoplon.svg">tailrecursion.hoplon.svg</a></li><li><a href="#tailrecursion.hoplon.util">tailrecursion.hoplon.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#tailrecursion.hoplon" name="tailrecursion.hoplon"><h1 class="project-name">tailrecursion.hoplon</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Alan Dipert and Micha Niskin. All rights reserved.
 The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 which can be found in the file epl-v10.html at the root of this distribution.
@@ -3214,7 +3214,7 @@ page.open(uri, function(status) {
                   head       (concat head1 (rm-scripts head2))
                   batt       (merge batt1 batt2)
                   body       (concat (rm-scripts body2) body1)
-                  merged     `(~'html (~'head ~hatt ~@head) (~'body ~batt ~@body))]
+                  merged     `(~'html ~att (~'head ~hatt ~@head) (~'body ~batt ~@body))]
               (println &quot;•&quot; rel)
               (spit out (ts/print-page &quot;html&quot; merged)))))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn srcfiles []
@@ -3304,11 +3304,12 @@ page.open(uri, function(status) {
         dep-inc-res    (boot/mktmpdir! ::hoplon-dep-inc-res)
         src-inc-res    (boot/mktmpdir! ::hoplon-src-inc-res)
         install-res?   (atom nil)
+        filename-uuid  &quot;c6f4dce0-0384-11e4-9191-0800200c9a66&quot;
         hoplon-opts    (-&gt; cljs-opts
                          (select-keys [:cache :pretty-print :css-inc-path])
-                         (update-in [:css-inc-path] #(or % &quot;main.css&quot;)))
+                         (update-in [:css-inc-path] #(or % (str filename-uuid &quot;.css&quot;))))
         css-inc-file   (io/file src-inc-css (:css-inc-path hoplon-opts))
-        out-path       (or (:output-path cljs-opts) &quot;main.js&quot;)
+        out-path       (or (:output-path cljs-opts) (str filename-uuid &quot;.js&quot;))
         cljs-opts      (dissoc cljs-opts :output-path :css-inc-path :cache)
         compile-file   #(do (println &quot;•&quot; (.getPath %1))
                             (hl/compile-file
