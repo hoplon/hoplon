@@ -1,8 +1,6 @@
 [![Stories in Ready](https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready)](https://waffle.io/tailrecursion/hoplon)
 ![epicycles][11]
 
-<img src="img/Hoplite.jpg">
-
 # Hoplon
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
