@@ -8,4 +8,5 @@
                  [tailrecursion/javelin      "3.3.1"]
                  [tailrecursion/castra       "2.1.0"]
                  [clj-tagsoup                "0.3.0"]
-                 [org.clojure/core.incubator "0.1.2"]])
+                 [org.clojure/core.incubator "0.1.2"]
+                 [org.clojure/clojurescript "0.0-2234"]])
