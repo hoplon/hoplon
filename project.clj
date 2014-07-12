@@ -1,4 +1,4 @@
-(defproject tailrecursion/hoplon "5.10.8"
+(defproject tailrecursion/hoplon "5.10.9"
   :description  "Hoplon web development environment."
   :url          "http://github.com/tailrecursion/hoplon"
   :license      {:name "Eclipse Public License"
@@ -8,4 +8,5 @@
                  [tailrecursion/javelin      "3.3.1"]
                  [tailrecursion/castra       "2.1.0"]
                  [clj-tagsoup                "0.3.0"]
-                 [org.clojure/core.incubator "0.1.2"]])
+                 [org.clojure/core.incubator "0.1.2"]
+                 [org.clojure/clojurescript  "0.0-2234"]])
