@@ -212,4 +212,5 @@ page.open(uri, function(status) {
   [f]
   (boot/with-pre-wrap
     (assert (.exists (io/file (str f))))
-    (-> f str slurp ts/parse-page pp/pprint)))
+    (->> f str slurp ts/read-hiccup ts/parse-hiccup
+      (#(with-out-str (pp/write % :dispatch pp/code-dispatch))) print)))
