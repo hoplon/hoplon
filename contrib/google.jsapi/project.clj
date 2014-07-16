@@ -1,4 +1,4 @@
-(defproject io.hoplon/google.jsapi "0.3.1"
+(defproject io.hoplon/google.jsapi "0.3.2"
  
   :description  "Hoplon wrapper for the Google JSAPI"
   :url          "http://github.com/tailrecursion/hoplon/tree/master/contrib/google.jsapi"

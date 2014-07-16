@@ -1,10 +1,25 @@
 (ns hoplon.google.jsapi.maps
-  (:require [hoplon.google.jsapi.loader   :refer [queued ensure-api]]))
+  (:refer-clojure :exclude [clj->js])
+  (:require
+   [clojure.string :as string]
+   [hoplon.google.jsapi.loader :refer [queued ensure-api]]))
 
+(defn clj->js
+  "Recursively transforms ClojureScript maps into Javascript objects,
+   other ClojureScript colls into JavaScript arrays, and ClojureScript
+   keywords into JavaScript strings."
+  [x]
+  (cond
+    (string? x)  x
+    (keyword? x) (name x)
+    (map? x) (with-let [obj (js-obj)]
+               (doseq [[k v] x]
+                 (aset obj (clj->js k) (clj->js v))))
+    (or (seq? x) (vector? x)) (apply array (map clj->js x))
+    :else x))
 
 (defc  maps-version "3")
 (defc  maps-options {:other_params "sensor=false"})
-
 
 (def ensure-maps
   (queued
@@ -71,12 +86,14 @@
           polygons      (:hoplon.google.jsapi.maps/polygons attr)
           mkfilter      #(fn [[x _]]
                            (let [ns (namespace x) nm (name x)]
-                             (and (= "hoplon.google.jsapi.maps" ns) (= % (subs nm 0 (count %))))))
+                             (and (= "hoplon.google.jsapi.maps" ns)
+                               (starts-with? nm %))))
           layers        (filter (mkfilter "layer-") attr)
           map-callbacks (filter (mkfilter "map-") attr)
           pln-callbacks (filter (mkfilter "polyline-") attr)
           pgn-callbacks (filter (mkfilter "polygon-") attr)
-          pin-callbacks (filter (mkfilter "marker-") attr)]
+          pin-callbacks (filter (mkfilter "marker-") attr)
+          rm-pfx        #(string/replace % #"^[^-]+-" "")]
       (ensure-maps
         (delay-until visible?
           (fn []
@@ -97,15 +114,16 @@
                   bounds       (cell= (with-let [b (LatLngBounds.)]
                                         (doseq [{:keys [lat lon]} markers]
                                           (.extend b (lat-lng lat lon)))))]
-              (doseq [x map-callbacks] (let [evt (name (key x)) 
-                                             fun (val x)
-                                             wrp (fn [& args] (apply fun imap args)) ]
-                                         (.addListener Event imap evt wrp)))
+              (doseq [x map-callbacks]
+                (let [evt (rm-pfx (name (key x))) 
+                      fun (val x)
+                      wrp (fn [& args] (apply fun imap args)) ]
+                  (.addListener Event imap evt wrp)))
               (mapv #(layer (key %) (val %) imap) layers)
               (cell-doseq [[i {:keys [path opts] :as pline}] (cell= (indexed polylines))]
                 (let [polyline  (Polyline. (clj->js {}))]
                   (doseq [x pln-callbacks]
-                    (let [evt (name (key x)) 
+                    (let [evt (rm-pfx (name (key x))) 
                           fun (val x)
                           wrp (fn [& args] (apply fun imap polyline pline args))]
                       (.addListener Event polyline evt wrp)))
@@ -116,7 +134,7 @@
               (cell-doseq [[i {:keys [path opts] :as pgon}] (cell= (indexed polygons))]
                 (let [ polygon (Polygon. (clj->js {}))]
                   (doseq [x pgn-callbacks]
-                    (let [evt (name (key x)) 
+                    (let [evt (rm-pfx (name (key x))) 
                           fun (val x)
                           wrp (fn [& args] (apply fun imap polygon pgon args))]
                       (.addListener Event polygon evt wrp)))
@@ -132,7 +150,7 @@
                 (let [marker  (Marker. (clj->js {}))
                       iwindow (InfoWindow. (clj->js {}))]
                   (doseq [x pin-callbacks]
-                    (let [evt  (name (key x)) 
+                    (let [evt  (rm-pfx (name (key x))) 
                           fun  (val x)
                           wrp  (fn [& args] (apply fun imap marker iwindow @pin args))]
                       (.addListener Event marker evt wrp)))
