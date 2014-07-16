@@ -23,12 +23,8 @@
   (= 0 (.lastIndexOf string prefix 0)))
 
 (defn visible? [elem]
-  (let [$e (js/jQuery elem)]
-    (with-let [c (cell (.is $e ":visible"))]
-      (when-not @c
-        ((fn poll []
-           (with-timeout 100
-             (when-not (reset! c (.is $e ":visible")) (poll)))))))))
+  (with-let [c (cell nil)]
+    (with-interval 100 (reset! c (.is (js/jQuery elem) ":visible")))))
 
 (defn point-in-polygon [point path]
   (let [maps              (.. js/google -maps)
