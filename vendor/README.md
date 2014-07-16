@@ -146,9 +146,12 @@ You're done! Send us a pull request!
 ## Quick and Dirty Externs Files
 
 There is some info about [writing your own externs files][8] on the Google
-Closure compiler GitHub wiki. However, if you just need to knock together
-a simple, quick-and-dirty externs file for your favorite JavaScript library
-you can try the following techniques:
+Closure compiler GitHub wiki.
+
+There is [a closure compiler externs extractor service][9] you can try.
+
+However, if you just need to knock together a simple, quick-and-dirty externs
+file for your favorite JavaScript library you can try the following techniques:
 
 **Plain JavaScript objects** are annotated in your externs file like this:
 
@@ -184,3 +187,4 @@ Copyright © 2014 Alan Dipert and Micha Niskin.
 [6]: https://github.com/tailrecursion/hoplon/tree/master/contrib
 [7]: https://github.com/tailrecursion/hoplon/tree/master/vendor/jquery.daterangepicker
 [8]: https://github.com/google/closure-compiler/wiki/FAQ#how-do-i-write-an-externs-file
+[9]: http://www.dotnetwise.com/Code/Externs/
