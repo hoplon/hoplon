@@ -1,5 +1,5 @@
 [![Stories in Ready](https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready)](https://waffle.io/tailrecursion/hoplon)
-<img src="img/Hoplite.jpg">
+![epicycles][11]
 
 # Hoplon
 
@@ -115,3 +115,5 @@ this license. You must not remove this notice, or any other, from this software.
 [7]: http://hoplon.io/
 [8]: https://clojars.org/tailrecursion/hoplon/latest-version.svg?bustcache=2
 [9]: http://tailrecursion.github.io/hoplon/
+[10]: http://en.wikipedia.org/wiki/Deferent_and_epicycle
+[11]: http://img.shields.io/badge/epicycles-0-green.svg?cache=1

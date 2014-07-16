@@ -11,4 +11,9 @@
   [{:keys [cell id class render] :as attrs} options]
   (with-let [s (select :id id :class (str "selectized " class) options)]
     (let [new-attrs (wrap-render (merge attrs (if cell {:onChange #(reset! cell %)})))]
-      (add-initfn! #(.selectize (js/jQuery s) (clj->js new-attrs))))))
+      (with-init!
+        (.selectize (js/jQuery s) (clj->js new-attrs))
+        (let [$s (aget s "selectize")
+              cl (aget $s "clear")
+              $w (aget (aget $s "$wrapper") 0)]
+          ($w :click #(.call cl $s)))))))

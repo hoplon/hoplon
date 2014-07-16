@@ -1,4 +1,4 @@
-(defproject io.hoplon/jquery.selectize "0.1.0"
+(defproject io.hoplon/jquery.selectize "0.1.2"
   :description  "Hoplon wrapper for the jQuery selectize plugin."
   :url          "http://github.com/tailrecursion/hoplon/tree/master/contrib/jquery.selectize"
   :license      {:name "Eclipse Public License"

@@ -1,0 +1,16 @@
+*.swn
+*.swo
+*.swp
+*/out/
+*/lib/
+*/classes/
+*/target/
+*/.hlisp-work-dir/
+*/.lein-repl-history
+*/.lein-cljsbuild-compiler-0
+*/.lein-cljsbuild-repl
+*/.lein-plugins
+*/.lein-deps-sum
+*/test/src/
+*/.nrepl-port
+*/pom.xml

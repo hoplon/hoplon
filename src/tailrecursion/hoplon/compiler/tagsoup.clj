@@ -55,7 +55,7 @@
 
 (defn parse-string [s]
   (let [hiccup  (read-hiccup s)
-        prelude (read-string (str "(" (-> hiccup (nth 2) (nth 2)) ")"))]
+        prelude (read-string (str "(" (-> hiccup (nth 2) (nth 2)) "\n)"))]
     (concat prelude (list (parse-hiccup (postwalk walk-attr (nth hiccup 3)))))))
 
 (defn parse [f]

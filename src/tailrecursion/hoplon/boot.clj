@@ -76,7 +76,7 @@ page.open(uri, function(status) {
                   head       (concat head1 (rm-scripts head2))
                   batt       (merge batt1 batt2)
                   body       (concat (rm-scripts body2) body1)
-                  merged     `(~'html (~'head ~hatt ~@head) (~'body ~batt ~@body))]
+                  merged     `(~'html ~att (~'head ~hatt ~@head) (~'body ~batt ~@body))]
               (println "•" rel)
               (spit out (ts/print-page "html" merged)))))))))
 
@@ -174,11 +174,12 @@ page.open(uri, function(status) {
         dep-inc-res    (boot/mktmpdir! ::hoplon-dep-inc-res)
         src-inc-res    (boot/mktmpdir! ::hoplon-src-inc-res)
         install-res?   (atom nil)
+        filename-uuid  "c6f4dce0-0384-11e4-9191-0800200c9a66"
         hoplon-opts    (-> cljs-opts
                          (select-keys [:cache :pretty-print :css-inc-path])
-                         (update-in [:css-inc-path] #(or % "main.css")))
+                         (update-in [:css-inc-path] #(or % (str filename-uuid ".css"))))
         css-inc-file   (io/file src-inc-css (:css-inc-path hoplon-opts))
-        out-path       (or (:output-path cljs-opts) "main.js")
+        out-path       (or (:output-path cljs-opts) (str filename-uuid ".js"))
         cljs-opts      (dissoc cljs-opts :output-path :css-inc-path :cache)
         compile-file   #(do (println "•" (.getPath %1))
                             (hl/compile-file
@@ -211,4 +212,5 @@ page.open(uri, function(status) {
   [f]
   (boot/with-pre-wrap
     (assert (.exists (io/file (str f))))
-    (-> f str slurp ts/parse-page pp/pprint)))
+    (->> f str slurp ts/read-hiccup ts/parse-hiccup
+      (#(with-out-str (pp/write % :dispatch pp/code-dispatch))) print)))

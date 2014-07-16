@@ -12,6 +12,7 @@
     [clojure.java.io                        :as io]
     [clojure.string                         :as str]
     [tailrecursion.hoplon.compiler.tagsoup  :as tags]
+    [tailrecursion.hoplon.compiler.util     :as util]
     [tailrecursion.hoplon.compiler.refer    :as refer]))
 
 (def ^:dynamic *printer* prn)
@@ -19,9 +20,6 @@
 (defn up-parents [path name]
   (let [[f & dirs] (str/split path #"/")]
     (->> [name] (concat (repeat (count dirs) "../")) (apply str))))
-
-(defn munge-page [x]
-  (-> (str "_" (name x)) (str/replace #"\." "_DOT_") munge))
 
 (defn inline-code [s process]
   (let [lines (str/split s #"\n")
@@ -45,7 +43,7 @@
 (defn as-forms [s]
   (if (= \< (first (str/trim s))) 
     (tags/parse-string (inline-code s tags/html-escape))
-    (read-string (str "(" (inline-code s pr-str) "\n)"))))
+    (util/read-string (inline-code s pr-str))))
 
 (defn output-path     [forms] (-> forms first second str))
 (defn output-path-for [path]  (-> path slurp as-forms output-path))
@@ -87,8 +85,7 @@
             outpath    (output-path forms)
             js-uri     (up-parents outpath js-path)
             css-uri    (up-parents outpath css-inc-path)
-            app-pages  "tailrecursion.hoplon.app-pages"
-            page-ns    (symbol (str app-pages "." (munge-page page)))
+            page-ns    (util/munge-page page)
             nsdecl     (let [[h n & t] (make-nsdecl nsdecl)]
                          `(~h ~page-ns ~@t))
             script     #(list 'script {:type "text/javascript"} (str %))
