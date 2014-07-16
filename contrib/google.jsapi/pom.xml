@@ -3,7 +3,7 @@
   <groupId>io.hoplon</groupId>
   <artifactId>google.jsapi</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <name>google.jsapi</name>
   <description>Hoplon wrapper for the Google JSAPI</description>
   <url>http://github.com/tailrecursion/hoplon/tree/master/contrib/google.jsapi</url>

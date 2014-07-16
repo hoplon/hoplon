@@ -35,18 +35,51 @@
         gon               (Polygon. (clj->js {:path (mapv #(lat-lng (:lat %) (:lon %)) path)})) 
         pnt               (lat-lng (:lat point) (:lon point))
         res               (.containsLocation poly-lib pnt gon)]
-    (.log js/console "[gon]" gon)
-    (.log js/console "[pnt]" pnt)
-    (.log js/console "[res]" res)
     res))
 
-(defelem google-map [{:keys [center opts pins polylines polygons fit-pins] :as attr} [elem]]
-  (with-let [elem (or elem (div (select-keys attr [:css :style])))]
+(defmulti layer (fn [x y imap] x))
+(defmethod layer :hoplon.google.jsapi.maps.layer/bicycling [x y imap]
+  (let [maps          (.. js/google -maps)
+        Bicycling     (.-BicyclingLayer maps)
+        bicycling     (Bicycling.)]
+    (cell= (let [map      (when y imap)]
+             (.setMap bicycling map)))))
+
+(defmethod layer :hoplon.google.jsapi.maps.layer/traffic [x y imap]
+  (let [maps          (. js/google -maps)
+        Traffic       (.-TrafficLayer maps)
+        traffic       (Traffic.)]
+    (cell= (let [map      (when y imap)]
+             (.setMap traffic map)))))
+
+(defmethod layer :hoplon.google.jsapi.maps.layer/transit [x y imap]
+  (let [maps          (. js/google -maps)
+        Transit       (.-TransitLayer maps)
+        transit       (Transit.)]
+    (cell= (let [map      (when y imap)]
+             (.setMap transit map)))))
+(def spaces #{"hoplon.google.jsapi.maps.marker"
+              "hoplon.google.jsapi.maps.polygon"
+              "hoplon.google.jsapi.maps.polyline"
+              "hoplon.google.jsapi.maps.overlay"
+              "hoplon.google.jsapi.maps.layer"
+              "hoplon.google.jsapi.maps.map" })
+
+(defelem google-map [attr [elem]]
+  (with-let [elem (or elem (div (select-keys attr (keys (filter #(not (contains? spaces (namespace (key %)))) attr)))))]
     (let [visible?      (visible? elem)
-          map-callbacks (filter #(let [k (name (key %))] (starts-with? k "map-")) attr)
-          pln-callbacks (filter #(let [k (name (key %))] (starts-with? k "pln-")) attr) 
-          pgn-callbacks (filter #(let [k (name (key %))] (starts-with? k "pgn-")) attr) 
-          pin-callbacks (filter #(let [k (name (key %))] (starts-with? k "pin-")) attr)]
+          center        (:hoplon.google.jsapi.maps.control/center attr)
+          map-opts      (:hoplon.google.jsapi.maps.control/opts attr)
+          fit-pins      (:hoplon.google.jsapi.maps.control/fit-pins attr)
+          markers       (:hoplon.google.jsapi.maps.overlays/markers attr)
+          polylines     (:hoplon.google.jsapi.maps.overlays/polylines attr)
+          polygons      (:hoplon.google.jsapi.maps.overlays/polygons attr)
+          layers        (filter #(= "hoplon.google.jsapi.maps.layer" (namespace (key %))) attr)
+          map-callbacks (filter #(= "hoplon.google.jsapi.maps.map" (namespace (key %))) attr)
+          pln-callbacks (filter #(= "hoplon.google.jsapi.maps.polyline" (namespace (key %))) attr) 
+          pgn-callbacks (filter #(= "hoplon.google.jsapi.maps.polygon" (namespace (key %))) attr) 
+          pin-callbacks (filter #(= "hoplon.google.jsapi.maps.marker" (namespace (key %))) attr)
+          ]
       (ensure-maps
         (delay-until visible?
           (fn []
@@ -61,19 +94,21 @@
                   LatLngBounds (.-LatLngBounds maps)
                   lat-lng      #(LatLng. (js/parseFloat %1) (js/parseFloat %2))
                   opts         (cell= (let [{:keys [lat lon]} center]
-                                        (clj->js (merge {} opts {:center (lat-lng lat lon)}))))
-                  imap          (Map. elem @opts)
+                                        (clj->js (merge {} map-opts {:center (lat-lng lat lon)}))))
+                  imap         (Map. elem @opts)
+
                   bounds       (cell= (with-let [b (LatLngBounds.)]
-                                        (doseq [{:keys [lat lon]} pins]
+                                        (doseq [{:keys [lat lon]} markers]
                                           (.extend b (lat-lng lat lon)))))]
-              (doseq [x map-callbacks] (let [evt (.substr (name (key x)) 4)
+              (doseq [x map-callbacks] (let [evt (name (key x)) 
                                              fun (val x)
                                              wrp (fn [& args] (apply fun imap args)) ]
                                          (.addListener Event imap evt wrp)))
+              (mapv #(layer (key %) (val %) imap) layers)
               (cell-doseq [[i {:keys [path opts] :as pline}] (cell= (indexed polylines))]
                 (let [polyline  (Polyline. (clj->js {}))]
                   (doseq [x pln-callbacks]
-                    (let [evt (.substr (name (key x)) 4)
+                    (let [evt (name (key x)) 
                           fun (val x)
                           wrp (fn [& args] (apply fun imap polyline pline args))]
                       (.addListener Event polyline evt wrp)))
@@ -84,7 +119,7 @@
               (cell-doseq [[i {:keys [path opts] :as pgon}] (cell= (indexed polygons))]
                 (let [ polygon (Polygon. (clj->js {}))]
                   (doseq [x pgn-callbacks]
-                    (let [evt (.substr (name (key x)) 4)
+                    (let [evt (name (key x)) 
                           fun (val x)
                           wrp (fn [& args] (apply fun imap polygon pgon args))]
                       (.addListener Event polygon evt wrp)))
@@ -92,15 +127,14 @@
                                path (if path (mapv #(lat-lng (:lat %) (:lon %)) path) [])
                                opt  (clj->js (merge {} opts {:map map :path path}))]
                            (.setOptions polygon opt)))))
-               
               (cell= (.setOptions imap opts))
-              (cell= (when (and fit-pins (seq pins))
+              (cell= (when (and fit-pins (seq markers))
                        ((~(partial delay-until visible?)
                          #(.fitBounds imap bounds)))))
-              (cell-doseq [[i {:keys [lat lon info opts] :as pin}] (cell= (indexed pins))]
+              (cell-doseq [[i {:keys [lat lon info opts] :as pin}] (cell= (indexed markers))]
                 (let [marker  (Marker. (clj->js {}))
                       iwindow (InfoWindow. (clj->js {}))]
-                  (doseq  [x pin-callbacks]  (let  [evt  (.substr  (name  (key x)) 4)
+                  (doseq  [x pin-callbacks]  (let  [evt  (name  (key x)) 
                                                     fun  (val x)
                                                     wrp  (fn [& args] (apply fun imap marker iwindow @pin args))]
                                                (.addListener Event marker evt wrp)))
