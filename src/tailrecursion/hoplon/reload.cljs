@@ -3,7 +3,8 @@
    [clojure.string :as string]
    [tailrecursion.hoplon :as h])
   (:require-macros
-   [tailrecursion.hoplon :refer [with-init!]]))
+   [tailrecursion.hoplon :refer [with-init!]]
+   [tailrecursion.hoplon.boot :refer [filename-uuid-cljs]]))
 
 (defn- reload! [sheet]
   (when-let [h (.-href sheet)]
@@ -41,11 +42,11 @@
     #(when (and %3 (not= %3 %4)) (callback))))
 
 (defn reload-js
-  "Reloads the page whenever the `main.js` file is modified. The optional
+  "Reloads the page whenever Hoplon's .js file is modified. The optional
   `interval` argument specifies how often to poll the server for changes, in
   milliseconds."
   [& [interval]]
-  (on-modified "main.js" interval #(.. js/window -location reload)))
+  (on-modified (str (filename-uuid-cljs) ".js") interval #(.. js/window -location reload)))
 
 (defn reload-css
   "Reloads CSS stylesheets whenever they are modified. The page itself is not

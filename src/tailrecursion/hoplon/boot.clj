@@ -131,6 +131,9 @@ page.open(uri, function(status) {
     (do-deps)
     (write (srcfiles) copysrc)))
 
+(def      filename-uuid         "c6f4dce0-0384-11e4-9191-0800200c9a66")
+(defmacro filename-uuid-cljs [] filename-uuid)
+
 (boot/deftask hoplon
   "Build Hoplon web application.
 
@@ -174,7 +177,6 @@ page.open(uri, function(status) {
         dep-inc-res    (boot/mktmpdir! ::hoplon-dep-inc-res)
         src-inc-res    (boot/mktmpdir! ::hoplon-src-inc-res)
         install-res?   (atom nil)
-        filename-uuid  "c6f4dce0-0384-11e4-9191-0800200c9a66"
         hoplon-opts    (-> cljs-opts
                          (select-keys [:cache :pretty-print :css-inc-path])
                          (update-in [:css-inc-path] #(or % (str filename-uuid ".css"))))
