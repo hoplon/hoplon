@@ -210,6 +210,7 @@
 (def li             (make-elem-ctor "li"))
 (def link           (make-elem-ctor "link"))
 (def html-map       (make-elem-ctor "map"))
+(def html-main      (make-elem-ctor "main"))
 (def mark           (make-elem-ctor "mark"))
 (def menu           (make-elem-ctor "menu"))
 (def html-meta      (make-elem-ctor "meta"))
