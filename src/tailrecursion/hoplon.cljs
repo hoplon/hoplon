@@ -388,6 +388,10 @@
 
 (defmulti on! (fn [elem event callback] event) :default ::default)
 
+(extend-type js/jQuery.Event
+  cljs.core/IDeref
+  (-deref [this] (-> this .-target js/jQuery .val)))
+
 (defmethod on! ::default
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
