@@ -45,7 +45,7 @@ the following libraries as dependencies to complete the stack:
       <span>second thing</span>
     </my-list>
 
-    <!-- using FRP to link DOM and Javelin cells -->
+    <!-- using dataflow to link DOM and Javelin cells -->
     <p><text>You've clicked ~{clicks} times, so far.</text></p>
     <button on-click="{{ #(swap! clicks inc) }}">click me</button>
   </body>
