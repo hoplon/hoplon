@@ -94,9 +94,10 @@ page.open(uri, function(status) {
 
 (defn copy-resource
   [resource-path out-path]
-  (with-open [in  (io/input-stream (io/resource resource-path))
-              out (io/output-stream (io/file out-path))]
-    (io/copy in out)))
+  (when-not (.endsWith resource-path "/")
+    (with-open [in  (io/input-stream (io/resource resource-path))
+                out (io/output-stream (io/file out-path))]
+      (io/copy in out))))
 
 (defn get-imports
   "Separates out the @imports from the stylesheet, preserving leading comments.
@@ -125,7 +126,7 @@ page.open(uri, function(status) {
         outfile #(doto (io/file %1 %2) io/make-parents)
         filter* (partial filter #(re-find #"^_hoplon/.+$" (first %)))
         copysrc #(io/copy (second %) (outfile src-res-dir (outpath (first %))))
-        copyres #(copy-resource (first %) (outfile dep-res-dir (outpath (first %))))
+        copyres (fn [[f & _]] (copy-resource f (outfile dep-res-dir (outpath f))))
         write   #(do (doall (map %2 (filter* %1))) ::ok)
         do-deps (do-once state #(write (depfiles) copyres))]
     (do-deps)
