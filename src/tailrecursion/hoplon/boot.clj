@@ -142,25 +142,23 @@ page.open(uri, function(status) {
   compiler and/or the Hoplon compiler. The Hoplon compiler recognizes the
   following options:
 
-    :cache         If set to `false` in-memory caching of compiled output is
+  * :cache         If set to `false` in-memory caching of compiled output is
                    disabled.
 
-    :prerender     If set to `false` PhantomJS pre-rendering of page content
+  * :prerender     If set to `false` PhantomJS pre-rendering of page content
                    is disabled.
 
-    :pretty-print  If set to `true` enables pretty-printed output both in the
+  * :pretty-print  If set to `true` enables pretty-printed output both in the
                    ClojureScript compiler and in the ClojureScript files
                    created by the Hoplon compiler.
 
-    :source-map    If set to `true` source maps will be created for the build.
+  * :source-map    If set to `true` source maps will be created for the build.
 
-    :output-path   Specify the path (relative to the docroot) where the compiled
-                   JavaScript file should be created. Default is \"main.js\".
+  * :output-path   Specify the path (relative to the docroot) where the compiled
+                   JavaScript file should be created.
 
-    :css-inc-path  Specify the path (relative to the docroot) where the included
-                   CSS files (i.e. the stylesheets on the classpath with the
-                   `.inc.css` extension) should be concatenated and written to.
-                   Default is \"main.css\".
+  * :css-inc-path  Specify the path (relative to the docroot) where the included
+                   CSS files should be concatenated and written to.
 
   Certain ClojureScript compiler options are overridden by the hoplon task, as
   follows: `:output-to`, `:output-dir`, `:source-map`, `:source-map-path`, and
