@@ -270,7 +270,7 @@
 (def ^:private *initfns*    (atom []))
 
 (defn add-initfn! [f]
-  (if @initialized? (f) (swap! *initfns* conj f)))
+  (if @initialized? (js/setTimeout f 0) (swap! *initfns* conj f)))
 
 (defn init []
   (with-timeout 0
