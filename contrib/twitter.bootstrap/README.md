@@ -1,10 +1,10 @@
 # twitter.bootstrap
 
-A [Hoplon][hoplon] wrapper for [Twitter's Bootstrap framework][3].
+A [Hoplon][hoplon] wrapper for [Twitter's Bootstrap framework][2].
 
 ## Dependency
 
-[![latest version][2]][1]
+[Artifacts published on Clojars.][1]
 
 ## Usage
 
@@ -31,5 +31,4 @@ Distributed under the Eclipse Public License, the same as Clojure
 
 [hoplon]: http://hoplon.io
 [1]: https://clojars.org/io.hoplon/twitter.bootstrap
-[2]: https://clojars.org/io.hoplon/twitter.bootstrap/latest-version.svg?cache=2
-[3]: https://getbootstrap.com
+[2]: https://getbootstrap.com
