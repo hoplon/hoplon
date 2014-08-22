@@ -1,12 +1,5 @@
 (ns hoplon.twitter.bootstrap)
 
-(js/jQuery
-  #(.append (js/jQuery "head")
-     (link
-       :rel  "stylesheet"
-       :type "text/css"
-       :href "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css")))
-
 (def ^:private cols-prefixes
   (for [i [:xs :sm :md :lg] j (range 1 13)]
     [(str "col-" (name i)) j]))
