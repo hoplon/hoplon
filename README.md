@@ -1,6 +1,6 @@
-# Hoplon
+[![Stories in Ready][12]][13] ![epicycles][11]
 
-[![latest version][8]][4] [![Stories in Ready][12]][13] ![epicycles][11]
+# Hoplon [![latest version][8]][4]
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
