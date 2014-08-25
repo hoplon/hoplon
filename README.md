@@ -1,7 +1,8 @@
 [![Stories in Ready](https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready)](https://waffle.io/tailrecursion/hoplon)
 ![epicycles][11]
 
-# Hoplon
+# Hoplon [![latest version][8]][4]
+
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
@@ -87,12 +88,6 @@ Or, equivalently:
 ### Demos
 
 * [Hoplon demo applications repository][5]
-
-### Dependency
-
-Artifacts are published on Clojars. 
-
-[![latest version][8]][4]
 
 ## License
 
