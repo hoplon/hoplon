@@ -1,8 +1,6 @@
-[![Stories in Ready](https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready)](https://waffle.io/tailrecursion/hoplon)
-![epicycles][11]
+# Hoplon
 
-# Hoplon [![latest version][8]][4]
-
+[![latest version][8]][4] [![Stories in Ready][12]][13] ![epicycles][11]
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes
@@ -112,3 +110,5 @@ this license. You must not remove this notice, or any other, from this software.
 [9]: http://tailrecursion.github.io/hoplon/
 [10]: http://en.wikipedia.org/wiki/Deferent_and_epicycle
 [11]: http://img.shields.io/badge/epicycles-0-green.svg?cache=1
+[12]: https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready
+[13]: https://waffle.io/tailrecursion/hoplon
