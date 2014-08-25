@@ -15,6 +15,16 @@ the following libraries as dependencies to complete the stack:
   data between client and server. Castra uses cljson as the underlying
   transport protocol.
 
+### Documentation
+
+* [http://hoplon.io][7]
+* [API Documentation][9]
+* [Design Document][6] (early version)
+
+### Demos
+
+* [Hoplon demo applications repository][5]
+
 ### Example
 
 ```xml
@@ -76,16 +86,6 @@ Or, equivalently:
     (p (text "You've clicked ~{clicks} times, so far."))
     (button :on-click #(swap! clicks inc) "click me")))
 ```
-
-### Documentation
-
-* [http://hoplon.io][7]
-* [API Documentation][9]
-* [Design Document][6] (early version)
-
-### Demos
-
-* [Hoplon demo applications repository][5]
 
 ## License
 
