@@ -1,6 +1,6 @@
 (defproject tailrecursion/hoplon "5.10.24"
   :description  "Hoplon web development environment."
-  :url          "http://github.com/tailrecursion/hoplon"
+  :url          "https://github.com/tailrecursion/hoplon"
   :license      {:name "Eclipse Public License"
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
   :plugins      [[lein-marginalia            "0.7.1"]]
