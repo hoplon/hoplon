@@ -319,6 +319,15 @@
   (let [e (js/jQuery elem)]
     (apply (if (= "checkbox" (.attr e "type")) check-val! text-val!) e args)))
 
+(defn disabled!
+  ([e] (.prop e "disabled"))
+  ([e v] (.prop e "disabled" (boolean v))))
+
+(defmethod do! :disabled
+  [elem _ & args]
+  (let [e (js/jQuery elem)]
+    (apply disabled! e args)))
+
 (defmethod do! :attr
   [elem _ kvs]
   (let [e (js/jQuery elem)]

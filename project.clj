@@ -4,7 +4,7 @@
   :license      {:name "Eclipse Public License"
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
   :plugins      [[lein-marginalia            "0.7.1"]]
-  :dependencies [[io.hoplon.vendor/jquery    "1.8.2-0"]
+  :dependencies [[io.hoplon.vendor/jquery    "1.11.1-0"]
                  [org.clojure/tools.reader   "0.8.5"]
                  [tailrecursion/javelin      "3.6.3"]
                  [tailrecursion/castra       "2.2.2"]
