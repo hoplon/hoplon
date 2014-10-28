@@ -21,6 +21,7 @@
 (defc  maps-version "3")
 (defc  maps-options {:other_params "sensor=false"})
 
+
 (def ensure-maps
   (queued
     (fn [callback]
@@ -84,6 +85,7 @@
           markers       (:hoplon.google.jsapi.maps/markers attr)
           polylines     (:hoplon.google.jsapi.maps/polylines attr)
           polygons      (:hoplon.google.jsapi.maps/polygons attr)
+          controls      (:hoplon.google.jsapi.maps/controls attr)
           mkfilter      #(fn [[x _]]
                            (let [ns (namespace x) nm (name x)]
                              (and (= "hoplon.google.jsapi.maps" ns)
@@ -97,7 +99,20 @@
       (ensure-maps
         (delay-until visible?
           (fn []
-            (let [maps         (.. js/google -maps)
+            (let [control-positions {
+                    :TL google.maps.ControlPosition.TOP_LEFT
+                    :TC google.maps.ControlPosition.TOP_CENTER
+                    :TR google.maps.ControlPosition.TOP_RIGHT
+                    :LT google.maps.ControlPosition.LEFT_TOP
+                    :RT google.maps.ControlPosition.RIGHT_TOP
+                    :LC google.maps.ControlPosition.LEFT_CENTER
+                    :RC google.maps.ControlPosition.RIGHT_CENTER
+                    :LB google.maps.ControlPosition.LEFT_BOTTOM
+                    :RB google.maps.ControlPosition.RIGHT_BOTTOM
+                    :BL google.maps.ControlPosition.BOTTOM_LEFT
+                    :BC google.maps.ControlPosition.BOTTOM_CENTER
+                    :BR google.maps.ControlPosition.BOTTOM_RIGHT } 
+                  maps         (.. js/google -maps)
                   Map          (.-Map maps)
                   Event        (.-event maps)
                   LatLng       (.-LatLng maps)
@@ -110,7 +125,7 @@
                   opts         (cell= (let [{:keys [lat lon]} center]
                                         (clj->js (merge {} map-opts {:center (lat-lng lat lon)}))))
                   imap         (Map. elem @opts)
-
+                  map-ctrls    (.-controls imap)
                   bounds       (cell= (with-let [b (LatLngBounds.)]
                                         (doseq [{:keys [lat lon]} markers]
                                           (.extend b (lat-lng lat lon)))))]
@@ -120,6 +135,9 @@
                       wrp (fn [& args] (apply fun imap args)) ]
                   (.addListener Event imap evt wrp)))
               (mapv #(layer (key %) (val %) imap) layers)
+              (cell-doseq [[i {:keys [elem position] :as ctrl}] (cell= (indexed controls))]
+                (do
+                  (.push (aget map-ctrls ((keyword @position) control-positions)) @elem)))
               (cell-doseq [[i {:keys [path opts] :as pline}] (cell= (indexed polylines))]
                 (let [polyline  (Polyline. (clj->js {}))]
                   (doseq [x pln-callbacks]
