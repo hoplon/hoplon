@@ -76,7 +76,10 @@
     (cell= (let [map      (when y imap)]
              (.setMap transit map)))))
 
-(defelem google-map [attr _]
+(defelem google-map-control [attr kids]
+  {:position (keyword (:position attr)) :control kids})
+
+(defelem google-map [attr kids]
   (with-let [elem       (div (select-keys attr (keys (filter #(not= "hoplon.google.jsapi.maps" (namespace (key %))) attr))))]
     (let [visible?      (visible? elem)
           center        (:hoplon.google.jsapi.maps/center attr)
@@ -85,7 +88,6 @@
           markers       (:hoplon.google.jsapi.maps/markers attr)
           polylines     (:hoplon.google.jsapi.maps/polylines attr)
           polygons      (:hoplon.google.jsapi.maps/polygons attr)
-          controls      (:hoplon.google.jsapi.maps/controls attr)
           mkfilter      #(fn [[x _]]
                            (let [ns (namespace x) nm (name x)]
                              (and (= "hoplon.google.jsapi.maps" ns)
@@ -135,9 +137,12 @@
                       wrp (fn [& args] (apply fun imap args)) ]
                   (.addListener Event imap evt wrp)))
               (mapv #(layer (key %) (val %) imap) layers)
-              (cell-doseq [[i {:keys [elem position] :as ctrl}] (cell= (indexed controls))]
-                (do
-                  (.push (aget map-ctrls ((keyword @position) control-positions)) @elem)))
+              (doseq [x kids]
+                (let [pos  (:position x)
+                      ctrls (:control x)]
+                  (doseq [ctrl ctrls]
+                    (.push (aget map-ctrls (pos control-positions)) (div ctrl)))))
+
               (cell-doseq [[i {:keys [path opts] :as pline}] (cell= (indexed polylines))]
                 (let [polyline  (Polyline. (clj->js {}))]
                   (doseq [x pln-callbacks]
