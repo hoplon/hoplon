@@ -19,7 +19,7 @@
     :else x))
 
 (defc  maps-version "3")
-(defc  maps-options {:other_params "sensor=false"})
+(defc  maps-options {:other_params "sensor=false&libraries=geometry"})
 
 (def ensure-maps
   (queued
@@ -40,6 +40,13 @@
 (defn visible? [elem]
   (with-let [c (cell nil)]
     (with-interval 100 (reset! c (.is (js/jQuery elem) ":visible")))))
+
+(defn decode-path [coded]
+  (let [maps            (.. js/google -maps)
+        LatLng          (.-LatLng maps)
+        enc-lib         (.-encoding (.-geometry maps))
+        points          (.decodePath enc-lib coded)]
+    (into [] (map #(assoc {} :lat (.lat (clj->js %)) :lon (.lng (clj->js %))) points))))
 
 (defn point-in-polygon [point path]
   (let [maps              (.. js/google -maps)
@@ -75,7 +82,10 @@
     (cell= (let [map      (when y imap)]
              (.setMap transit map)))))
 
-(defelem google-map [attr _]
+(defelem google-map-control [attr kids]
+  {:position (keyword (:position attr)) :control kids})
+
+(defelem google-map [attr kids]
   (with-let [elem       (div (select-keys attr (keys (filter #(not= "hoplon.google.jsapi.maps" (namespace (key %))) attr))))]
     (let [visible?      (visible? elem)
           center        (:hoplon.google.jsapi.maps/center attr)
@@ -97,7 +107,20 @@
       (ensure-maps
         (delay-until visible?
           (fn []
-            (let [maps         (.. js/google -maps)
+            (let [control-positions {
+                    :TL google.maps.ControlPosition.TOP_LEFT
+                    :TC google.maps.ControlPosition.TOP_CENTER
+                    :TR google.maps.ControlPosition.TOP_RIGHT
+                    :LT google.maps.ControlPosition.LEFT_TOP
+                    :RT google.maps.ControlPosition.RIGHT_TOP
+                    :LC google.maps.ControlPosition.LEFT_CENTER
+                    :RC google.maps.ControlPosition.RIGHT_CENTER
+                    :LB google.maps.ControlPosition.LEFT_BOTTOM
+                    :RB google.maps.ControlPosition.RIGHT_BOTTOM
+                    :BL google.maps.ControlPosition.BOTTOM_LEFT
+                    :BC google.maps.ControlPosition.BOTTOM_CENTER
+                    :BR google.maps.ControlPosition.BOTTOM_RIGHT } 
+                  maps         (.. js/google -maps)
                   Map          (.-Map maps)
                   Event        (.-event maps)
                   LatLng       (.-LatLng maps)
@@ -110,7 +133,7 @@
                   opts         (cell= (let [{:keys [lat lon]} center]
                                         (clj->js (merge {} map-opts {:center (lat-lng lat lon)}))))
                   imap         (Map. elem @opts)
-
+                  map-ctrls    (.-controls imap)
                   bounds       (cell= (with-let [b (LatLngBounds.)]
                                         (doseq [{:keys [lat lon]} markers]
                                           (.extend b (lat-lng lat lon)))))]
@@ -120,6 +143,12 @@
                       wrp (fn [& args] (apply fun imap args)) ]
                   (.addListener Event imap evt wrp)))
               (mapv #(layer (key %) (val %) imap) layers)
+              (doseq [x kids]
+                (let [pos  (:position x)
+                      ctrls (:control x)]
+                  (doseq [ctrl ctrls]
+                    (.push (aget map-ctrls (pos control-positions)) (div ctrl)))))
+
               (cell-doseq [[i {:keys [path opts] :as pline}] (cell= (indexed polylines))]
                 (let [polyline  (Polyline. (clj->js {}))]
                   (doseq [x pln-callbacks]
