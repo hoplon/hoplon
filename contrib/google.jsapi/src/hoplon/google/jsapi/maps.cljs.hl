@@ -19,8 +19,7 @@
     :else x))
 
 (defc  maps-version "3")
-(defc  maps-options {:other_params "sensor=false"})
-
+(defc  maps-options {:other_params "sensor=false&libraries=geometry"})
 
 (def ensure-maps
   (queued
@@ -41,6 +40,13 @@
 (defn visible? [elem]
   (with-let [c (cell nil)]
     (with-interval 100 (reset! c (.is (js/jQuery elem) ":visible")))))
+
+(defn decode-path [coded]
+  (let [maps            (.. js/google -maps)
+        LatLng          (.-LatLng maps)
+        enc-lib         (.-encoding (.-geometry maps))
+        points          (.decodePath enc-lib coded)]
+    (into [] (map #(assoc {} :lat (.lat (clj->js %)) :lon (.lng (clj->js %))) points))))
 
 (defn point-in-polygon [point path]
   (let [maps              (.. js/google -maps)
