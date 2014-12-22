@@ -433,3 +433,10 @@ Moment.Duration.prototype.years = function() {};
  * @type {function():!number}
  */
 Moment.Duration.prototype.asYears = function() {};
+
+/**
+ * @nosideeffects
+ * @since 2.1.0
+ * @type {function():!number}
+ */
+Moment.Duration.prototype.isoWeekday = function() {};
