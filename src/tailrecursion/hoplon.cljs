@@ -11,6 +11,7 @@
    [tailrecursion.javelin :refer [with-let cell= prop-cell]]
    [tailrecursion.hoplon  :refer [with-timeout]])
   (:require
+    cljsjs.jquery
    [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]] 
    [cljs.reader           :refer [read-string]]
    [clojure.string        :refer [split join blank?]]))

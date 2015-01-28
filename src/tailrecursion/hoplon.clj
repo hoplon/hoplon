@@ -110,11 +110,7 @@
   (let [[_ attr kids] (parse-e (cons '_ forms))]
     `(html-head ~(or attr {})
        (let [~'meta html-meta]
-         [(link
-            :rel "stylesheet"
-            :type "text/css"
-            :href (aget js/window "_hoplon_main_css"))
-          ~@kids]))))
+         ~kids))))
 
 (defmacro body
   "FIXME: document this"
