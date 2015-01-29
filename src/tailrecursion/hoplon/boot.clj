@@ -18,21 +18,21 @@
   Further ClojureScript compilation rely on another task (e. g. boot-cljs).
   The Hoplon compiler recognizes the following options:
 
-  * :cache         If set to `false` in-memory caching of compiled output is
-                   disabled.
-
   * :pretty-print  If set to `true` enables pretty-printed output
                    in the ClojureScript files created by the Hoplon compiler."
-  [c cache bool "In-memory caching of compiled output."
-   pp pretty-print bool "Pretty-print CLJS files created by the Hoplon compiler."]
-  (let [tmp (boot/temp-dir!)]
+  [pp pretty-print bool "Pretty-print CLJS files created by the Hoplon compiler."]
+  (let [tmp (boot/temp-dir!)
+        prev-fileset (atom nil)]
     (boot/with-pre-wrap fileset
       (println "Compiling Hoplon pages...")
       (boot/empty-dir! tmp)
-      (let [in-files (boot/input-files fileset)
-            hl-files (boot/by-ext [".hl"] in-files)]
-        (doseq [hl hl-files]
-          (let [f (boot/tmpfile hl)]
-            (println "•" (.getPath f))
-            (hl/compile-file f tmp :opts *opts*))))
+      (let [hl (->> fileset
+                    (boot/fileset-diff @prev-fileset)
+                    boot/input-files
+                    (boot/by-ext [".hl"])
+                    (map boot/tmpfile))]
+        (reset! prev-fileset fileset)
+        (doseq [f hl]
+          (println "•" (.getPath f))
+          (hl/compile-file f tmp :opts *opts*)))
       (-> fileset (boot/add-source tmp) boot/commit!))))

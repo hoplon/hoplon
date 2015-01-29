@@ -8,12 +8,12 @@
 
 (ns tailrecursion.hoplon.compiler.compiler
   (:require
-    [clojure.pprint                         :as pp]
-    [clojure.java.io                        :as io]
-    [clojure.string                         :as str]
-    [tailrecursion.hoplon.compiler.tagsoup  :as tags]
-    [tailrecursion.hoplon.compiler.util     :as util]
-    [tailrecursion.hoplon.compiler.refer    :as refer]))
+    [clojure.pprint :as pp]
+    [clojure.java.io :as io]
+    [clojure.string :as str]
+    [tailrecursion.hoplon.compiler.tagsoup :as tags]
+    [tailrecursion.hoplon.compiler.util :as util]
+    [tailrecursion.hoplon.compiler.refer :as refer]))
 
 (def ^:dynamic *printer* prn)
 
@@ -24,12 +24,12 @@
 (defn inline-code [s process]
   (let [lines (str/split s #"\n")
         start #";;\{\{\s*$"
-        end   #"^\s*;;\}\}\s*$"
-        pad   #"^\s*"
+        end #"^\s*;;\}\}\s*$"
+        pad #"^\s*"
         unpad #(str/replace %1 (re-pattern (format "^\\s{0,%d}" %2)) "")]
     (loop [txt nil, i 0, [line & lines] lines, out []]
       (if-not line
-        (str/join "\n" out) 
+        (str/join "\n" out)
         (if-not txt
           (if (re-find start line)
             (recur [] i lines out)
@@ -41,29 +41,29 @@
               (recur (conj txt (unpad line i)) i lines out))))))))
 
 (defn as-forms [s]
-  (if (= \< (first (str/trim s))) 
+  (if (= \< (first (str/trim s)))
     (tags/parse-string (inline-code s tags/html-escape))
     (util/read-string (inline-code s pr-str))))
 
-(defn output-path     [forms] (-> forms first second str))
-(defn output-path-for [path]  (-> path slurp as-forms output-path))
+(defn output-path [forms] (-> forms first second str))
+(defn output-path-for [path] (-> path slurp as-forms output-path))
 
 (defn make-nsdecl
   [[_ ns-sym & forms]]
-  (let [ns-sym  (symbol ns-sym)
+  (let [ns-sym (symbol ns-sym)
         ns-syms '#{tailrecursion.hoplon tailrecursion.javelin}
-        rm?     #(or (contains? ns-syms %) (and (seq %) (contains? ns-syms (first %))))
-        mk-req  #(concat (remove rm? %2) (map %1 ns-syms (repeat %3)))
+        rm? #(or (contains? ns-syms %) (and (seq %) (contains? ns-syms (first %))))
+        mk-req #(concat (remove rm? %2) (map %1 ns-syms (repeat %3)))
         clauses (->> (tree-seq list? seq forms) (filter list?) (group-by first))
         exclude (when-let [e (:refer-hoplon clauses)] (nth (first e) 2))
         combine #(mapcat (partial drop 1) (% clauses))
-        req     (combine :require)
-        reqm    (combine :require-macros)
-        reqs    `(:require ~@(mk-req refer/make-require req exclude))
-        macros  `(:require-macros ~@(mk-req refer/make-require-macros reqm exclude))
-        other?  #(-> #{:require :require-macros :refer-hoplon}
-                   ((comp not contains?) (first %)))
-        others  (->> forms (filter list?) (filter other?))]
+        req (combine :require)
+        reqm (combine :require-macros)
+        reqs `(:require ~@(mk-req refer/make-require req exclude))
+        macros `(:require-macros ~@(mk-req refer/make-require-macros reqm exclude))
+        other? #(-> #{:require :require-macros :refer-hoplon}
+                    ((comp not contains?) (first %)))
+        others (->> forms (filter list?) (filter other?))]
     `(~'ns ~ns-sym ~@others ~reqs ~macros)))
 
 (defn forms-str [forms]
@@ -81,44 +81,32 @@
     (if (= 'ns (first nsdecl))
       {:cljs (forms-str (cons (make-nsdecl nsdecl) tlfs)) :ns (second nsdecl)}
       (let [[_ page & _] nsdecl
-            outpath    (output-path forms)
-            page-ns    (util/munge-page page)
-            nsdecl     (let [[h _ & t] (make-nsdecl nsdecl)]
-                         `(~h ~page-ns ~@t))
-            cljs       `(~nsdecl
-                          (defn ~(symbol "^:export") ~'hoploninit []
-                            ~@tlfs
-                            (~'tailrecursion.hoplon/init)))
-            cljsstr    (forms-str cljs)]
+            outpath (output-path forms)
+            page-ns (util/munge-page page)
+            nsdecl (let [[h _ & t] (make-nsdecl nsdecl)]
+                     `(~h ~page-ns ~@t))
+            cljs `(~nsdecl
+                    (defn ~(symbol "^:export") ~'hoploninit []
+                      ~@tlfs
+                      (~'tailrecursion.hoplon/init)))
+            cljsstr (forms-str cljs)]
         {:cljs cljsstr :ns page-ns :file outpath}))))
 
 (defn pp [form] (pp/write form :dispatch pp/code-dispatch))
 
-(def cache (atom {}))
+(defn- write [f s]
+  (when (and f s)
+    (doto f io/make-parents (spit s))))
 
 (defn compile-string
-  [forms-str path cljsdir & {:keys [opts]}]
-  (let [{cache? :cache :keys [pretty-print]} opts
-        cached      (get @cache path)
-        last-mod    (.lastModified (io/file path))
-        use-cached? (and (pos? last-mod)
-                      (<= last-mod (get cached :last-modified 0)))
-        write       (fn [f s m]
-                      (when (and f s)
-                        (spit (doto f io/make-parents) s)
-                        (when m (.setLastModified f m))))]
-    (let [{mod :last-modified :keys [cljs ns]}
-          (if use-cached?
-            cached
-            (when-let [forms (as-forms forms-str)]
-              (binding [*printer* (if pretty-print pp prn)]
-                (let [compiled (-> (compile-forms forms)
-                                 (assoc :last-modified last-mod))]
-                  (if (= cache? false)
-                    compiled
-                    (get (swap! cache assoc path compiled) path))))))
-          cljs-out (io/file cljsdir (ns->path ns))]
-      (write cljs-out cljs mod))))
+  [forms-str cljsdir & {:keys [opts]}]
+  (let [{:keys [pretty-print]} opts
+        {:keys [cljs ns]}
+        (when-let [forms (as-forms forms-str)]
+          (binding [*printer* (if pretty-print pp prn)]
+            (compile-forms forms)))
+        cljs-out (io/file cljsdir (ns->path ns))]
+    (write cljs-out cljs)))
 
 (defn compile-file [f & args]
-  (apply compile-string (slurp f) (.getPath f) args))
+  (apply compile-string (slurp f) args))
