@@ -25,7 +25,6 @@
         prev-fileset (atom nil)]
     (boot/with-pre-wrap fileset
       (println "Compiling Hoplon pages...")
-      (boot/empty-dir! tmp)
       (let [hl (->> fileset
                     (boot/fileset-diff @prev-fileset)
                     boot/input-files
