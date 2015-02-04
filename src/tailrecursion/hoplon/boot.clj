@@ -19,10 +19,16 @@
   The Hoplon compiler recognizes the following options:
 
   * :pretty-print  If set to `true` enables pretty-printed output
-                   in the ClojureScript files created by the Hoplon compiler."
-  [pp pretty-print bool "Pretty-print CLJS files created by the Hoplon compiler."]
+                   in the ClojureScript files created by the Hoplon compiler.
+
+  If you are compiling library, you need to include resulting cljs in target.
+  Do it by specifying :lib flag."
+  [pp pretty-print bool "Pretty-print CLJS files created by the Hoplon compiler."
+   l  lib          bool "Include produced cljs in the final artefact."]
   (let [tmp (boot/temp-dir!)
-        prev-fileset (atom nil)]
+        prev-fileset (atom nil)
+        opts (dissoc *opts* :lib)
+        add-fn (if lib boot/add-resource boot/add-source)]
     (boot/with-pre-wrap fileset
       (println "Compiling Hoplon pages...")
       (let [hl (->> fileset
@@ -33,5 +39,5 @@
         (reset! prev-fileset fileset)
         (doseq [f hl]
           (println "•" (.getPath f))
-          (hl/compile-file f tmp :opts *opts*)))
-      (-> fileset (boot/add-source tmp) boot/commit!))))
+          (hl/compile-file f tmp :opts opts)))
+      (-> fileset (add-fn tmp) boot/commit!))))
