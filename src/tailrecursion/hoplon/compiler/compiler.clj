@@ -90,7 +90,20 @@
                       ~@tlfs
                       (~'tailrecursion.hoplon/init)))
             cljsstr (forms-str cljs)]
-        {:cljs cljsstr :ns page-ns :file outpath}))))
+        (if (string? page)
+          (let [js-uri (-> outpath (str/split #"/") last (str ".js"))
+                script-src #(list 'script {:type "text/javascript" :src (str %)})
+                s-html     `(~'html {}
+                              (~'head {}
+                                (~'meta {:charset "utf-8"}))
+                              (~'body {}
+                                ~(script-src js-uri)))
+                htmlstr (tags/print-page "html" s-html)
+                edn {:require  [(symbol page-ns)]
+                     :init-fns [(symbol (str page-ns "/hoploninit"))]}
+                ednstr (pr-str edn)]
+            {:html htmlstr :edn ednstr :cljs cljsstr :ns page-ns :file outpath})
+          {:cljs cljsstr :ns page-ns})))))
 
 (defn pp [form] (pp/write form :dispatch pp/code-dispatch))
 
@@ -99,14 +112,19 @@
     (doto f io/make-parents (spit s))))
 
 (defn compile-string
-  [forms-str cljsdir & {:keys [opts]}]
+  [forms-str cljsdir htmldir & {:keys [opts]}]
   (let [{:keys [pretty-print]} opts
-        {:keys [cljs ns]}
+        {:keys [cljs ns html edn file]}
         (when-let [forms (as-forms forms-str)]
           (binding [*printer* (if pretty-print pp prn)]
             (compile-forms forms)))
         cljs-out (io/file cljsdir (ns->path ns))]
-    (write cljs-out cljs)))
+    (write cljs-out cljs)
+    (when file
+      (let [html-out (io/file htmldir file)
+            edn-out  (io/file cljsdir (str file ".cljs.edn"))]
+        (write edn-out edn)
+        (write html-out html)))))
 
 (defn compile-file [f & args]
   (apply compile-string (slurp f) args))

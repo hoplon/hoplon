@@ -26,12 +26,14 @@
   Do it by specifying :lib flag."
   [pp pretty-print bool "Pretty-print CLJS files created by the Hoplon compiler."
    l  lib          bool "Include produced cljs in the final artefact."]
-  (let [tmp (boot/temp-dir!)
+  (let [tmp-cljs (boot/temp-dir!)
+        tmp-html (boot/temp-dir!)
         prev-fileset (atom nil)
         opts (dissoc *opts* :lib)
-        add-fn (if lib boot/add-resource boot/add-source)]
+        add-cljs (if lib boot/add-resource boot/add-source)]
     (boot/with-pre-wrap fileset
       (println "Compiling Hoplon pages...")
+      (boot/empty-dir! tmp-html)
       (let [hl (->> fileset
                     (boot/fileset-diff @prev-fileset)
                     boot/input-files
@@ -40,8 +42,11 @@
         (reset! prev-fileset fileset)
         (doseq [f hl]
           (println "•" (.getPath f))
-          (hl/compile-file f tmp :opts opts)))
-      (-> fileset (add-fn tmp) boot/commit!))))
+          (hl/compile-file f tmp-cljs tmp-html :opts opts)))
+      (-> fileset
+          (add-cljs tmp-cljs)
+          (boot/add-resource tmp-html)
+          boot/commit!))))
 
 (boot/deftask html2cljs
   "Convert file from html syntax to cljs syntax."
