@@ -8,9 +8,74 @@
 
 (ns tailrecursion.hoplon.boot
   {:boot/export-tasks true}
-  (:require [boot.core :as boot]
-            [clojure.pprint :as pp]
-            [tailrecursion.hoplon.compiler.compiler :as hl]))
+  (:require [boot.core                              :as boot]
+            [clojure.pprint                         :as pp]
+            [clojure.java.io                        :as io]
+            [clojure.string                         :as string]
+            [clojure.java.shell                     :as sh]
+            [tailrecursion.hoplon.compiler.compiler :as hl]
+            [tailrecursion.hoplon.compiler.tagsoup  :as ts]))
+
+(def renderjs
+  "
+var page = require('webpage').create(),
+    sys  = require('system'),
+    path = sys.args[1]
+    uri  = \"file://\" + path;
+page.open(uri, function(status) {
+  setTimeout(function() {
+    var html = page.evaluate(function() {
+      return document.documentElement.outerHTML;
+    });
+    console.log(html);
+    phantom.exit();
+  }, 0);
+});")
+
+(boot/deftask prerender
+  []
+  (let [tmp          (boot/temp-dir!)
+        prev-fileset (atom nil)
+        rjs-tmp      (boot/temp-dir!)
+        rjs-path     (.getPath (io/file rjs-tmp "render.js"))
+        win?         (#{"Windows_NT"} (System/getenv "OS"))
+        phantom?     (= 0 (:exit (sh/sh (if win? "where" "which") "phantomjs")))
+        phantom!     #(let [{:keys [exit out err]} (sh/sh "phantomjs" %1 %2)
+                            warn? (and (zero? exit) (not (empty? err)))]
+                       (when warn? (println (string/trimr err)))
+                       (if (= 0 exit) out (throw (Exception. err))))
+        not-found    #(println "Skipping prerender: phantomjs not found on path.")]
+    (spit rjs-path renderjs)
+    (if (not phantom?)
+      (do (not-found) identity)
+      (boot/with-pre-wrap fileset
+        (println "Prerendering HTML pages...")
+        (let [html (->> fileset
+                        (boot/fileset-diff @prev-fileset)
+                        boot/output-files
+                        (boot/by-ext [".html"]))]
+          (reset! prev-fileset fileset)
+          (doseq [f html]
+            (let [path (-> f boot/tmpfile .getPath)
+                  ->frms #(-> % ts/parse-page ts/pedanticize)
+                  forms1 (-> path slurp ->frms)
+                  forms2 (-> (phantom! rjs-path path) ->frms)
+                  [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
+                  [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
+                  script? (comp (partial = 'script) first)
+                  rm-scripts #(remove script? %)
+                  att (merge att1 att2)
+                  hatt (merge hatt1 hatt2)
+                  head (concat head1 (rm-scripts head2))
+                  batt (merge batt1 batt2)
+                  body (concat (rm-scripts body2) body1)
+                  merged `(~'html ~att (~'head ~hatt ~@head) (~'body ~batt ~@body))]
+              (println "•" path)
+              (spit (io/file tmp (boot/tmppath f))
+                    (ts/print-page "html" merged))))
+          (-> fileset
+              (boot/add-resource tmp)
+              boot/commit!))))))
 
 (boot/deftask hoplon
   "Build Hoplon web application.
