@@ -9,6 +9,7 @@
 (ns tailrecursion.hoplon.boot
   {:boot/export-tasks true}
   (:require [boot.core :as boot]
+            [clojure.pprint :as pp]
             [tailrecursion.hoplon.compiler.compiler :as hl]))
 
 (boot/deftask hoplon
@@ -41,3 +42,14 @@
           (println "•" (.getPath f))
           (hl/compile-file f tmp :opts opts)))
       (-> fileset (add-fn tmp) boot/commit!))))
+
+(boot/deftask html2cljs
+  "Convert file from html syntax to cljs syntax."
+  [f file FILENAME str "File to convert."]
+  (boot/with-pre-wrap fileset
+    (->> file str slurp hl/as-forms
+         (#(with-out-str (pp/write % :dispatch pp/code-dispatch)))
+         clojure.string/trim
+         (#(subs % 1 (dec (count %))))
+         print)
+    fileset))

@@ -105,7 +105,9 @@
     `(let [~@(flatten-expr-1 expr sym)] ~sym)))
 
 (defmacro head
-  "FIXME: document this"
+  "FIXME: document this
+  FIXME: (head (tag1 ...) coll) produces equiv of (head (tag1 ... coll)),
+  but must splice coll into head"
   [& forms]
   (let [[_ attr kids] (parse-e (cons '_ forms))]
     `(html-head ~(or attr {})
