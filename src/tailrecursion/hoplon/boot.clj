@@ -33,13 +33,13 @@ page.open(uri, function(status) {
 });")
 
 (boot/deftask prerender
-  []
+  [e engine ENGINE str "PhantomJS-compatible engine to use."]
   (let [tmp          (boot/temp-dir!)
         prev-fileset (atom nil)
         rjs-tmp      (boot/temp-dir!)
         rjs-path     (.getPath (io/file rjs-tmp "render.js"))
         win?         (#{"Windows_NT"} (System/getenv "OS"))
-        phantom?     (= 0 (:exit (sh/sh (if win? "where" "which") "phantomjs")))
+        phantom?     (= 0 (:exit (sh/sh (if win? "where" "which") (or engine "phantomjs"))))
         phantom!     #(let [{:keys [exit out err]} (sh/sh "phantomjs" %1 %2)
                             warn? (and (zero? exit) (not (empty? err)))]
                        (when warn? (println (string/trimr err)))
