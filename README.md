@@ -1,6 +1,12 @@
 [![Stories in Ready][12]][13] ![epicycles][11]
 
-# Hoplon [![latest version][8]][4]
+# Hoplon
+
+[](dependency)
+```clojure
+[tailrecursion/hoplon "6.0.0-SNAPSHOT"] ;; latest release
+```
+[](/dependency)
 
 Hoplon is a set of tools and libraries for making web applications. Hoplon
 provides a compiler for web application frontend development, and includes

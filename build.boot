@@ -4,7 +4,7 @@
   ;; :repositories #(conj % '["sonatype" {:url "http://oss.sonatype.org/content/repositories/releases"}])
   :dependencies '[[org.clojure/clojure   "1.6.0"     :scope "provided"]
                   [boot/core             "2.0.0-rc9" :scope "provided"]
-                  [adzerk/bootlaces      "0.1.9"     :scope "test"]
+                  [adzerk/bootlaces      "0.1.10"    :scope "test"]
                   [cljsjs/jquery         "1.8.2-2"   :scope "compile"]
                   [tailrecursion/javelin "3.7.2"     :scope "compile"]])
 
