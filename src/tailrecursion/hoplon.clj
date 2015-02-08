@@ -68,24 +68,6 @@
   (let [parts (remove #(= "" %) (terpol8* s))]
     (if (every? string? parts) s `(str ~@parts))))
 
-(defn flatten-expr-1 [expr sym]
-  (require 'cljs.compiler)
-  (require 'cljs.core)
-  (require 'cljs.analyzer)
-  (let [ana-spc  (var-get (resolve 'cljs.analyzer/specials))
-        ana-xpn  (var-get (resolve 'cljs.analyzer/get-expander))
-        ana-env  (var-get (resolve 'cljs.analyzer/empty-env))
-        apply?   #(and (seq? %) (symbol? (first %)))
-        special? #(contains? ana-spc (first %))
-        macro?   #(ana-xpn (first %) (ana-env))
-        flatten? #(and (apply? %) (not (or (macro? %) (special? %))))
-        flatten  (fn [[op & args]]
-                   (let [args* (map #(if (flatten? %) (gensym) %) args)
-                         flat  #(when (flatten? %1) (flatten-expr-1 %1 %2))
-                         prep  (mapcat identity (map flat args args*))]
-                     (concat prep [sym (list* op args*)])))]
-    (if-not (flatten? expr) [sym expr] (flatten expr))))
-
 (defmacro def-values
   "Destructuring def, similar to scheme's define-values."
   ([bindings values] 
@@ -124,29 +106,6 @@
       `(let [t# (.createTextNode js/document "")]
          (tailrecursion.javelin/cell= (set! (.-nodeValue t#) ~i))
          t#))))
-
-(defmacro flatten-expr
-  "FIXME: document this"
-  [expr]
-  (let [sym (gensym)]
-    `(let [~@(flatten-expr-1 expr sym)] ~sym)))
-
-(defmacro head
-  "FIXME: document this
-  FIXME: (head (tag1 ...) coll) produces equiv of (head (tag1 ... coll)),
-  but must splice coll into head"
-  [& forms]
-  (let [[_ attr kids] (parse-e (cons '_ forms))]
-    `(html-head ~(or attr {})
-       (let [~'meta html-meta]
-         ~kids))))
-
-(defmacro body
-  "FIXME: document this"
-  [& forms]
-  (let [[_ attr kids] (parse-e (cons '_ forms))
-        flatten       (fn [x] `(flatten-expr ~x))]
-    `(html-body ~(or attr {}) ~@(map flatten kids))))
 
 (defmacro with-timeout
   "FIXME: document this"

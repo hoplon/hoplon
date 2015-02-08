@@ -138,8 +138,8 @@
   (fn [& args]
     (apply (.createElement js/document tag) args)))
 
-(def html-body      (make-singleton-ctor "body"))
-(def html-head      (make-singleton-ctor "head"))
+(def body           (make-singleton-ctor "body"))
+(def head           (make-singleton-ctor "head"))
 (def html           (make-singleton-ctor "html"))
 
 (def a              (make-elem-ctor "a"))
