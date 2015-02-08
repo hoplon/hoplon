@@ -8,9 +8,7 @@
                   [cljsjs/jquery         "1.8.2-2"   :scope "compile"]
                   [tailrecursion/javelin "3.7.2"     :scope "compile"]])
 
-(require
-  '[clojure.java.io :as io]
-  '[adzerk.bootlaces :refer :all])
+(require '[adzerk.bootlaces :refer :all])
 
 (def +version+ "6.0.0-SNAPSHOT")
 
