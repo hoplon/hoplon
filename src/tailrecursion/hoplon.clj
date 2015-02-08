@@ -23,10 +23,10 @@
   (->> (macroexpand `(let [~bindings ~values]))
        (second)
        (partition 2)
-       (map (partial add-doc docstring)) 
+       (map (partial add-doc docstring))
        (map #(cons 'def %))
        (list* 'do)))
-      
+
 (defn parse-e [[tag & [head & tail :as args]]]
   (let [kw1? (comp keyword? first)
         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
@@ -70,7 +70,7 @@
 
 (defmacro def-values
   "Destructuring def, similar to scheme's define-values."
-  ([bindings values] 
+  ([bindings values]
    (do-def nil bindings values))
   ([docstring bindings values]
    (do-def docstring bindings values)))
@@ -102,7 +102,7 @@
   [form]
   (let [i (terpol8 form)]
     (if-not (seq? i)
-      `(.createTextNode js/document ~i) 
+      `(.createTextNode js/document ~i)
       `(let [t# (.createTextNode js/document "")]
          (tailrecursion.javelin/cell= (set! (.-nodeValue t#) ~i))
          t#))))

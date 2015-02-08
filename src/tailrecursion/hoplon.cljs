@@ -12,7 +12,7 @@
    [tailrecursion.hoplon  :refer [with-timeout]])
   (:require
     cljsjs.jquery
-   [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]] 
+   [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]]
    [cljs.reader           :refer [read-string]]
    [clojure.string        :refer [split join blank?]]))
 
@@ -71,11 +71,11 @@
 (defn add-attributes! [this attr]
   (let [key*   #(let [n (let [s (name %2), c (last s)]
                           (if-not (= \= c) s (.slice s 0 -1)))
-                      p (.substr n 0 3)] 
+                      p (.substr n 0 3)]
                   (keyword (namespace %2) (if-not (= %1 p) n (.substr n 3))))
         dokey  (partial key* "do-")
         onkey  (partial key* "on-")
-        dos    (atom {}) 
+        dos    (atom {})
         ons    (atom {})
         addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
     (doseq [[k v] attr]
@@ -91,7 +91,7 @@
     (when (seq @ons)
       (with-timeout 0
         (doseq [[k v] @ons]
-          (on! this k v)))) 
+          (on! this k v))))
     this))
 
 (def append-child
@@ -278,7 +278,7 @@
 (defn val-id [id] (do! (by-id id) :value))
 
 (defn rel [other event]
-  (let [os (js->clj (.offset (js/jQuery other))) 
+  (let [os (js->clj (.offset (js/jQuery other)))
         ox (os "left")
         oy (os "top")]
     {:x (- (.-pageX event) ox) :y (- (.-pageY event) oy)}))
@@ -308,7 +308,7 @@
   (do! elem :attr {key val}))
 
 (defmethod do! :value
-  [elem _ & args] 
+  [elem _ & args]
   (let [e (js/jQuery elem)]
     (apply (if (= "checkbox" (.attr e "type")) check-val! text-val!) e args)))
 
@@ -322,7 +322,7 @@
           (.attr e k (if (= true v) k v)))))))
 
 (defmethod do! :class
-  [elem _ kvs] 
+  [elem _ kvs]
   (let [elem  (js/jQuery elem)
         ->map #(zipmap % (repeat true))
         clmap (if (map? kvs)
@@ -411,7 +411,7 @@
 (defn route-cell
   "Manage the URL hash via Javelin cells. There are three arities:
 
-  - When called with no arguments this function returns a formula cell whose 
+  - When called with no arguments this function returns a formula cell whose
     value is the URL hash or nil.
 
   - When called with a single string argument, the argument is taken as the
@@ -427,7 +427,7 @@
   ([]
      (let [r (prop-cell (.. js/window -location -hash))]
        (cell= (when (not= "" r) r))))
-  ([setter-or-dfl] 
+  ([setter-or-dfl]
      (if (cell? setter-or-dfl)
        (prop-cell (.. js/window -location -hash) setter-or-dfl)
        (let [r (route-cell)] (cell= (or r setter-or-dfl)))))
