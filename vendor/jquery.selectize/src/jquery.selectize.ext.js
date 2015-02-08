@@ -1,1 +1,0 @@
-jQuery.prototype.selectize = function() {};

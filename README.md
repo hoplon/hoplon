@@ -1,6 +1,4 @@
-[![Stories in Ready][12]][13] ![epicycles][11]
-
-# Hoplon
+# Hoplon ![epicycles][11]
 
 [](dependency)
 ```clojure
