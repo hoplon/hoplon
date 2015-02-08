@@ -267,17 +267,9 @@
 (def $text          #(.createTextNode js/document %))
 (def $comment       #(.createComment js/document %))
 
-(def ^:private initialized? (atom false))
-(def ^:private *initfns*    (atom []))
+(defn add-initfn! [f] (js/jQuery f))
 
-(defn add-initfn! [f]
-  (if @initialized? (js/setTimeout f 0) (swap! *initfns* conj f)))
-
-(defn init []
-  (with-timeout 0
-    (.on (js/jQuery "body") "submit" #(.preventDefault %))
-    (reset! initialized? true)
-    (doseq [f @*initfns*] (f))))
+(add-initfn! (fn [] (.on (js/jQuery "body") "submit" #(.preventDefault %))))
 
 ;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
