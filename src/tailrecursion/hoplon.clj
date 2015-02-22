@@ -100,8 +100,8 @@
 (defmacro text
   "FIXME: document this"
   [form]
-  (let [i (terpol8 form)]
-    (if-not (seq? i)
+  (let [i (if-not (string? form) form (terpol8 form))]
+    (if (string? i)
       `(.createTextNode js/document ~i)
       `(let [t# (.createTextNode js/document "")]
          (tailrecursion.javelin/cell= (set! (.-nodeValue t#) ~i))
@@ -121,3 +121,11 @@
   "FIXME: document this"
   [& body]
   `(add-initfn! (fn [] ~@body)))
+
+(defmacro sexp
+  [& args]
+  (->> (last (parse-e (cons '_ args)))
+       (mapcat #(if-not (string? %)
+                  [%]
+                  (read-string (str "(" % "\n)"))))))
+
