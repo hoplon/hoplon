@@ -134,7 +134,7 @@
                            (.getElementsByTagName tag)
                            (aget 0))]
       (add-attributes! elem attrs)
-      (.. (js/jQuery elem) (find ":not(script)") (remove))
+      (.. (js/jQuery elem) (empty))
       (doseq [k kids] (.appendChild elem k)))))
 
 (defn- make-elem-ctor [tag]
