@@ -122,6 +122,11 @@
   [& body]
   `(add-initfn! (fn [] ~@body)))
 
+(defmacro with-page-load
+  "FIXME: document this"
+  [& body]
+  `(defonce page-load# (on-page-load (fn [] ~@body))))
+
 (defmacro sexp
   [& args]
   (->> (last (parse-e (cons '_ args)))

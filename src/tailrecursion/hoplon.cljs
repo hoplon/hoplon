@@ -129,19 +129,26 @@
 
 (defn- make-singleton-ctor [tag]
   (fn [& args]
-    (let [old (aget (.getElementsByTagName js/document tag) 0)
-          new (.createElement js/document tag)]
-      (when old (.replaceChild (.-parentNode old) new old))
-      (apply new args))))
+    (let [[attrs kids] (parse-args args)
+          elem         (-> js/document
+                           (.getElementsByTagName tag)
+                           (aget 0))]
+      (add-attributes! elem attrs)
+      (.. (js/jQuery elem) (find ":not(script)") (remove))
+      (doseq [k kids] (.appendChild elem k)))))
 
 (defn- make-elem-ctor [tag]
   (fn [& args]
     (apply (.createElement js/document tag) args)))
 
+(defn html [& args]
+  (let [[attrs _] (parse-args args)]
+    (-> (.getElementsByTagName js/document "html")
+        (aget 0)
+        (add-attributes! attrs))))
+
 (def body           (make-singleton-ctor "body"))
 (def head           (make-singleton-ctor "head"))
-(def html           (make-singleton-ctor "html"))
-
 (def a              (make-elem-ctor "a"))
 (def abbr           (make-elem-ctor "abbr"))
 (def acronym        (make-elem-ctor "acronym"))
@@ -268,7 +275,9 @@
 (def $text          #(.createTextNode js/document %))
 (def $comment       #(.createComment js/document %))
 
-(defn add-initfn! [f] (js/jQuery f))
+(defn add-initfn!  [f] (js/jQuery f))
+(defn page-load    []  (.trigger (js/jQuery js/document) "page-load"))
+(defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
 
 (add-initfn! (fn [] (.on (js/jQuery "body") "submit" #(.preventDefault %))))
 
