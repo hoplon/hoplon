@@ -22,6 +22,8 @@
 (defn do-def [docstring bindings values]
   (->> (macroexpand `(let [~bindings ~values]))
        (second)
+       (walk/postwalk-replace
+         {'clojure.lang.PersistentHashMap/create '(partial apply hash-map)})
        (partition 2)
        (map (partial add-doc docstring))
        (map #(cons 'def %))
