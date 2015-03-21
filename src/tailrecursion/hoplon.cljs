@@ -274,7 +274,11 @@
 
 (defn init []
   (with-timeout 0
-    (.on (js/jQuery "body") "submit" #(.preventDefault %))
+    (. (js/jQuery "body")
+       (on "submit"
+           #(let [e (js/jQuery (.-target %))]
+              (when-not (or (.attr e "action") (.attr e "method"))
+                (.preventDefault %)))))
     (reset! initialized? true)
     (doseq [f @*initfns*] (f))))
 
