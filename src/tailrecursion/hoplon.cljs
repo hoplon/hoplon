@@ -279,7 +279,13 @@
 (defn page-load    []  (.trigger (js/jQuery js/document) "page-load"))
 (defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
 
-(add-initfn! (fn [] (.on (js/jQuery "body") "submit" #(.preventDefault %))))
+(add-initfn!
+  (fn []
+    (. (js/jQuery "body")
+       (on "submit"
+           #(let [e (js/jQuery (.-target %))]
+              (when-not (or (.attr e "action") (.attr e "method"))
+                (.preventDefault %)))))))
 
 ;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
