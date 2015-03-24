@@ -24,8 +24,9 @@
     (.setItem store (pr-str key) (pr-str value))))
 
 (defn store
-  [atom backend]
-  (let [existing (-get backend ::none)]
+  [atom backend & {:keys [ignore-existing]}]
+  (let [existing (or (and ignore-existing ::none)
+                     (-get backend ::none))]
     (if (= ::none existing)
       (-commit! backend @atom)
       (reset! atom existing))
@@ -33,13 +34,13 @@
       (add-watch ::storage-watch #(-commit! backend %4)))))
 
 (defn html-storage
-  [atom storage k]
-  (store atom (StorageBackend. storage k)))
+  [atom storage k & {:keys [ignore-existing]}]
+  (store atom (StorageBackend. storage k) :ignore-existing ignore-existing))
 
 (defn local-storage
-  [atom k]
-  (html-storage atom js/localStorage k))
+  [atom k & {:keys [ignore-existing]}]
+  (html-storage atom js/localStorage k :ignore-existing ignore-existing))
 
 (defn session-storage
-  [atom k]
-  (html-storage atom js/sessionStorage k))
+  [atom k & {:keys [ignore-existing]}]
+  (html-storage atom js/sessionStorage k :ignore-existing ignore-existing))
