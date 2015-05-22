@@ -275,6 +275,9 @@
 (def $text          #(.createTextNode js/document %))
 (def $comment       #(.createComment js/document %))
 
+(def <!--           $comment)
+(def -->            ::-->)
+
 (defn add-initfn!  [f] (js/jQuery f))
 (defn page-load    []  (.trigger (js/jQuery js/document) "page-load"))
 (defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
