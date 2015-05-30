@@ -49,9 +49,6 @@
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn unsplice [forms]
-  (mapcat #(if (or (seq?* %) (vector?* %)) (unsplice %) [%]) forms))
-
 (defn when-dom [this f]
   (if-not (instance? js/Element this)
     (f)
@@ -59,40 +56,28 @@
       (fn doit []
         (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
 
-(defn parse-args [[head & tail :as args]]
-  (let [kw1? (comp keyword? first)
-        mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
-        drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
-    (cond
-      (map?     head) [head (unsplice tail)]
-      (keyword? head) [(into {} (mkkw args)) (unsplice (drkw args))]
-      :else           [{} (unsplice args)])))
+(defn parse-args [args]
+  (loop [attr (transient {})
+         kids (transient [])
+         [arg & args] args]
+    (if-not arg
+      [(persistent! attr) (persistent! kids)]
+      (cond (map? arg)     (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+            (keyword? arg) (recur (assoc! attr arg (first args)) kids (rest args))
+            (seq?* arg)    (recur attr (reduce conj! kids (flatten arg)) args)
+            (vector?* arg) (recur attr (reduce conj! kids (flatten arg)) args)
+            :else          (recur attr (conj! kids arg) args)))))
 
 (defn add-attributes! [this attr]
-  (let [key*   #(let [n (let [s (name %2), c (last s)]
-                          (if-not (= \= c) s (.slice s 0 -1)))
-                      p (.substr n 0 3)]
-                  (keyword (namespace %2) (if-not (= %1 p) n (.substr n 3))))
-        dokey  (partial key* "do-")
-        onkey  (partial key* "on-")
-        dos    (atom {})
-        ons    (atom {})
-        addcls #(join " " (-> %1 (split #" ") set (into (split %2 #" "))))]
-    (doseq [[k v] attr]
-      (cond
-        (cell? v) (swap! dos assoc (dokey k) v)
-        (fn? v)   (swap! ons assoc (onkey k) v)
-        :else     (do! this (dokey k) v)))
-    (when (seq @dos)
-      (with-timeout 0
-        (doseq [[k v] @dos]
-          (do! this k @v)
-          (add-watch v (gensym) #(do! this k %4)))))
-    (when (seq @ons)
-      (with-timeout 0
-        (doseq [[k v] @ons]
-          (on! this k v))))
-    this))
+  (with-let [this this]
+    (with-timeout 0
+      (-> (fn [this k v]
+            (cond (cell? v) (do (do! this k @v)
+                                (add-watch v (gensym) #(do! this k %4)))
+                  (fn? v)   (on! this k v)
+                  :else     (do! this k v))
+            this)
+          (reduce-kv this attr)))))
 
 (def append-child
   (if-not is-ie8
@@ -108,7 +93,9 @@
     (do (replace-children! this @child-cell)
         (add-watch child-cell (gensym) #(replace-children! this %4)))
     (let [node #(cond (string? %) ($text %) (node? %) %)]
-      (doseq [x (keep node (unsplice kids))] (append-child this x))))
+      (doseq [x (flatten kids)]
+        (when-let [x (node x)]
+          (append-child this x)))))
   this)
 
 (defn on-append! [this f]
@@ -292,26 +279,6 @@
 
 ;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn by-id [id] (.getElementById js/document (name id)))
-
-(defn val-id [id] (do! (by-id id) :value))
-
-(defn rel [other event]
-  (let [os (js->clj (.offset (js/jQuery other)))
-        ox (os "left")
-        oy (os "top")]
-    {:x (- (.-pageX event) ox) :y (- (.-pageY event) oy)}))
-
-(defn relx [other event] (:x (rel other event)))
-
-(defn rely [other event] (:y (rel other event)))
-
-(defn rel-event [rel-to tag handler]
-  (fn [event]
-    (aset event (str tag "X") (relx rel-to event))
-    (aset event (str tag "Y") (rely rel-to event))
-    (handler event)))
-
 (defn text-val!
   ([e] (.val e))
   ([e v] (.val e (str v))))
@@ -408,6 +375,8 @@
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
+(defn sentinel [] (.createElement js/document "SENTINEL"))
+
 (defn loop-tpl*
   [items reverse? tpl]
   (let [pool-size  (cell  0)
@@ -415,13 +384,13 @@
         cur-count  (cell= (count items-seq))
         show-ith?  #(cell= (< % cur-count))
         ith-item   #(cell= (safe-nth items-seq %))]
-    (with-let [d (span)]
+    (with-let [d (sentinel)]
       (when-dom d
         #(let [p (.-parentNode d)]
            (.removeChild p d)
            (cell= (when (< pool-size cur-count)
                     (doseq [i (range pool-size cur-count)]
-                      (let [e ((tpl (ith-item i)) :do-toggle (show-ith? i))]
+                      (let [e ((tpl (ith-item i)) :toggle (show-ith? i))]
                         (if-not reverse?
                           (.appendChild p e)
                           (.insertBefore p e (.-firstChild p)))))
