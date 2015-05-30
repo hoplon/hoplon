@@ -428,7 +428,8 @@
                     (reset! ~(cell pool-size) cur-count))))))))
 
 (defn route-cell
-  []
-  (with-let [c (cell (.. js/window -location -hash))]
-    (-> (js/jQuery js/window)
-        (.on "hashchange" #(reset! c (.. js/window -location -hash))))))
+  [& [default]]
+  (let [c (cell (.. js/window -location -hash))]
+    (with-let [_ (cell= (or (and (seq c) c) default))]
+      (-> (js/jQuery js/window)
+          (.on "hashchange" #(reset! c (.. js/window -location -hash)))))))
