@@ -9,7 +9,7 @@
 (ns tailrecursion.hoplon
   (:require-macros
    [tailrecursion.javelin :refer [with-let cell= prop-cell]]
-   [tailrecursion.hoplon  :refer [with-timeout]])
+   [tailrecursion.hoplon  :refer [with-timeout with-dom]])
   (:require
     cljsjs.jquery
    [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]]
@@ -377,24 +377,32 @@
 
 (defn sentinel [] (.createElement js/document "SENTINEL"))
 
+(defn- do-watch [atom init f]
+  (f init @atom)
+  (add-watch atom (gensym) (fn [_ _ old new] (f old new))))
+
 (defn loop-tpl*
-  [items reverse? tpl]
-  (let [pool-size  (cell  0)
-        items-seq  (cell= (seq items))
-        cur-count  (cell= (count items-seq))
-        show-ith?  #(cell= (< % cur-count))
-        ith-item   #(cell= (safe-nth items-seq %))]
+  [items _ tpl]
+  (let [pool-size (atom 0)
+        on-deck   (atom ())
+        items-seq (cell= (seq items))
+        cur-count (cell= (count items-seq))
+        ith-item  #(cell= (safe-nth items-seq %))
+        shift!    #(with-let [x (first @%)] (swap! % rest))]
     (with-let [d (sentinel)]
-      (when-dom d
-        #(let [p (.-parentNode d)]
-           (.removeChild p d)
-           (cell= (when (< pool-size cur-count)
-                    (doseq [i (range pool-size cur-count)]
-                      (let [e ((tpl (ith-item i)) :toggle (show-ith? i))]
-                        (if-not reverse?
-                          (.appendChild p e)
-                          (.insertBefore p e (.-firstChild p)))))
-                    (reset! ~(cell pool-size) cur-count))))))))
+      (with-dom d
+        (let [p (.-parentNode d)]
+          (.removeChild p d)
+          (->> (fn [old new]
+                 (let [diff (- new old)]
+                   (cond (pos? diff)
+                         (doseq [i (range old new)]
+                           (.appendChild p (or (shift! on-deck)
+                                               (tpl (ith-item i)))))
+                         (neg? diff)
+                         (dotimes [_ (- diff)]
+                           (swap! on-deck conj (.removeChild p (.-lastChild p)))))))
+               (do-watch cur-count 0)))))))
 
 (defn route-cell
   [& [default]]
