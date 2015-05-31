@@ -18,6 +18,35 @@
 
 (declare do! on! $text add-children!)
 
+;;;; splicing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprotocol ISpliced)
+
+(defn spliced?
+  [x]
+  (satisfies? ISpliced x))
+
+;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprotocol ICustomElement
+  (-set-attribute! [this k v])
+  (-append-child! [this child])
+  (-remove-child! [this child]))
+
+(defn append-child!
+  [this child]
+  (-append-child! this child))
+
+(defn set-attribute!
+  [this k v]
+  (-set-attribute! this k v))
+
+(defn remove-child!
+  [this child]
+  (-remove-child! this child))
+
+;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def is-ie8 (not (aget js/window "Node")))
 
 (def node?
@@ -47,14 +76,14 @@
   ([f] (timeout f 0))
   ([f t] (.setTimeout js/window f t)))
 
-;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defn when-dom [this f]
   (if-not (instance? js/Element this)
     (f)
     (timeout
       (fn doit []
         (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
+
+;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn parse-args [args]
   (loop [attr (transient {})
@@ -79,40 +108,46 @@
             this)
           (reduce-kv this attr)))))
 
-(def append-child
-  (if-not is-ie8
-    #(.appendChild %1 %2)
-    #(try (.appendChild %1 %2) (catch js/Error _))))
-
 (defn replace-children! [this new-children]
   (.empty (js/jQuery this))
   (add-children! this (if (sequential? new-children) new-children [new-children])))
 
 (defn add-children! [this [child-cell & _ :as kids]]
-  (if (cell? child-cell)
-    (do (replace-children! this @child-cell)
-        (add-watch child-cell (gensym) #(replace-children! this %4)))
+  (with-let [this this]
     (let [node #(cond (string? %) ($text %) (node? %) %)]
       (doseq [x (flatten kids)]
         (when-let [x (node x)]
-          (append-child this x)))))
-  this)
-
-(defn on-append! [this f]
-  (set! (.-hoplonIFn this) f))
+          (append-child! this x))))))
 
 (extend-type js/Element
   IPrintWithWriter
   (-pr-writer
     ([this writer opts]
-       (write-all writer "#<Element: " (.-tagName this) ">")))
+     (write-all writer "#<Element: " (.-tagName this) ">")))
   IFn
   (-invoke
     ([this & args]
-       (let [[attr kids] (parse-args args)]
-         (if (.-hoplonIFn this)
-           (doto this (.hoplonIFn attr kids))
-           (doto this (add-attributes! attr) (add-children! kids)))))))
+     (let [[attr kids] (parse-args args)]
+       (doto this
+         (add-attributes! attr)
+         (add-children! kids)))))
+  ICustomElement
+  (-set-attribute!
+    ([this k v]
+     (with-let [_ nil]
+       (let [k (name k)
+             e (js/jQuery this)]
+         (if (= false v)
+           (.removeAttr e k)
+           (.attr e k (if (= true v) k v)))))))
+  (-append-child!
+    ([this child]
+     (if-not is-ie8
+       (.appendChild this child)
+       (try (.appendChild this child) (catch js/Error _)))))
+  (-remove-child!
+    ([this child]
+     (.removeChild this child))))
 
 (defn- make-singleton-ctor [tag]
   (fn [& args]
@@ -122,7 +157,10 @@
                            (aget 0))]
       (add-attributes! elem attrs)
       (.. (js/jQuery elem) (empty))
-      (doseq [k kids] (.appendChild elem k)))))
+      (doseq [k kids] (append-child! elem k)))))
+
+(defn sentinel? [elem]
+  (and elem (= "SENTINEL" (.-nodeName elem))))
 
 (defn- make-elem-ctor [tag]
   (fn [& args]
@@ -136,6 +174,7 @@
 
 (def body           (make-singleton-ctor "body"))
 (def head           (make-singleton-ctor "head"))
+(def sentinel       (make-elem-ctor "sentinel"))
 (def a              (make-elem-ctor "a"))
 (def abbr           (make-elem-ctor "abbr"))
 (def acronym        (make-elem-ctor "acronym"))
@@ -375,8 +414,6 @@
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
-(defn sentinel [] (.createElement js/document "SENTINEL"))
-
 (defn- do-watch [atom init f]
   (f init @atom)
   (add-watch atom (gensym) (fn [_ _ old new] (f old new))))
@@ -384,6 +421,7 @@
 (defn loop-tpl*
   [items _ tpl]
   (let [pool-size (atom 0)
+        current   (atom [])
         on-deck   (atom ())
         items-seq (cell= (seq items))
         cur-count (cell= (count items-seq))
@@ -392,16 +430,20 @@
     (with-let [d (sentinel)]
       (with-dom d
         (let [p (.-parentNode d)]
-          (.removeChild p d)
+          (remove-child! p d)
           (->> (fn [old new]
                  (let [diff (- new old)]
                    (cond (pos? diff)
                          (doseq [i (range old new)]
-                           (.appendChild p (or (shift! on-deck)
-                                               (tpl (ith-item i)))))
+                           (let [e (or (shift! on-deck) (tpl (ith-item i)))]
+                             (swap! current conj e)
+                             (append-child! p e)))
                          (neg? diff)
                          (dotimes [_ (- diff)]
-                           (swap! on-deck conj (.removeChild p (.-lastChild p)))))))
+                           (let [e (peek @current)]
+                             (swap! current pop)
+                             (swap! on-deck conj e)
+                             (remove-child! p e))))))
                (do-watch cur-count 0)))))))
 
 (defn route-cell
