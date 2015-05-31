@@ -99,6 +99,10 @@
          (let [~@id-binds]
            (tailrecursion.javelin/cell-let [~bindings item#] ~body))))))
 
+(defmacro with-dom
+  [elem & body]
+  `(when-dom ~elem (fn [] ~@body)))
+
 (defmacro text
   "FIXME: document this"
   [form]
