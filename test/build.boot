@@ -23,4 +23,5 @@
     (hoplon)
     (reload)
     (cljs)
+    (prerender)
     #_(serve)))
