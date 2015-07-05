@@ -83,21 +83,47 @@
   (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (fn [& args#] (let [~bind (parse-args args#)] ~@body)))))
 
+(defn- map-bind-keys
+  [form]
+  (when (map? form)
+    (->> form
+         :keys
+         (map (juxt identity #(keyword (name %))))
+         (into (dissoc form :keys))
+         vals
+         (filter keyword?))))
+
+(defmacro component
+  "FIXME: document this"
+  [[bind-attr bind-kids] & body]
+  (let [attr-keys (map-bind-keys bind-attr)]
+    `(fn [& args#]
+       (let [[attr# kids#] (parse-args args#)]
+         (-> (let [kids*# (tailrecursion.javelin/cell [])
+                   attr*# (tailrecursion.javelin/cell
+                            ~(zipmap attr-keys (repeat nil)))]
+               (tailrecursion.javelin/cell-let
+                 [~bind-attr attr*#
+                  ~bind-kids (tailrecursion.javelin/cell= (flatten kids*#))]
+                 (doto (do ~@body)
+                   (set-appendChild! (constantly kids*#))
+                   (set-removeChild! (constantly kids*#))
+                   (set-setAttribute! (constantly attr*#)))))
+             (apply attr# kids#))))))
+
+(defmacro defcomponent
+  "FIXME: document this"
+  [name & forms]
+  (let [[_ name [_ [bind & body]]] (macroexpand-1 `(defn ~name ~@forms))]
+    `(def ~name (component ~bind ~@body))))
+
 (defmacro loop-tpl
   "FIXME: document this"
   [& args]
-  (let [[_ {:keys [bindings bind-ids reverse]} [tpl]]
-        (parse-e (cons '_ args))
-        [bindings items] bindings
-        mksym     (fn [& _] (gensym "hl-auto-"))
-        gsyms     (into {} (map (juxt identity mksym) bind-ids))
-        sym*      `(str (gensym "hl-auto-"))
-        id-binds  (interleave (vals gsyms) (repeat sym*))
-        body      (walk/postwalk #(get gsyms % %) tpl)]
-    `(loop-tpl* ~items ~reverse
+  (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
+    `(loop-tpl* ~items
        (fn [item#]
-         (let [~@id-binds]
-           (tailrecursion.javelin/cell-let [~bindings item#] ~body))))))
+         (tailrecursion.javelin/cell-let [~bindings item#] ~body)))))
 
 (defmacro with-dom
   [elem & body]

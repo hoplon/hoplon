@@ -29,7 +29,7 @@
      (f init @atom)
      (add-watch atom k (fn [_ _ old new] (f old new))))))
 
-(defn- child-seq
+(defn- child-vec
   [this]
   (let [x (.-childNodes this)
         l (.-length x)] 
@@ -37,50 +37,81 @@
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
 
+(defn- ->node
+  [x]
+  (cond (string? x) ($text x)
+        (number? x) ($text (str x))
+        :else       x))
+
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:private removeChild  (.. js/Element -prototype -removeChild))
 (def ^:private appendChild  (.. js/Element -prototype -appendChild))
 (def ^:private insertBefore (.. js/Element -prototype -insertBefore))
+(def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- merge-kids
   [this old new]
   (let [new  (flatten new)
         new? (set new)]
     (loop [[x & xs] new
-           [k & ks :as kids] (child-seq this)]
+           [k & ks :as kids] (child-vec this)]
       (when (or x k)
-        (->> (cond (= x k) ks
-                   (not k) (do (.call appendChild this x) ks)
-                   (not x) (do (when-not (new? k) (.call removeChild this k)) ks)
-                   :else   (do (.call insertBefore this x k) kids))
-             (recur xs))))))
+        (recur xs (cond (= x k) ks
+                        (not k) (with-let [ks ks]
+                                  (.call appendChild this (->node x)))
+                        (not x) (with-let [ks ks] 
+                                  (when-not (new? k)
+                                      (.call removeChild this (->node k))))
+                        :else   (with-let [kids kids]
+                                  (.call insertBefore this (->node x) (->node k)))))))))
 
-(defn- ensure-kids
+(defn- ensure-kids!
   [this]
-  (when-not (.-kids this)
-    (let [kids (atom [])]
-      (set! (.-kids this) kids)
-      (do-watch kids (partial merge-kids this)))))
+  (with-let [this this]
+    (when-not (.-hoplonKids this)
+      (let [kids (atom [])]
+        (set! (.-hoplonKids this) kids)
+        (do-watch kids (partial merge-kids this))))))
 
-(set! (.. js/Element -prototype -appendChild)
-      (fn [x]
-        (this-as this
-          (with-let [x x]
-            (ensure-kids this)
-            (let [kids (.-kids this)
-                  i    (count @kids)]
-              (if (cell? x)
-                (do-watch x #(swap! kids assoc i %2))
-                (swap! kids assoc i x)))))))
+(defn set-appendChild!
+  [this kidfn]
+  (set! (.-appendChild this)
+        (fn [x]
+          (this-as this
+            (with-let [x x]
+              (ensure-kids! this)
+              (let [kids (kidfn this)
+                    i    (count @kids)]
+                (if (cell? x)
+                  (do-watch x #(swap! kids assoc i %2))
+                  (swap! kids assoc i x))))))))
 
-(set! (.. js/Element -prototype -removeChild)
-      (fn [x]
-        (this-as this
-          (with-let [x x]
-            (ensure-kids this)
-            (let [kids (.-kids this)]
-              (swap! kids #(into [] (remove (partial = x) %))))))))
+(defn set-removeChild!
+  [this kidfn]
+  (set! (.-removeChild this)
+        (fn [x]
+          (this-as this
+            (with-let [x x]
+              (ensure-kids! this)
+              (swap! (kidfn this) #(into [] (remove (partial = x) %))))))))
+
+(defn set-setAttribute!
+  [this attrfn]
+  (set! (.-setAttribute this)
+        (fn [k v]
+          (this-as this
+            (with-let [_ js/undefined]
+              (let [kk   (keyword k)
+                    attr (attrfn this)
+                    has? (and attr (contains? @attr kk))]
+                (pr :has? has? @attr k kk v)
+                (if has?
+                  (swap! attr assoc kk v)
+                  (.call setAttribute this k v))))))))
+
+(set-appendChild! (.-prototype js/Element) #(.-hoplonKids %))
+(set-removeChild! (.-prototype js/Element) #(.-hoplonKids %))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -141,7 +172,8 @@
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn parse-args [args]
+(defn parse-args
+  [args]
   (loop [attr (transient {})
          kids (transient [])
          [arg & args] args]
@@ -153,7 +185,8 @@
             (vector?* arg) (recur attr (reduce conj! kids (flatten arg)) args)
             :else          (recur attr (conj! kids arg) args)))))
 
-(defn add-attributes! [this attr]
+(defn add-attributes!
+  [this attr]
   (with-let [this this]
     (with-timeout 0
       (-> (fn [this k v]
@@ -164,13 +197,17 @@
             this)
           (reduce-kv this attr)))))
 
-(defn replace-children! [this new-children]
+(defn replace-children!
+  [this new-children]
   (.empty (js/jQuery this))
   (add-children! this (if (sequential? new-children) new-children [new-children])))
 
-(defn add-children! [this [child-cell & _ :as kids]]
+(defn add-children!
+  [this [child-cell & _ :as kids]]
   (with-let [this this]
-    (let [node #(cond (string? %) ($text %) (or (cell? %) (node? %)) %)]
+    (let [node #(cond (string? %) ($text %)
+                      (number? %) ($text (str %))
+                      :else       %)]
       (doseq [x (flatten kids)]
         (when-let [x (node x)]
           (append-child! this x))))))
@@ -205,21 +242,26 @@
     ([this child]
      (.removeChild this child))))
 
-(defn- make-singleton-ctor [tag]
+(defn- make-singleton-ctor
+  [tag]
   (fn [& args]
     (let [[attrs kids] (parse-args args)
           elem         (-> js/document
                            (.getElementsByTagName tag)
-                           (aget 0))]
+                           (aget 0)
+                           ensure-kids!)]
       (add-attributes! elem attrs)
+      (reset! (.-hoplonKids elem) [])
       (.. (js/jQuery elem) (empty))
       (doseq [k kids] (append-child! elem k)))))
 
-(defn- make-elem-ctor [tag]
+(defn- make-elem-ctor
+  [tag]
   (fn [& args]
-    (apply (.createElement js/document tag) args)))
+    (-> js/document (.createElement tag) ensure-kids! (apply args))))
 
-(defn html [& args]
+(defn html
+  [& args]
   (let [[attrs _] (parse-args args)]
     (-> (.getElementsByTagName js/document "html")
         (aget 0)
@@ -467,7 +509,7 @@
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
 (defn loop-tpl*
-  [items _ tpl]
+  [items tpl]
   (let [on-deck   (atom ())
         items-seq (cell= (seq items))
         ith-item  #(cell= (safe-nth items-seq %))
