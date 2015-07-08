@@ -5,7 +5,7 @@
                    [org.clojure/clojurescript "0.0-3269"]
                    [adzerk/boot-cljs          "0.0-3269-0"]
                    [tailrecursion/boot-hoplon "0.1.0-SNAPSHOT"]
-                   [tailrecursion/hoplon      "6.0.0-alpha1"]
+                   [tailrecursion/hoplon      "6.0.0-alpha2"]
                    [tailrecursion/castra      "3.0.0-SNAPSHOT"]
                    ])
 
