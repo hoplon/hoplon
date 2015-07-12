@@ -108,7 +108,7 @@ this license. You must not remove this notice, or any other, from this software.
 [3]: https://github.com/tailrecursion/cljson
 [4]: https://clojars.org/tailrecursion/hoplon
 [5]: https://github.com/tailrecursion/hoplon-demos
-[6]: doc/Design.md
+[6]: Design.md
 [7]: http://hoplon.io/
 [8]: https://clojars.org/tailrecursion/hoplon/latest-version.svg?bustcache=2
 [9]: http://tailrecursion.github.io/hoplon/
