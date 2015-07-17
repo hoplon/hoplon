@@ -77,11 +77,15 @@
   ([docstring bindings values]
    (do-def docstring bindings values)))
 
+(defmacro elem
+  [bind & body]
+  `(fn [& args#] (let [~bind (parse-args args#)] ~@body)))
+
 (defmacro defelem
   "FIXME: document this"
   [name & forms]
   (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
-    `(def ~name (fn [& args#] (let [~bind (parse-args args#)] ~@body)))))
+    `(def ~name (elem ~bind ~@body))))
 
 (defmacro loop-tpl
   "FIXME: document this"
