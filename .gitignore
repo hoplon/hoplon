@@ -13,5 +13,4 @@
 /.lein-deps-sum
 .nrepl-port
 /pom.xml
-/docs/
 /test/target/
