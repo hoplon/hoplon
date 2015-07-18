@@ -2,7 +2,7 @@
 
 [](dependency)
 ```clojure
-[tailrecursion/hoplon "6.0.0-alpha2"] ;; latest release
+[tailrecursion/hoplon "6.0.0-alpha3"] ;; latest release
 ```
 [](/dependency)
 
@@ -88,7 +88,7 @@ Or, equivalently:
       (span "second thing"))
 
     (p (text "You've clicked ~{clicks} times, so far."))
-    (button :on-click #(swap! clicks inc) "click me")))
+    (button :click #(swap! clicks inc) "click me")))
 ```
 
 ## License

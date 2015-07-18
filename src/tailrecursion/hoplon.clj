@@ -13,6 +13,8 @@
 (create-ns 'js)
 (create-ns 'tailrecursion.javelin)
 
+;;-- helpers ----------------------------------------------------------------;;
+
 (defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
 (defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
 
@@ -70,6 +72,18 @@
   (let [parts (remove #(= "" %) (terpol8* s))]
     (if (every? string? parts) s `(str ~@parts))))
 
+(defn- map-bind-keys
+  [form]
+  (when (map? form)
+    (->> form
+         :keys
+         (map (juxt identity #(keyword (name %))))
+         (into (dissoc form :keys))
+         vals
+         (filter keyword?))))
+
+;;-- cljs macros ------------------------------------------------------------;;
+
 (defmacro def-values
   "Destructuring def, similar to scheme's define-values."
   ([bindings values]
@@ -83,17 +97,7 @@
   (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (fn [& args#] (let [~bind (parse-args args#)] ~@body)))))
 
-(defn- map-bind-keys
-  [form]
-  (when (map? form)
-    (->> form
-         :keys
-         (map (juxt identity #(keyword (name %))))
-         (into (dissoc form :keys))
-         vals
-         (filter keyword?))))
-
-(defmacro component
+(defmacro elem+
   "FIXME: document this"
   [[bind-attr bind-kids] & body]
   (let [attr-keys (map-bind-keys bind-attr)]
@@ -111,11 +115,11 @@
                    (set-setAttribute! (constantly attr*#)))))
              (apply attr# kids#))))))
 
-(defmacro defcomponent
+(defmacro defelem+
   "FIXME: document this"
   [name & forms]
   (let [[_ name [_ [bind & body]]] (macroexpand-1 `(defn ~name ~@forms))]
-    `(def ~name (component ~bind ~@body))))
+    `(def ~name (elem+ ~bind ~@body))))
 
 (defmacro loop-tpl
   "FIXME: document this"

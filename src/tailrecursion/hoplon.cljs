@@ -19,9 +19,11 @@
 
 (declare do! on! $text add-children!)
 
+(enable-console-print!)
+
 ;;;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- do-watch
+(defn do-watch
   ([atom f]
    (do-watch atom nil f))
   ([atom init f]
@@ -105,7 +107,6 @@
               (let [kk   (keyword k)
                     attr (attrfn this)
                     has? (and attr (contains? @attr kk))]
-                (pr :has? has? @attr k kk v)
                 (if has?
                   (swap! attr assoc kk v)
                   (.call setAttribute this k v))))))))
@@ -151,9 +152,6 @@
     seq?
     #(try (seq? %) (catch js/Error _))))
 
-(set-print-fn!
-  #(when (and js/console (.-log js/console)) (.log js/console %)))
-
 (defn safe-nth
   ([coll index] (safe-nth coll index nil))
   ([coll index not-found]
@@ -190,11 +188,10 @@
   (with-let [this this]
     (with-timeout 0
       (-> (fn [this k v]
-            (cond (cell? v) (do (do! this k @v)
-                                (add-watch v (gensym) #(do! this k %4)))
-                  (fn? v)   (on! this k v)
-                  :else     (do! this k v))
-            this)
+            (with-let [this this]
+              (cond (cell? v) (do-watch v #(do! this k %2))
+                    (fn? v)   (on! this k v)
+                    :else     (do! this k v))))
           (reduce-kv this attr)))))
 
 (defn replace-children!
