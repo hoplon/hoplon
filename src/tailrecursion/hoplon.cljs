@@ -411,7 +411,10 @@
 
 (defn text-val!
   ([e] (.val e))
-  ([e v] (.val e (str v))))
+  ([e v] (let [vv (text-val! e)
+               v  (str v)]
+           (when (not= v vv)
+             (.val e v)))))
 
 (defn check-val!
   ([e] (.is e ":checked"))
