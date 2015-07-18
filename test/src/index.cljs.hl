@@ -1,0 +1,37 @@
+(page "index.html")
+
+(declare rand-item)
+
+(defc items (take 10 (repeatedly rand-item)))
+
+(defn rand-item [ ] (apply str (take 3 (repeatedly #(rand-int 9)))))
+(defn safe-pop  [x] (try (pop x) (catch js/Error _)))
+(defn more      [ ] (swap! items conj (rand-item)))
+(defn less      [ ] (swap! items rest))
+
+(defc things ["one" "two"])
+
+(defcomponent testy
+  [{:keys [color]} [title & kids]]
+  (div
+    :css {:color color}
+    title
+    (ul (loop-tpl
+          :bindings [kid kids]
+          (li kid)))))
+
+(def my-testy
+  (testy
+    (h1 "hi there")
+    (span "first fixed thing")
+    (loop-tpl
+      :bindings [item items]
+      (span :css {:color "red"} item))
+    (span "last fixed thing")))
+
+(html
+  (head)
+  (body
+    (button :click less "-1")
+    (button :click more "+1")
+    (my-testy "extra kid1" "extra-kid2")))
