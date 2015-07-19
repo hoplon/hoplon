@@ -1,27 +1,25 @@
 (page "index.html")
 
-(def ^:dynamic *book-data* (cell []))
+(def ^:dynamic *book-data* (cell {}))
+
+(defn sort-data
+  [data]
+  (sort-by key (seq data)))
 
 (defelem+ table-of-contents
   [_ _]
   (div
-    (h3 "Table of Contents")
+    (h3 :keep true "Table of Contents")
     (div
       (loop-tpl
-        :bindings [{:keys [num title]} *book-data*]
+        :bindings [[num title] (cell= (sort-data *book-data*))]
         (p (a :href "#" (text "~{num}...~{title}")))))))
 
 (defelem+ chapter
   [{:keys [title]} kids]
-  (let [chapter? #(= :chapter (:type %))
-        chapters (filter chapter? @*book-data*)
-        num      (inc (count chapters))
-        this-toc {:type :chapter :num num :title title}]
-    (swap! *book-data* conj this-toc)
-    (section
-      (h1
-        (text "Chapter ~{num}: ~{title}"))
-      kids)))
+  (let [num (inc (count @*book-data*))]
+    (do-watch title #(swap! *book-data* assoc num %2))
+    (section (h1 (text "Chapter ~{num}: ~{title}")) kids)))
 
 ;;---------------------------------------------------------------------------;;
 
@@ -30,14 +28,22 @@
 (time
   (html
     (head
-      (style "td { vertical-align:top; padding:10px; }"))
+      (link :rel "stylesheet" :href "main.css"))
     (body
       (table
-        (tr (td (table-of-contents))
+        :cellpadding "0"
+        :cellspacing "60px"
+        (tr (td :valign "top" (table-of-contents))
             (td (chapter
+                  :class "red"
                   :title "Things and Stuff"
                   (p "Some words about things.")
                   (p "Some more words about things."))
                 (chapter
+                  :class "blue"
                   :title "Other Things"
-                  (p "More information."))))))))
+                  (p "More information."))
+                (chapter
+                  :class "green"
+                  :title "The End"
+                  (p "This is the end of the book."))))))))

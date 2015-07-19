@@ -76,7 +76,7 @@
         (set! (.-hoplonKids this) kids)
         (do-watch kids (partial merge-kids this))))))
 
-(defn set-appendChild!
+(defn- set-appendChild!
   [this kidfn]
   (set! (.-appendChild this)
         (fn [x]
@@ -89,7 +89,7 @@
                   (do-watch x #(swap! kids assoc i %2))
                   (swap! kids assoc i x))))))))
 
-(defn set-removeChild!
+(defn- set-removeChild!
   [this kidfn]
   (set! (.-removeChild this)
         (fn [x]
@@ -98,7 +98,7 @@
               (ensure-kids! this)
               (swap! (kidfn this) #(into [] (remove (partial = x) %))))))))
 
-(defn set-setAttribute!
+(defn- set-setAttribute!
   [this attrfn]
   (set! (.-setAttribute this)
         (fn [k v]
@@ -135,19 +135,19 @@
 
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def is-ie8 (not (aget js/window "Node")))
+(def ^:private is-ie8 (not (aget js/window "Node")))
 
-(def node?
+(def ^:private node?
   (if-not is-ie8
     #(instance? js/Node %)
     #(try (.-nodeType %) (catch js/Error _))))
 
-(def vector?*
+(def ^:private vector?*
   (if-not is-ie8
     vector?
     #(try (vector? %) (catch js/Error _))))
 
-(def seq?*
+(def ^:private seq?*
   (if-not is-ie8
     seq?
     #(try (seq? %) (catch js/Error _))))
@@ -170,7 +170,7 @@
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn parse-args
+(defn- parse-args
   [args]
   (loop [attr (transient {})
          kids (transient [])
@@ -183,7 +183,7 @@
             (vector?* arg) (recur attr (reduce conj! kids (flatten arg)) args)
             :else          (recur attr (conj! kids arg) args)))))
 
-(defn add-attributes!
+(defn- add-attributes!
   [this attr]
   (with-let [this this]
     (with-timeout 0
@@ -194,12 +194,7 @@
                     :else     (do! this k v))))
           (reduce-kv this attr)))))
 
-(defn replace-children!
-  [this new-children]
-  (.empty (js/jQuery this))
-  (add-children! this (if (sequential? new-children) new-children [new-children])))
-
-(defn add-children!
+(defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
     (let [node #(cond (string? %) ($text %)
@@ -411,9 +406,8 @@
 
 (defn text-val!
   ([e] (.val e))
-  ([e v] (let [vv (text-val! e)
-               v  (str v)]
-           (when (not= v vv)
+  ([e v] (let [v (str v)]
+           (when (not= v (text-val! e))
              (.val e v)))))
 
 (defn check-val!

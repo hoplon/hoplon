@@ -8,7 +8,8 @@
 
 (ns tailrecursion.hoplon
   (:refer-clojure :exclude [subs name])
-  (:require [clojure.walk :as walk]))
+  (:require [clojure.walk :as walk]
+            [tailrecursion.javelin :refer [with-let cell-let cell=]]))
 
 (create-ns 'js)
 (create-ns 'tailrecursion.javelin)
@@ -101,6 +102,16 @@
   (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (elem ~bind ~@body))))
 
+#_(defmacro elem+
+  "FIXME: document this"
+  [[bind-attr bind-kids] & body]
+  (let [attr-keys (map-bind-keys bind-attr)]
+    `(fn [& args#]
+       (let [[init-attr# init-kids#] (parse-args args#)]
+         (-> (fn [attr# kids#]
+               (cell-let [~bind-attr attr# ~bind-kids kids#] ~@body))
+             (elem+* ~attr-keys init-attr# init-kids#))))))
+
 (defmacro elem+
   "FIXME: document this"
   [[bind-attr bind-kids] & body]
@@ -110,9 +121,8 @@
          (-> (let [kids*# (tailrecursion.javelin/cell [])
                    attr*# (tailrecursion.javelin/cell
                             ~(zipmap attr-keys (repeat nil)))]
-               (tailrecursion.javelin/cell-let
-                 [~bind-attr attr*#
-                  ~bind-kids (tailrecursion.javelin/cell= (flatten kids*#))]
+               (cell-let [~bind-attr attr*#
+                          ~bind-kids (cell= (flatten kids*#))]
                  (doto (do ~@body)
                    (set-appendChild! (constantly kids*#))
                    (set-removeChild! (constantly kids*#))
@@ -130,8 +140,7 @@
   [& args]
   (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
     `(loop-tpl* ~items
-       (fn [item#]
-         (tailrecursion.javelin/cell-let [~bindings item#] ~body)))))
+       (fn [item#] (cell-let [~bindings item#] ~body)))))
 
 (defmacro with-dom
   [elem & body]
@@ -143,9 +152,8 @@
   (let [i (if-not (string? form) form (terpol8 form))]
     (if (string? i)
       `(.createTextNode js/document ~i)
-      `(let [t# (.createTextNode js/document "")]
-         (tailrecursion.javelin/cell= (set! (.-nodeValue t#) ~i))
-         t#))))
+      `(with-let [t# (.createTextNode js/document "")]
+         (cell= (set! (.-nodeValue t#) ~i))))))
 
 (defmacro with-timeout
   "FIXME: document this"
