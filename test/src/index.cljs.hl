@@ -1,37 +1,43 @@
 (page "index.html")
 
-(declare rand-item)
+(def ^:dynamic *book-data* (cell []))
 
-(defc items (take 10 (repeatedly rand-item)))
-
-(defn rand-item [ ] (apply str (take 3 (repeatedly #(rand-int 9)))))
-(defn safe-pop  [x] (try (pop x) (catch js/Error _)))
-(defn more      [ ] (swap! items conj (rand-item)))
-(defn less      [ ] (swap! items rest))
-
-(defc things ["one" "two"])
-
-(defcomponent testy
-  [{:keys [color]} [title & kids]]
+(defelem+ table-of-contents
+  [_ _]
   (div
-    :css {:color color}
-    title
-    (ul (loop-tpl
-          :bindings [kid kids]
-          (li kid)))))
+    (h3 "Table of Contents")
+    (div
+      (loop-tpl
+        :bindings [{:keys [num title]} *book-data*]
+        (p (a :href "#" (text "~{num}...~{title}")))))))
 
-(def my-testy
-  (testy
-    (h1 "hi there")
-    (span "first fixed thing")
-    (loop-tpl
-      :bindings [item items]
-      (span :css {:color "red"} item))
-    (span "last fixed thing")))
+(defelem+ chapter
+  [{:keys [title]} kids]
+  (let [chapter? #(= :chapter (:type %))
+        chapters (filter chapter? @*book-data*)
+        num      (inc (count chapters))
+        this-toc {:type :chapter :num num :title title}]
+    (swap! *book-data* conj this-toc)
+    (section
+      (h1
+        (text "Chapter ~{num}: ~{title}"))
+      kids)))
 
-(html
-  (head)
-  (body
-    (button :click less "-1")
-    (button :click more "+1")
-    (my-testy "extra kid1" "extra-kid2")))
+;;---------------------------------------------------------------------------;;
+
+(cell= (pr :book-data *book-data*))
+
+(time
+  (html
+    (head
+      (style "td { vertical-align:top; padding:10px; }"))
+    (body
+      (table
+        (tr (td (table-of-contents))
+            (td (chapter
+                  :title "Things and Stuff"
+                  (p "Some words about things.")
+                  (p "Some more words about things."))
+                (chapter
+                  :title "Other Things"
+                  (p "More information."))))))))

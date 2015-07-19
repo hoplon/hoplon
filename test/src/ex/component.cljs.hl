@@ -1,0 +1,22 @@
+(ns ex.component)
+
+(defelem toc
+  [{:keys [toc]} _]
+  (div
+    (h3 "Table of Contents")
+    (div
+      (loop-tpl
+        :bindings [{:keys [num title]} toc]
+        (p (a :href "#" (text "~{num}...~{title}")))))))
+
+(defelem chapter
+  [{:keys [toc title]} kids]
+  (let [chapter? #(= :chapter (:type %))
+        chapters (filter chapter? @toc)
+        num      (inc (count chapters))
+        this-toc {:type :chapter :num num :title title}]
+    (swap! toc conj this-toc)
+    (section
+      (h1
+        (text "Chapter ~{num}: ~{title}"))
+      kids)))
