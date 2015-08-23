@@ -146,6 +146,12 @@
   [elem & body]
   `(when-dom ~elem (fn [] ~@body)))
 
+(defmacro static
+  [elem]
+  `(let [id# ~(str (gensym "hl"))]
+     (or (static-elements id#)
+         (~elem :static-id id#))))
+
 (defmacro text
   "FIXME: document this"
   [form]

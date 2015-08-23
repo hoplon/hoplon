@@ -11,7 +11,8 @@
    [tailrecursion.javelin :refer [with-let cell= prop-cell]]
    [tailrecursion.hoplon  :refer [with-timeout with-dom]])
   (:require
-    cljsjs.jquery
+    [goog.Uri]
+    [cljsjs.jquery]
     [clojure.set           :refer [difference intersection]]
     [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]]
     [cljs.reader           :refer [read-string]]
@@ -20,6 +21,13 @@
 (declare do! on! $text add-children!)
 
 (enable-console-print!)
+
+(def prerendering?
+  (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
+
+(def static-elements
+  (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
+      (reduce {} (.get (js/jQuery "[static-id]")))))
 
 ;;;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -50,11 +58,12 @@
 (def ^:private removeChild  (.. js/Element -prototype -removeChild))
 (def ^:private appendChild  (.. js/Element -prototype -appendChild))
 (def ^:private insertBefore (.. js/Element -prototype -insertBefore))
+(def ^:private replaceChild (.. js/Element -prototype -replaceChild))
 (def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- merge-kids
   [this old new]
-  (let [new  (flatten new)
+  (let [new  (remove nil? (flatten new))
         new? (set new)]
     (loop [[x & xs] new
            [k & ks :as kids] (child-vec this)]
@@ -72,7 +81,7 @@
   [this]
   (with-let [this this]
     (when-not (.-hoplonKids this)
-      (let [kids (atom [])]
+      (let [kids (atom (child-vec this))]
         (set! (.-hoplonKids this) kids)
         (do-watch kids (partial merge-kids this))))))
 
@@ -98,6 +107,24 @@
               (ensure-kids! this)
               (swap! (kidfn this) #(into [] (remove (partial = x) %))))))))
 
+(defn- set-insertBefore!
+  [this kidfn]
+  (set! (.-insertBefore this)
+        (fn [x y]
+          (this-as this
+            (with-let [x x]
+              (ensure-kids! this)
+              (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))))
+
+(defn- set-replaceChild!
+  [this kidfn]
+  (set! (.-replaceChild this)
+        (fn [x y]
+          (this-as this
+            (with-let [y y]
+              (ensure-kids! this)
+              (swap! (kidfn this) #(mapv (fn [z] (if (= z y) x z)) %)))))))
+
 (defn- set-setAttribute!
   [this attrfn]
   (set! (.-setAttribute this)
@@ -111,15 +138,19 @@
                   (swap! attr assoc kk v)
                   (.call setAttribute this k v))))))))
 
-(set-appendChild! (.-prototype js/Element) #(.-hoplonKids %))
-(set-removeChild! (.-prototype js/Element) #(.-hoplonKids %))
+(set-appendChild!  (.-prototype js/Element) #(.-hoplonKids %))
+(set-removeChild!  (.-prototype js/Element) #(.-hoplonKids %))
+(set-insertBefore! (.-prototype js/Element) #(.-hoplonKids %))
+(set-replaceChild! (.-prototype js/Element) #(.-hoplonKids %))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol ICustomElement
   (-set-attribute! [this k v])
   (-append-child!  [this child])
-  (-remove-child!  [this child]))
+  (-remove-child!  [this child])
+  (-replace-child! [this new existing])
+  (-insert-before! [this new existing]))
 
 (defn append-child!
   [this child]
@@ -132,6 +163,14 @@
 (defn remove-child!
   [this child]
   (-remove-child! this child))
+
+(defn replace-child!
+  [this new existing]
+  (-replace-child! this new existing))
+
+(defn insert-before!
+  [this new existing]
+  (-insert-before! this new existing))
 
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -186,13 +225,12 @@
 (defn- add-attributes!
   [this attr]
   (with-let [this this]
-    (with-timeout 0
-      (-> (fn [this k v]
-            (with-let [this this]
-              (cond (cell? v) (do-watch v #(do! this k %2))
-                    (fn? v)   (on! this k v)
-                    :else     (do! this k v))))
-          (reduce-kv this attr)))))
+    (-> (fn [this k v]
+          (with-let [this this]
+            (cond (cell? v) (do-watch v #(do! this k %2))
+                  (fn? v)   (on! this k v)
+                  :else     (do! this k v))))
+        (reduce-kv this attr))))
 
 (defn- add-children!
   [this [child-cell & _ :as kids]]
@@ -232,7 +270,13 @@
        (try (.appendChild this child) (catch js/Error _)))))
   (-remove-child!
     ([this child]
-     (.removeChild this child))))
+     (.removeChild this child)))
+  (-replace-child!
+    ([this new existing]
+     (.replaceChild this new existing)))
+  (-insert-before!
+    ([this new existing]
+     (.insertBefore this new existing))))
 
 (defn- make-singleton-ctor
   [tag]
@@ -243,9 +287,8 @@
                            (aget 0)
                            ensure-kids!)]
       (add-attributes! elem attrs)
-      (reset! (.-hoplonKids elem) [])
-      (.. (js/jQuery elem) (empty))
-      (doseq [k kids] (append-child! elem k)))))
+      (when (not (:static attrs))
+        (reset! (.-hoplonKids elem) (vec kids))))))
 
 (defn- make-elem-ctor
   [tag]
