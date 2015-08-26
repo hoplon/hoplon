@@ -8,16 +8,34 @@
 
 (ns tailrecursion.hoplon
   (:refer-clojure :exclude [subs name])
+  (:import [java.util UUID])
   (:require [clojure.walk :as walk]
+            [clojure.java.io :as io]
+            [clojure.string :as string]
             [tailrecursion.javelin :refer [with-let cell-let cell=]]))
 
 (create-ns 'js)
-(create-ns 'tailrecursion.javelin)
 
 ;;-- helpers ----------------------------------------------------------------;;
 
 (defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
 (defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
+
+(defmacro cache-key []
+  (or (System/getProperty "tailrecursion.hoplon.cacheKey")
+      (let [u (.. (UUID/randomUUID) toString (replaceAll "-" ""))]
+        (System/setProperty "tailrecursion.hoplon.cacheKey" u)
+        u)))
+
+(defn bust-cache
+  [path]
+  (let [[f & more] (reverse (string/split path #"/"))
+        [f1 f2]    (string/split f #"\." 2)]
+    (->> [(str f1 "." (cache-key)) f2]
+         (string/join ".")
+         (conj more)
+         (reverse)
+         (string/join "/"))))
 
 (defn add-doc [docstring pair]
   (if (string? docstring) (list (first pair) docstring (last pair)) pair))

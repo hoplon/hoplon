@@ -9,7 +9,7 @@
 (ns tailrecursion.hoplon
   (:require-macros
    [tailrecursion.javelin :refer [with-let cell= prop-cell]]
-   [tailrecursion.hoplon  :refer [with-timeout with-dom]])
+   [tailrecursion.hoplon  :refer [cache-key with-timeout with-dom]])
   (:require
     [goog.Uri]
     [cljsjs.jquery]
@@ -23,13 +23,17 @@
 (enable-console-print!)
 
 (def prerendering?
+  "Is the application running in a prerendering container (eg. PhantomJS via
+  the prerender task)?"
   (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
 
+;; This is an internal implementation detail, exposed for the convenience of
+;; the tailrecursion.hoplon/static macro.
 (def static-elements
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
       (reduce {} (.get (js/jQuery "[static-id]")))))
 
-;;;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn do-watch
   ([atom f]
@@ -38,6 +42,18 @@
    (with-let [k (gensym)]
      (f init @atom)
      (add-watch atom k (fn [_ _ old new] (f old new))))))
+
+(defn bust-cache
+  [path]
+  (let [[f & more] (reverse (split path #"/"))
+        [f1 f2]    (split f #"\." 2)]
+    (->> [(str f1 "." (cache-key)) f2]
+         (join ".")
+         (conj more)
+         (reverse)
+         (join "/"))))
+
+;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- child-vec
   [this]
