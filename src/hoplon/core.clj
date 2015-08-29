@@ -6,13 +6,13 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns tailrecursion.hoplon
+(ns hoplon.core
   (:refer-clojure :exclude [subs name])
   (:import [java.util UUID])
-  (:require [clojure.walk :as walk]
+  (:require [clojure.walk    :as walk]
             [clojure.java.io :as io]
-            [clojure.string :as string]
-            [tailrecursion.javelin :refer [with-let cell-let cell=]]))
+            [clojure.string  :as string]
+            [javelin.core    :as j]))
 
 (create-ns 'js)
 
@@ -22,9 +22,9 @@
 (defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
 
 (defmacro cache-key []
-  (or (System/getProperty "tailrecursion.hoplon.cacheKey")
+  (or (System/getProperty "hoplon.cacheKey")
       (let [u (.. (UUID/randomUUID) toString (replaceAll "-" ""))]
-        (System/setProperty "tailrecursion.hoplon.cacheKey" u)
+        (System/setProperty "hoplon.cacheKey" u)
         u)))
 
 (defn bust-cache
@@ -127,7 +127,7 @@
     `(fn [& args#]
        (let [[init-attr# init-kids#] (parse-args args#)]
          (-> (fn [attr# kids#]
-               (cell-let [~bind-attr attr# ~bind-kids kids#] ~@body))
+               (j/cell-let [~bind-attr attr# ~bind-kids kids#] ~@body))
              (elem+* ~attr-keys init-attr# init-kids#))))))
 
 (defmacro elem+
@@ -136,11 +136,10 @@
   (let [attr-keys (map-bind-keys bind-attr)]
     `(fn [& args#]
        (let [[attr# kids#] (parse-args args#)]
-         (-> (let [kids*# (tailrecursion.javelin/cell [])
-                   attr*# (tailrecursion.javelin/cell
-                            ~(zipmap attr-keys (repeat nil)))]
-               (cell-let [~bind-attr attr*#
-                          ~bind-kids (cell= (flatten kids*#))]
+         (-> (let [kids*# (j/cell [])
+                   attr*# (j/cell ~(zipmap attr-keys (repeat nil)))]
+               (j/cell-let [~bind-attr attr*#
+                          ~bind-kids (j/cell= (flatten kids*#))]
                  (doto (do ~@body)
                    (set-appendChild! (constantly kids*#))
                    (set-removeChild! (constantly kids*#))
@@ -158,7 +157,7 @@
   [& args]
   (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
     `(loop-tpl* ~items
-       (fn [item#] (cell-let [~bindings item#] ~body)))))
+       (fn [item#] (j/cell-let [~bindings item#] ~body)))))
 
 (defmacro with-dom
   [elem & body]
@@ -176,8 +175,8 @@
   (let [i (if-not (string? form) form (terpol8 form))]
     (if (string? i)
       `(.createTextNode js/document ~i)
-      `(with-let [t# (.createTextNode js/document "")]
-         (cell= (set! (.-nodeValue t#) ~i))))))
+      `(j/with-let [t# (.createTextNode js/document "")]
+         (j/cell= (set! (.-nodeValue t#) ~i))))))
 
 (defmacro with-timeout
   "FIXME: document this"

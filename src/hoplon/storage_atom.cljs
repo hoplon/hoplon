@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns tailrecursion.hoplon.storage-atom
+(ns hoplon.storage-atom
   (:require [cljs.reader :refer [read-string]]))
 
 (defprotocol IStorageBackend

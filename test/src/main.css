@@ -2,16 +2,3 @@
 @-webkit-keyframes androidBugfix {from { padding: 0; } to { padding: 0; }}
 body { -webkit-animation: androidBugfix infinite 1s; }
 /* end workaround */
-
-th            { text-align:      left; }
-body          { background:      #151515;
-                color:           #CBC689;
-                font-family:     monospace;
-                width:           680px;
-                margin:          0 auto;
-                padding:         0;
-                padding-top:     40px;
-                padding-bottom:  80px; }
-h1,h2,h3,th,a { color:           #FFF569; }
-a:hover       { color:           #5D5926;
-                text-decoration: none; }

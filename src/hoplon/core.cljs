@@ -6,17 +6,17 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns tailrecursion.hoplon
-  (:require-macros
-   [tailrecursion.javelin :refer [with-let cell= prop-cell]]
-   [tailrecursion.hoplon  :refer [cache-key with-timeout with-dom]])
+(ns hoplon.core
   (:require
     [goog.Uri]
     [cljsjs.jquery]
-    [clojure.set           :refer [difference intersection]]
-    [tailrecursion.javelin :refer [cell? cell lift destroy-cell!]]
-    [cljs.reader           :refer [read-string]]
-    [clojure.string        :refer [split join blank?]]))
+    [clojure.set    :refer [difference intersection]]
+    [javelin.core   :refer [cell? cell lift destroy-cell!]]
+    [cljs.reader    :refer [read-string]]
+    [clojure.string :refer [split join blank?]])
+  (:require-macros
+    [javelin.core   :refer [with-let cell= prop-cell]]
+    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
 
 (declare do! on! $text add-children!)
 
@@ -28,7 +28,7 @@
   (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
 
 ;; This is an internal implementation detail, exposed for the convenience of
-;; the tailrecursion.hoplon/static macro.
+;; the hoplon.core/static macro.
 (def static-elements
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
       (reduce {} (.get (js/jQuery "[static-id]")))))
@@ -93,7 +93,7 @@
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
-(defn- ensure-kids!
+(defn ensure-kids!
   [this]
   (with-let [this this]
     (when-not (.-hoplonKids this)

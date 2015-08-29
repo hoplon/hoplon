@@ -1,26 +1,15 @@
 (set-env!
   :resource-paths #{"src"}
-  :dependencies   '[[adzerk/boot-reload        "0.2.6"]
-                    [pandeiro/boot-http        "0.6.2"]
-                    [org.clojure/clojurescript "0.0-3269"]
-                    [adzerk/boot-cljs          "0.0-3308-0"]
-                    [tailrecursion/boot-hoplon "0.1.0-SNAPSHOT"]
-                    [tailrecursion/hoplon      "6.0.0-alpha3"]
-                    [tailrecursion/castra      "3.0.0-SNAPSHOT"]])
+  :dependencies   '[[org.clojure/clojurescript "1.7.48"]
+                    [adzerk/boot-cljs          "1.7.48-3"]
+                    [hoplon/boot-hoplon        "0.1.4"]
+                    [hoplon                    "6.0.0-alpha7"]])
 
 (require
   '[adzerk.boot-cljs :refer [cljs]]
-  '[adzerk.boot-reload :refer [reload]]
-  '[pandeiro.boot-http :refer [serve]]
-  '[tailrecursion.boot-hoplon :refer [haml hoplon prerender html2cljs]])
+  '[hoplon.boot-hoplon :refer [hoplon prerender]])
 
-(deftask dev
-  "Build hoplon.io for local development."
+(deftask build
+  "Build test page."
   []
-  (comp
-    #_(haml)
-    (hoplon)
-    (reload)
-    (cljs)
-    (prerender)
-    #_(serve)))
+  (comp (hoplon) (cljs) (prerender)))

@@ -1,10 +1,10 @@
-(ns tailrecursion.hoplon.test
+(ns hoplon.test
   (:require
-    [cljs.test :as t]
-    [goog.string :as gstring]
+    [cljs.test      :as t]
+    [goog.string    :as gstring]
     [clojure.string :as string]
-    [tailrecursion.hoplon :as h :include-macros true]
-    [tailrecursion.javelin :as j :include-macros true])
+    [hoplon.core    :as h :include-macros true]
+    [javelin.core   :as j :include-macros true])
   (:import
     [goog.string StringBuffer]))
 

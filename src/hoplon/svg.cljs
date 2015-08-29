@@ -1,10 +1,12 @@
-(ns tailrecursion.hoplon.svg
-  (:refer-clojure :exclude [symbol filter mask set]))
+(ns hoplon.svg
+  (:refer-clojure :exclude [symbol filter mask set])
+  (:require
+    [hoplon.core :refer [ensure-kids!]]))
 
 (defn make-svg-ctor [tag]
   (let [xmlns "http://www.w3.org/2000/svg"]
     (fn [& args]
-      (apply (.createElementNS js/document xmlns tag) args))))
+      (-> js/document (.createElementNS xmlns tag) ensure-kids! (apply args)))))
 
 (def a                   (make-svg-ctor "svg:a"))
 (def altGlyph            (make-svg-ctor "svg:altGlyph"))
