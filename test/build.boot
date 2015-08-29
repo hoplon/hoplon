@@ -2,8 +2,8 @@
   :resource-paths #{"src"}
   :dependencies   '[[org.clojure/clojurescript "1.7.48"]
                     [adzerk/boot-cljs          "1.7.48-3"]
-                    [hoplon/boot-hoplon        "0.1.4"]
-                    [hoplon                    "6.0.0-alpha7"]])
+                    [hoplon/boot-hoplon        "0.1.5"]
+                    [hoplon                    "6.0.0-alpha9"]])
 
 (require
   '[adzerk.boot-cljs :refer [cljs]]

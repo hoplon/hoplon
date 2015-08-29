@@ -6,11 +6,11 @@
                   [adzerk/bootlaces      "0.1.10"     :scope "test"]
                   [adzerk/boot-cljs      "0.0-3308-0" :scope "test"]
                   [cljsjs/jquery         "1.9.1-0"]
-                  [javelin               "3.8.0"]])
+                  [javelin               "3.8.1"]])
 
 (require '[adzerk.bootlaces :refer :all])
 
-(def +version+ "6.0.0-alpha8")
+(def +version+ "6.0.0-alpha9")
 
 (bootlaces! +version+)
 
