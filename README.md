@@ -2,7 +2,7 @@
 
 [](dependency)
 ```clojure
-[hoplon "6.0.0-alpha9"] ;; latest release
+[hoplon "6.0.0-alpha10"] ;; latest release
 ```
 [](/dependency)
 
@@ -89,6 +89,21 @@ Or, equivalently:
 
     (p (text "You've clicked ~{clicks} times, so far."))
     (button :click #(swap! clicks inc) "click me")))
+```
+
+## Hacking
+
+```
+# build and install locally
+boot build-jar
+```
+```
+# push snapshot
+boot build-jar push-snapshot
+```
+```
+# push release
+boot build-jar push-release
 ```
 
 ## License
