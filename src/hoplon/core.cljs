@@ -9,6 +9,7 @@
 (ns hoplon.core
   (:require
     [goog.Uri]
+    [goog.events :as events]
     [cljsjs.jquery]
     [clojure.set    :refer [difference intersection]]
     [javelin.core   :refer [cell? cell lift destroy-cell!]]
@@ -557,9 +558,13 @@
   cljs.core/IDeref
   (-deref [this] (-> this .-target js/jQuery .val)))
 
+(extend-type goog.events.Event
+  cljs.core/IDeref
+  (-deref [this] (.-target this)))
+
 (defmethod on! ::default
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (when-dom elem #(events/listen elem (name event) callback)))
 
 (defn loop-tpl*
   [items tpl]
