@@ -493,14 +493,20 @@
           (.removeAttr e k)
           (.attr e k (if (= true v) k v)))))))
 
+(defn toogle-class [elem classes bool]
+  (.toggleClass elem (join " " (map #(name (first %)) classes)) bool))
+
 (defmethod do! :class
   [elem _ kvs]
   (let [elem  (js/jQuery elem)
         ->map #(zipmap % (repeat true))
         clmap (if (map? kvs)
                 kvs
-                (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))]
-    (doseq [[c p?] clmap] (.toggleClass elem (name c) (boolean p?)))))
+                (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))
+        add-classes (filter (fn [[_ p?]] p?) clmap)
+        rem-classes (remove (fn [[_ p?]] p?) clmap)]
+    (toogle-class elem rem-classes false)
+    (toogle-class elem add-classes true)))
 
 (defmethod do! :css
   [elem _ kvs]
