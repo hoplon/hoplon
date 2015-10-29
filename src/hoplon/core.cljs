@@ -58,7 +58,7 @@
 (defn- child-vec
   [this]
   (let [x (.-childNodes this)
-        l (.-length x)] 
+        l (.-length x)]
     (loop [i 0 ret (transient [])]
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
@@ -87,9 +87,11 @@
         (recur xs (cond (= x k) ks
                         (not k) (with-let [ks ks]
                                   (.call appendChild this (->node x)))
-                        (not x) (with-let [ks ks] 
+                        (not x) (with-let [ks ks]
                                   (when-not (new? k)
-                                      (.call removeChild this (->node k))))
+                                    (let [n (->node k)]
+                                      (.call removeChild this n)
+                                      (.remove (js/jQuery n)))))
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
