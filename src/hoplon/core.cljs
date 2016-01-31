@@ -77,6 +77,8 @@
 (def ^:private replaceChild (.. js/Element -prototype -replaceChild))
 (def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
+(def ^:private ^:dynamic *preserve-event-handlers* false)
+
 (defn- merge-kids
   [this old new]
   (let [new  (remove nil? (flatten new))
@@ -91,7 +93,8 @@
                                   (when-not (new? k)
                                     (let [n (->node k)]
                                       (.call removeChild this n)
-                                      (.remove (js/jQuery n)))))
+                                      (when-not [*preserve-event-handlers*]
+                                        (.remove (js/jQuery n))))))
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
@@ -113,7 +116,9 @@
               (let [kids (kidfn this)
                     i    (count @kids)]
                 (if (cell? x)
-                  (do-watch x #(swap! kids assoc i %2))
+                  (let [preserve? (:preserve-event-handlers (meta x))]
+                    (do-watch x #(binding [*preserve-event-handlers* preserve?]
+                                   (swap! kids assoc i %2))))
                   (swap! kids assoc i x))))))))
 
 (defn- set-removeChild!
@@ -569,7 +574,7 @@
         items-seq (cell= (seq items))
         ith-item  #(cell= (safe-nth items-seq %))
         shift!    #(with-let [x (first @%)] (swap! % rest))]
-    (with-let [current (cell [])]
+    (with-let [current (with-meta (cell []) {:preserve-event-handlers true})]
       (do-watch items-seq
         (fn [old-items new-items]
           (let [old  (count old-items)
