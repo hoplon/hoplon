@@ -93,7 +93,7 @@
                                   (when-not (new? k)
                                     (let [n (->node k)]
                                       (.call removeChild this n)
-                                      (when-not [*preserve-event-handlers*]
+                                      (when-not *preserve-event-handlers*
                                         (.remove (js/jQuery n))))))
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))

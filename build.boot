@@ -11,7 +11,7 @@
 
 (require '[adzerk.bootlaces :refer :all])
 
-(def +version+ "6.0.0-alpha12")
+(def +version+ "6.0.0-alpha13")
 
 (bootlaces! +version+)
 
