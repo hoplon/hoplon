@@ -59,7 +59,7 @@ the following libraries as dependencies to complete the stack:
 
     <!-- using dataflow to link DOM and Javelin cells -->
     <p><text>You've clicked ~{clicks} times, so far.</text></p>
-    <button :click="{{ #(swap! clicks inc) }}">click me</button>
+    <button click="{{ #(swap! clicks inc) }}">click me</button>
   </body>
 </html>
 ```
