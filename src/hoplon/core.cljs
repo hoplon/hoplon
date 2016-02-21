@@ -590,6 +590,51 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 
+(defn- cache-tpl-replace!
+  "If value exists at cache key, returns value.
+  Otherwise, insert tpl at cache key, then return tpl."
+  [cache key tpl]
+  (if-let [v (get @cache key nil)]
+    v
+    (get (swap! cache assoc key (tpl)) key nil)))
+
+(defn if-tpl*
+  "Resets current with appropriate tpl from cache.
+  cache is populated on demand, when tpl is not found for condition."
+  ([test true-tpl]
+   (if-tpl* test true-tpl identity))
+  ([test true-tpl false-tpl]
+   (let [cache (atom {})]
+     (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+       (do-watch test
+                 (fn [_ t]
+                   (reset! current
+                           (if t
+                             (cache-tpl-replace! cache true true-tpl)
+                             (cache-tpl-replace! cache false false-tpl)))))))))
+
+(defn switch-tpl* [pivot clauses]
+  (let [cache (atom {})]
+    (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+      (do-watch pivot
+                (fn [old-pivot new-pivot]
+                  (if (odd? (count clauses))
+                    (throw (js/Error. "switch-tpl requires an odd number of forms: The first form must be the cell to test, and the rest of the forms must be case-template pairs."))
+                    (if new-pivot
+                      (loop [c clauses]
+                        (let [case (first c)
+                              tpl (second c)
+                              successor (next (next c))]
+                          (if (or (= case new-pivot)
+                                  (and (not successor)
+                                       (= case :else)))
+                            (cache-tpl-replace! cache case tpl)
+                            (if successor
+                              (recur successor)
+                              (throw (js/Error.
+                                      (str "switch-tpl: Uncaught case for test. "
+                                           "Use an ':else' case and an else-template as a fallback."))))))))))))))
+
 (defn route-cell
   [& [default]]
   (let [c (cell (.. js/window -location -hash))]

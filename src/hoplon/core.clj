@@ -159,6 +159,24 @@
     `(loop-tpl* ~items
        (fn [item#] (j/cell-let [~bindings item#] ~body)))))
 
+(defmacro if-tpl
+  "Conditionally displays templates. Delays evaluation of templates until flow is determined."
+  [truth true-tpl & args]
+  (let [[false-tpl] args]
+    `(if-tpl* ~truth
+              (fn [] ~true-tpl)
+              (fn [] ~false-tpl))))
+
+(defmacro switch-tpl
+  "Given pairs of clauses, displays the clause that matches the test."
+  [pivot & clauses]
+  `(switch-tpl* ~pivot
+                ~(vec (map-indexed (fn [index clause]
+                                     (if (odd? index)
+                                       `(fn [] ~clause)
+                                       clause))
+                                   (vec clauses)))))
+
 (defmacro with-dom
   [elem & body]
   `(when-dom ~elem (fn [] ~@body)))
