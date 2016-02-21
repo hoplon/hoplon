@@ -590,6 +590,15 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 
+(defn if-tpl* [truth true-tpl false-tpl]
+  (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+    (do-watch truth
+              (fn [old-truth new-truth]
+                (reset! current
+                        (if new-truth
+                          (true-tpl)
+                          (false-tpl)))))))
+
 (defn route-cell
   [& [default]]
   (let [c (cell (.. js/window -location -hash))]
