@@ -599,6 +599,25 @@
                           (true-tpl)
                           (false-tpl)))))))
 
+(defn switch-tpl* [pivot clauses]
+  (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+    (do-watch pivot
+              (fn [old-pivot new-pivot]
+                (if (odd? (count clauses))
+                  (throw (js/Error. "switch-tpl requires an even number of forms"))
+                  (if new-pivot
+                    (loop [c clauses]
+                      (let [case (first c)
+                            tpl (second c)
+                            successor (next (next c))]
+                        (if (or (= case new-pivot)
+                                (and (not successor)
+                                     (= case :else)))
+                          (reset! current (tpl))
+                          (if successor
+                            (recur successor)
+                            (reset! current nil)))))))))))
+
 (defn route-cell
   [& [default]]
   (let [c (cell (.. js/window -location -hash))]

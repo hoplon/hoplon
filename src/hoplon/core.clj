@@ -167,6 +167,15 @@
               (fn [] ~true-tpl)
               (fn [] ~false-tpl))))
 
+(defmacro switch-tpl
+  [pivot & clauses]
+  `(switch-tpl* ~pivot
+                ~(vec (map-indexed (fn [index clause]
+                                     (if (odd? index)
+                                       `(fn [] ~clause)
+                                       clause))
+                                   (vec clauses)))))
+
 (defmacro with-dom
   [elem & body]
   `(when-dom ~elem (fn [] ~@body)))
