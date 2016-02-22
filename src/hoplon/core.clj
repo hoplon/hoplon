@@ -161,8 +161,8 @@
 
 (defmacro if-tpl
   "Conditionally displays templates. Delays evaluation of templates until flow is determined."
-  [& args]
-  (let [[_ {truth :pred} [true-tpl false-tpl]] (parse-e (cons '_ args))]
+  [truth true-tpl & args]
+  (let [[false-tpl] args]
     `(if-tpl* ~truth
               (fn [] ~true-tpl)
               (fn [] ~false-tpl))))
