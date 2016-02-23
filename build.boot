@@ -1,6 +1,6 @@
 (set-env!
-  :source-paths #{"src" "test"}
-  :resource-paths #{"test/src"}
+  :source-paths #{"src"}
+  :resource-paths #{"test"}
   ;; using the sonatype repo is sometimes useful when testing Clojurescript
   ;; versions that not yet propagated to Clojars
   ;; :repositories #(conj % '["sonatype" {:url "http://oss.sonatype.org/content/repositories/releases"}])
