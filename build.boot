@@ -36,20 +36,14 @@
         :scm         {:url "https://github.com/hoplon/hoplon"}
         :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
 
-(deftask build
-  []
-  (comp
-    (hoplon)
-    (cljs)
-    (prerender)
-    (target :dir #{"test-build"})))
-
 (deftask webdriver-tests
   "Run all Selenium + Firefox tests"
   []
-  (comp
-    (build)
-    (serve :dir "test-build")
-    ; (wait)
-    (test)
-    ))
+  (let [target-dir "target"]
+    (comp
+      (hoplon)
+      (cljs)
+      (prerender)
+      (target :dir #{target-dir})
+      (serve :dir target-dir)
+      (test))))
