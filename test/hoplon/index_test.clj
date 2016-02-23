@@ -10,7 +10,7 @@
 
 (deftest foo
   (prn base-url)
-  (println (sh "ls" "-la" current-dir))
+  (println (sh "ls" "-la" (str current-dir "/target")))
   (to base-url)
   (is (= "hello world" (text (element "h1"))))
   (quit)
