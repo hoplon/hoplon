@@ -6,10 +6,10 @@
   ;; :repositories #(conj % '["sonatype" {:url "http://oss.sonatype.org/content/repositories/releases"}])
   :dependencies '[[org.clojure/clojure       "1.7.0"      :scope "provided"]
                   [org.clojure/clojurescript "1.7.122"    :scope "provided"]
-                  [adzerk/bootlaces          "0.1.10"]
+                  [adzerk/boot-cljs          "1.7.48-3"   :scope "test"]
+                  [adzerk/bootlaces          "0.1.10"     :scope "test"]
                   [cljsjs/jquery             "1.9.1-0"]
                   [hoplon/javelin            "3.8.4"]
-                  [adzerk/boot-cljs          "1.7.48-3"]
                   [hoplon/boot-hoplon "0.1.5"]
                   [adzerk/boot-test "1.1.1" :scope "test"]
                   [org.seleniumhq.selenium/selenium-java "2.48.2"]
