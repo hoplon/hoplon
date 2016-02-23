@@ -168,6 +168,7 @@
               (fn [] ~false-tpl))))
 
 (defmacro switch-tpl
+  "Given pairs of clauses, displays the clause that matches the test."
   [pivot & clauses]
   `(switch-tpl* ~pivot
                 ~(vec (map-indexed (fn [index clause]
