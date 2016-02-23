@@ -17,12 +17,10 @@
                   [hoplon/javelin            "3.8.4"]])
 
 (require '[adzerk.bootlaces :refer :all]
-         '[hoplon.core :as hoplon]
          '[hoplon.boot-hoplon :refer [hoplon prerender]]
          '[adzerk.boot-cljs :refer [cljs]]
-         '[adzerk.boot-test :refer :all]
-         '[pandeiro.boot-http :refer :all]
-         )
+         '[adzerk.boot-test :refer [test]]
+         '[pandeiro.boot-http :refer [serve]])
 
 (def +version+ "6.0.0-alpha13")
 
