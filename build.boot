@@ -8,13 +8,13 @@
                   [org.clojure/clojurescript "1.7.122"    :scope "provided"]
                   [adzerk/boot-cljs          "1.7.48-3"   :scope "test"]
                   [adzerk/bootlaces          "0.1.10"     :scope "test"]
+                  [hoplon/boot-hoplon        "0.1.5"      :scope "test"]
+                  [adzerk/boot-test          "1.1.1"      :scope "test"]
+                  [clj-webdriver             "0.7.2"      :scope "test"]
+                  [pandeiro/boot-http        "0.7.0"      :scope "test"]
+                  [org.seleniumhq.selenium/selenium-java "2.48.2" :scope "test"]
                   [cljsjs/jquery             "1.9.1-0"]
-                  [hoplon/javelin            "3.8.4"]
-                  [hoplon/boot-hoplon "0.1.5"]
-                  [adzerk/boot-test "1.1.1" :scope "test"]
-                  [org.seleniumhq.selenium/selenium-java "2.48.2"]
-                  [clj-webdriver "0.7.2"]
-                  [pandeiro/boot-http        "0.7.0"]])
+                  [hoplon/javelin            "3.8.4"]])
 
 (require '[adzerk.bootlaces :refer :all]
          '[hoplon.core :as hoplon]
