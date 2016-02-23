@@ -16,3 +16,5 @@ install:
   - chmod 755 boot
   - ./boot -V
   - ./boot checkout
+script:
+  - ./boot webdriver-tests

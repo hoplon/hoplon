@@ -1,5 +1,5 @@
 (set-env!
-  :source-paths #{"src"}
+  :source-paths #{"src" "test"}
   :resource-paths #{"test/src"}
   ;; using the sonatype repo is sometimes useful when testing Clojurescript
   ;; versions that not yet propagated to Clojars
@@ -10,12 +10,16 @@
                   [cljsjs/jquery             "1.9.1-0"]
                   [hoplon/javelin            "3.8.4"]
                   [adzerk/boot-cljs          "1.7.48-3"]
-                  [hoplon/boot-hoplon "0.1.5"]])
+                  [hoplon/boot-hoplon "0.1.5"]
+                  [adzerk/boot-test "1.0.5"]
+                  [org.seleniumhq.selenium/selenium-java "2.48.2"]
+                  [clj-webdriver "0.7.2"]])
 
 (require '[adzerk.bootlaces :refer :all]
          '[hoplon.core :as hoplon]
          '[hoplon.boot-hoplon :refer [hoplon prerender]]
          '[adzerk.boot-cljs :refer [cljs]]
+         '[adzerk.boot-test :refer [test]]
          )
 
 (def +version+ "6.0.0-alpha13")
@@ -36,4 +40,5 @@
   (comp
     (hoplon)
     (cljs)
-    (prerender)))
+    (prerender)
+    (test)))
