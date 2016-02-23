@@ -4,8 +4,8 @@
   ;; using the sonatype repo is sometimes useful when testing Clojurescript
   ;; versions that not yet propagated to Clojars
   ;; :repositories #(conj % '["sonatype" {:url "http://oss.sonatype.org/content/repositories/releases"}])
-  :dependencies '[[org.clojure/clojure       "1.7.0" :scope "provided"]
-                  [org.clojure/clojurescript "1.7.228" :scope "provided"]
+  :dependencies '[[org.clojure/clojure       "1.7.0"      :scope "provided"]
+                  [org.clojure/clojurescript "1.7.122"    :scope "provided"]
                   [adzerk/bootlaces          "0.1.10"]
                   [cljsjs/jquery             "1.9.1-0"]
                   [hoplon/javelin            "3.8.4"]
