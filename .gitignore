@@ -5,6 +5,7 @@
 /lib/
 /classes/
 /target/
+/test-build/
 /.hlisp-work-dir/
 /.lein-repl-history
 /.lein-cljsbuild-compiler-0

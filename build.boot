@@ -1,6 +1,6 @@
 (set-env!
-  :source-paths #{"src"}
-  :resource-paths #{"test"}
+  :source-paths #{"src" "test/tests"}
+  :resource-paths #{"test/src"}
   ;; using the sonatype repo is sometimes useful when testing Clojurescript
   ;; versions that not yet propagated to Clojars
   ;; :repositories #(conj % '["sonatype" {:url "http://oss.sonatype.org/content/repositories/releases"}])
@@ -11,15 +11,17 @@
                   [hoplon/javelin            "3.8.4"]
                   [adzerk/boot-cljs          "1.7.48-3"]
                   [hoplon/boot-hoplon "0.1.5"]
-                  [adzerk/boot-test "1.0.5"]
+                  [adzerk/boot-test "1.1.1" :scope "test"]
                   [org.seleniumhq.selenium/selenium-java "2.48.2"]
-                  [clj-webdriver "0.7.2"]])
+                  [clj-webdriver "0.7.2"]
+                  [pandeiro/boot-http        "0.7.0"]])
 
 (require '[adzerk.bootlaces :refer :all]
          '[hoplon.core :as hoplon]
          '[hoplon.boot-hoplon :refer [hoplon prerender]]
          '[adzerk.boot-cljs :refer [cljs]]
-         '[adzerk.boot-test :refer [test]]
+         '[adzerk.boot-test :refer :all]
+         '[pandeiro.boot-http :refer :all]
          )
 
 (def +version+ "6.0.0-alpha13")
@@ -34,11 +36,20 @@
         :scm         {:url "https://github.com/hoplon/hoplon"}
         :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
 
-(deftask webdriver-tests
-  "Run all Selenium + Firefox tests"
+(deftask build
   []
   (comp
     (hoplon)
     (cljs)
     (prerender)
-    (test)))
+    (target :dir #{"test-build"})))
+
+(deftask webdriver-tests
+  "Run all Selenium + Firefox tests"
+  []
+  (comp
+    (build)
+    (serve :dir "test-build")
+    ; (wait)
+    (test)
+    ))
