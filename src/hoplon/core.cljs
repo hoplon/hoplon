@@ -590,14 +590,20 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 
-(defn if-tpl* [truth true-tpl false-tpl]
-  (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
-    (do-watch truth
-              (fn [old-truth new-truth]
-                (reset! current
-                        (if new-truth
-                          (true-tpl)
-                          (false-tpl)))))))
+(defn if-tpl* [test true-tpl false-tpl]
+  (let [cache (atom nil)]
+    (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+      (do-watch test
+                (fn [old new]
+                  (let [c @current
+                        d @cache]
+                    ;; if current view is not nil, then cache it.
+                    (if c (reset! cache c))
+                    (reset! current (or d ;; if cache exists, set cache as the current view
+                                        ;; otherwise, evaluate and return appropriate template.
+                                        (if new
+                                          (true-tpl)
+                                          (false-tpl))))))))))
 
 (defn route-cell
   [& [default]]
