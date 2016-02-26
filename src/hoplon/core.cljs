@@ -35,6 +35,10 @@
 
 ;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn xor [a b]
+  (and (or a b)
+       (not (and a b))))
+
 (defn do-watch
   ([atom f]
    (do-watch atom nil f))
@@ -595,15 +599,23 @@
     (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
       (do-watch test
                 (fn [old new]
-                  (let [c @current
-                        d @cache]
-                    ;; if current view is not nil, then cache it.
-                    (if c (reset! cache c))
-                    (reset! current (or d ;; if cache exists, set cache as the current view
-                                        ;; otherwise, evaluate and return appropriate template.
-                                        (if new
-                                          (true-tpl)
-                                          (false-tpl))))))))))
+                  (if (xor old new)
+                    ;; the truthiness of old and new has changed
+                    (let [c @current
+                          d @cache]
+                      ;; if current view is not nil, then cache it.
+                      (if c (reset! cache c))
+                      (reset! current (or d ;; if cache exists, set cache as the current view
+                                          ;; otherwise, evaluate and return appropriate template.
+                                          (if new
+                                            (true-tpl)
+                                            (false-tpl)))))
+                    ;; the truthiness of old and new are the same.
+                    ;; this can only happen on first run, when old is nil,
+                    ;; and new is falsy.
+                    (when-not new
+                      ;; this is necessary because old is always nil on first run.
+                      (reset! current (false-tpl)))))))))
 
 (defn route-cell
   [& [default]]
