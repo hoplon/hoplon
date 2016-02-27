@@ -618,23 +618,29 @@
                       (reset! current (false-tpl)))))))))
 
 (defn switch-tpl* [pivot clauses]
-  (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
-    (do-watch pivot
-              (fn [old-pivot new-pivot]
-                (if (odd? (count clauses))
-                  (throw (js/Error. "switch-tpl requires an even number of forms"))
-                  (if new-pivot
-                    (loop [c clauses]
-                      (let [case (first c)
-                            tpl (second c)
-                            successor (next (next c))]
-                        (if (or (= case new-pivot)
-                                (and (not successor)
-                                     (= case :else)))
-                          (reset! current (tpl))
-                          (if successor
-                            (recur successor)
-                            (reset! current nil)))))))))))
+  (let [cache (atom {})]
+    (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+      (do-watch pivot
+                (fn [old-pivot new-pivot]
+                  (if (odd? (count clauses))
+                    (throw (js/Error. "switch-tpl requires an odd number of forms: The first form must be the cell to test, and the rest of the forms must be case-template pairs."))
+                    (if new-pivot
+                      (loop [c clauses]
+                        (let [case (first c)
+                              tpl (second c)
+                              successor (next (next c))]
+                          (if (or (= case new-pivot)
+                                  (and (not successor)
+                                       (= case :else)))
+                            (reset! current (if (contains? cache case)
+                                              (get @cache case)
+                                              (get (swap! cache assoc case (tpl))
+                                                   cache)))
+                            (if successor
+                              (recur successor)
+                              (throw (js/Error.
+                                      (str "switch-tpl: Uncaught case for test. "
+                                           "Use an ':else' case and an else-template as a fallback."))))))))))))))
 
 (defn route-cell
   [& [default]]
