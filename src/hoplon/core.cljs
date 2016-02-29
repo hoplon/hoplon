@@ -632,10 +632,10 @@
                           (if (or (= case new-pivot)
                                   (and (not successor)
                                        (= case :else)))
-                            (reset! current (if (contains? cache case)
-                                              (get @cache case)
-                                              (get (swap! cache assoc case (tpl))
-                                                   cache)))
+                            (reset! current (get (if (contains? @cache case)
+                                                   @cache
+                                                   (swap! cache assoc case (tpl)))
+                                                 case))
                             (if successor
                               (recur successor)
                               (throw (js/Error.
