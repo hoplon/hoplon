@@ -604,7 +604,7 @@
                     (let [c @current
                           d @cache]
                       ;; if current view is not nil, then cache it.
-                      (if c (reset! cache c))
+                      (reset! cache c)
                       (reset! current (or d ;; if cache exists, set cache as the current view
                                           ;; otherwise, evaluate and return appropriate template.
                                           (if new
