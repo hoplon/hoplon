@@ -35,10 +35,6 @@
 
 ;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn xor [a b]
-  (and (or a b)
-       (not (and a b))))
-
 (defn do-watch
   ([atom f]
    (do-watch atom nil f))
