@@ -594,28 +594,28 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 
-(defn if-tpl* [test true-tpl false-tpl]
-  (let [cache (atom nil)]
-    (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
-      (do-watch test
-                (fn [old new]
-                  (if (xor old new)
-                    ;; the truthiness of old and new has changed
-                    (let [c @current
-                          d @cache]
-                      ;; if current view is not nil, then cache it.
-                      (reset! cache c)
-                      (reset! current (or d ;; if cache exists, set cache as the current view
-                                          ;; otherwise, evaluate and return appropriate template.
-                                          (if new
-                                            (true-tpl)
-                                            (false-tpl)))))
-                    ;; the truthiness of old and new are the same.
-                    ;; this can only happen on first run, when old is nil,
-                    ;; and new is falsy.
-                    (when-not new
-                      ;; this is necessary because old is always nil on first run.
-                      (reset! current (false-tpl)))))))))
+(defn- cache-tpl-replace!
+  "If value exists at cache key, returns value.
+  Otherwise, insert tpl at cache key, then return tpl."
+  [cache key tpl]
+  (if-let [v (get @cache key nil)]
+    v
+    (get (swap! cache assoc key (tpl)) key nil)))
+
+(defn if-tpl*
+  "Resets current with appropriate tpl from cache.
+  cache is populated on demand, when tpl is not found for condition."
+  ([test true-tpl]
+   (if-tpl* test true-tpl identity))
+  ([test true-tpl false-tpl]
+   (let [cache (atom {})]
+     (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+       (do-watch test
+                 (fn [_ t]
+                   (reset! current
+                           (if t
+                             (cache-tpl-replace! cache true true-tpl)
+                             (cache-tpl-replace! cache false false-tpl)))))))))
 
 (defn route-cell
   [& [default]]
