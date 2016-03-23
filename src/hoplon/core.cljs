@@ -590,6 +590,29 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 
+(defn- cache-tpl-replace!
+  "If value exists at cache key, returns value.
+  Otherwise, insert tpl at cache key, then return tpl."
+  [cache key tpl]
+  (if-let [v (get @cache key nil)]
+    v
+    (get (swap! cache assoc key (tpl)) key nil)))
+
+(defn if-tpl*
+  "Resets current with appropriate tpl from cache.
+  cache is populated on demand, when tpl is not found for condition."
+  ([test true-tpl]
+   (if-tpl* test true-tpl identity))
+  ([test true-tpl false-tpl]
+   (let [cache (atom {})]
+     (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
+       (do-watch test
+                 (fn [_ t]
+                   (reset! current
+                           (if t
+                             (cache-tpl-replace! cache true true-tpl)
+                             (cache-tpl-replace! cache false false-tpl)))))))))
+
 (defn route-cell
   [& [default]]
   (let [c (cell (.. js/window -location -hash))]

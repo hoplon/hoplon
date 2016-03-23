@@ -159,6 +159,14 @@
     `(loop-tpl* ~items
        (fn [item#] (j/cell-let [~bindings item#] ~body)))))
 
+(defmacro if-tpl
+  "Conditionally displays templates. Delays evaluation of templates until flow is determined."
+  [truth true-tpl & args]
+  (let [[false-tpl] args]
+    `(if-tpl* ~truth
+              (fn [] ~true-tpl)
+              (fn [] ~false-tpl))))
+
 (defmacro with-dom
   [elem & body]
   `(when-dom ~elem (fn [] ~@body)))
