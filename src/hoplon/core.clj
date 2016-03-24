@@ -177,6 +177,45 @@
                                        clause))
                                    (vec clauses)))))
 
+(defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom))))
+
+(defmacro for=
+  [[bindings items] body]
+  `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
+
+(defmacro if=
+  [predicate consequent & [alternative]]
+  `(let [con# (delay ~consequent)
+         alt# (delay ~alternative)
+         tpl# (fn [p#] (safe-deref (if p# con# alt#)))]
+     (-> (j/cell ::none :meta {:preserve-event-handlers true})
+         (j/set-formula! tpl# [~predicate]))))
+
+(defmacro when=
+  [predicate & body]
+  `(if= ~predicate (do ~@body)))
+
+(defmacro cond=
+  [& clauses]
+  (assert (even? (count clauses)))
+  (let [[conds tpls] (apply map vector (partition 2 clauses))
+        syms1        (take (count conds) (repeatedly gensym))
+        syms2        (take (count conds) (repeatedly gensym))]
+    `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
+           tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
+       (-> (j/cell ::none :meta {:preserve-event-handlers true})
+           (j/set-formula! tpl# [~@conds])))))
+
+(defmacro case=
+  [expr & clauses]
+  (let [[cases tpls] (apply map vector (partition 2 clauses))
+        default      (when (odd? (count clauses)) (last clauses))
+        syms         (take (inc (count cases)) (repeatedly gensym))]
+    `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
+           tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
+       (-> (j/cell ::none :meta {:preserve-event-handlers true})
+           (j/set-formula! tpl# [~expr])))))
+
 (defmacro with-dom
   [elem & body]
   `(when-dom ~elem (fn [] ~@body)))
