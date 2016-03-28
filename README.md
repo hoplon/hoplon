@@ -23,6 +23,7 @@ the following libraries as dependencies to complete the stack:
 
 * [http://hoplon.io][7]
 * [Design Document][6] (early version)
+* [The Wiki](https://github.com/hoplon/hoplon/wiki)
 
 ### Demos
 
