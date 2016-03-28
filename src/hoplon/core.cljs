@@ -137,7 +137,9 @@
           (this-as this
             (with-let [x x]
               (ensure-kids! this)
-              (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))))
+              (cond
+                (not y)     (swap! (kidfn this) conj x)
+                (not= x y)  (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %)))))))))
 
 (defn- set-replaceChild!
   [this kidfn]
