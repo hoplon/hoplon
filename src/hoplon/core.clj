@@ -101,7 +101,7 @@
          vals
          (filter keyword?))))
 
-;;-- cljs macros ------------------------------------------------------------;;
+;;-- defining macros --------------------------------------------------------;;
 
 (defmacro def-values
   "Destructuring def, similar to scheme's define-values."
@@ -111,27 +111,105 @@
    (do-def docstring bindings values)))
 
 (defmacro elem
+  "Create an anonymous custom element."
   [bind & body]
   `(fn [& args#] (let [~bind (parse-args args#)] ~@body)))
 
 (defmacro defelem
-  "FIXME: document this"
+  "Define a custom element."
   [name & forms]
   (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (elem ~bind ~@body))))
 
-#_(defmacro elem+
-  "FIXME: document this"
-  [[bind-attr bind-kids] & body]
-  (let [attr-keys (map-bind-keys bind-attr)]
-    `(fn [& args#]
-       (let [[init-attr# init-kids#] (parse-args args#)]
-         (-> (fn [attr# kids#]
-               (j/cell-let [~bind-attr attr# ~bind-kids kids#] ~@body))
-             (elem+* ~attr-keys init-attr# init-kids#))))))
+;; caching dom manipulation macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom))))
+
+(defmacro loop-tpl
+  "Like for-tpl with bindings specified as the :bindings attribute."
+  [& args]
+  (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
+    `(loop-tpl* ~items
+       (fn [item#] (j/cell-let [~bindings item#] ~body)))))
+
+(defmacro for-tpl
+  [[bindings items] body]
+  `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
+
+(defmacro if-tpl
+  [predicate consequent & [alternative]]
+  `(let [con# (delay ~consequent)
+         alt# (delay ~alternative)
+         tpl# (fn [p#] (safe-deref (if p# con# alt#)))]
+     (-> (j/cell ::none :meta {:preserve-event-handlers true})
+         (j/set-formula! tpl# [~predicate]))))
+
+(defmacro when-tpl
+  [predicate & body]
+  `(if= ~predicate (do ~@body)))
+
+(defmacro cond-tpl
+  [& clauses]
+  (assert (even? (count clauses)))
+  (let [[conds tpls] (apply map vector (partition 2 clauses))
+        syms1        (take (count conds) (repeatedly gensym))
+        syms2        (take (count conds) (repeatedly gensym))]
+    `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
+           tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
+       (-> (j/cell ::none :meta {:preserve-event-handlers true})
+           (j/set-formula! tpl# [~@conds])))))
+
+(defmacro case-tpl
+  [expr & clauses]
+  (let [[cases tpls] (apply map vector (partition 2 clauses))
+        default      (when (odd? (count clauses)) (last clauses))
+        syms         (take (inc (count cases)) (repeatedly gensym))]
+    `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
+           tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
+       (-> (j/cell ::none :meta {:preserve-event-handlers true})
+           (j/set-formula! tpl# [~expr])))))
+
+(defmacro with-dom
+  "Evaluates the body after elem has been inserted into the DOM."
+  [elem & body]
+  `(when-dom ~elem (fn [] ~@body)))
+
+(defmacro with-timeout
+  "Evaluates the body after msec milliseconds, asynchronously. Returns the
+  timeout ID which can be used to cancel the operation (see js/clearTimeout)."
+  [msec & body]
+  `(js/setTimeout (fn [] ~@body) ~msec))
+
+(defmacro with-interval
+  "Evaluates the body every msec milliseconds, asynchronously. Returns the
+  interval ID which can be used to cancel the operation (see js/clearInterval)."
+  [msec & body]
+  `(js/setInterval (fn [] ~@body) ~msec))
+
+(defmacro with-init!
+  "Evaluates the body after Hoplon has completed constructing the page."
+  [& body]
+  `(add-initfn! (fn [] ~@body)))
+
+(defmacro with-page-load
+  "Evaluates the body when the page is reloaded OR when live-reload reloads."
+  [& body]
+  `(defonce page-load# (on-page-load (fn [] ~@body))))
+
+(defmacro text
+  "Creates a DOM Text node and binds its text content to a formula created via
+  string interpolation, so the Text node updates with the formula."
+  [form]
+  (let [i (if-not (string? form) form (terpol8 form))]
+    (if (string? i)
+      `(.createTextNode js/document ~i)
+      `(j/with-let [t# (.createTextNode js/document "")]
+         (j/cell= (set! (.-nodeValue t#) ~i))))))
+
+;;-- experimantal -----------------------------------------------------------;;
 
 (defmacro elem+
-  "FIXME: document this"
+  "Experimental."
   [[bind-attr bind-kids] & body]
   (let [attr-keys (map-bind-keys bind-attr)]
     `(fn [& args#]
@@ -147,115 +225,20 @@
              (apply attr# kids#))))))
 
 (defmacro defelem+
-  "FIXME: document this"
+  "Experimental."
   [name & forms]
   (let [[_ name [_ [bind & body]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (elem+ ~bind ~@body))))
 
-(defmacro loop-tpl
-  "FIXME: document this"
-  [& args]
-  (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
-    `(loop-tpl* ~items
-       (fn [item#] (j/cell-let [~bindings item#] ~body)))))
-
-(defmacro if-tpl
-  "Conditionally displays templates. Delays evaluation of templates until flow is determined."
-  [truth true-tpl & args]
-  (let [[false-tpl] args]
-    `(if-tpl* ~truth
-              (fn [] ~true-tpl)
-              (fn [] ~false-tpl))))
-
-(defmacro switch-tpl
-  "Given pairs of clauses, displays the clause that matches the test."
-  [pivot & clauses]
-  `(switch-tpl* ~pivot
-                ~(vec (map-indexed (fn [index clause]
-                                     (if (odd? index)
-                                       `(fn [] ~clause)
-                                       clause))
-                                   (vec clauses)))))
-
-(defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom))))
-
-(defmacro for=
-  [[bindings items] body]
-  `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
-
-(defmacro if=
-  [predicate consequent & [alternative]]
-  `(let [con# (delay ~consequent)
-         alt# (delay ~alternative)
-         tpl# (fn [p#] (safe-deref (if p# con# alt#)))]
-     (-> (j/cell ::none :meta {:preserve-event-handlers true})
-         (j/set-formula! tpl# [~predicate]))))
-
-(defmacro when=
-  [predicate & body]
-  `(if= ~predicate (do ~@body)))
-
-(defmacro cond=
-  [& clauses]
-  (assert (even? (count clauses)))
-  (let [[conds tpls] (apply map vector (partition 2 clauses))
-        syms1        (take (count conds) (repeatedly gensym))
-        syms2        (take (count conds) (repeatedly gensym))]
-    `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
-           tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
-       (-> (j/cell ::none :meta {:preserve-event-handlers true})
-           (j/set-formula! tpl# [~@conds])))))
-
-(defmacro case=
-  [expr & clauses]
-  (let [[cases tpls] (apply map vector (partition 2 clauses))
-        default      (when (odd? (count clauses)) (last clauses))
-        syms         (take (inc (count cases)) (repeatedly gensym))]
-    `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
-           tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
-       (-> (j/cell ::none :meta {:preserve-event-handlers true})
-           (j/set-formula! tpl# [~expr])))))
-
-(defmacro with-dom
-  [elem & body]
-  `(when-dom ~elem (fn [] ~@body)))
-
 (defmacro static
+  "Experimental."
   [elem]
   `(let [id# ~(str (gensym "hl"))]
      (or (static-elements id#)
          (~elem :static-id id#))))
 
-(defmacro text
-  "FIXME: document this"
-  [form]
-  (let [i (if-not (string? form) form (terpol8 form))]
-    (if (string? i)
-      `(.createTextNode js/document ~i)
-      `(j/with-let [t# (.createTextNode js/document "")]
-         (j/cell= (set! (.-nodeValue t#) ~i))))))
-
-(defmacro with-timeout
-  "FIXME: document this"
-  [msec & body]
-  `(js/setTimeout (fn [] ~@body) ~msec))
-
-(defmacro with-interval
-  "FIXME: document this"
-  [msec & body]
-  `(js/setInterval (fn [] ~@body) ~msec))
-
-(defmacro with-init!
-  "FIXME: document this"
-  [& body]
-  `(add-initfn! (fn [] ~@body)))
-
-(defmacro with-page-load
-  "FIXME: document this"
-  [& body]
-  `(defonce page-load# (on-page-load (fn [] ~@body))))
-
 (defmacro sexp
+  "Experimental."
   [& args]
   (->> (last (parse-e (cons '_ args)))
        (mapcat #(if-not (string? %)
