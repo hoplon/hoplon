@@ -30,20 +30,25 @@
 ;; This is an internal implementation detail, exposed for the convenience of
 ;; the hoplon.core/static macro.
 (def static-elements
+  "Experimental."
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
       (reduce {} (.get (js/jQuery "[static-id]")))))
 
 ;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn do-watch
-  ([atom f]
-   (do-watch atom nil f))
-  ([atom init f]
+  "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
+  f is a function of two arguments: the previous and next values. If init is
+  not provided the default (nil) will be used."
+  ([ref f]
+   (do-watch ref nil f))
+  ([ref init f]
    (with-let [k (gensym)]
-     (f init @atom)
-     (add-watch atom k (fn [_ _ old new] (f old new))))))
+     (f init @ref)
+     (add-watch ref k (fn [_ _ old new] (f old new))))))
 
 (defn bust-cache
+  "Experimental."
   [path]
   (let [[f & more] (reverse (split path #"/"))
         [f1 f2]    (split f #"\." 2)]
@@ -470,7 +475,7 @@
               (when-not (or (.attr e "action") (.attr e "method"))
                 (.preventDefault %)))))))
 
-;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; frp helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn text-val!
   ([e] (.val e))
@@ -481,6 +486,8 @@
 (defn check-val!
   ([e] (.is e ":checked"))
   ([e v] (.prop e "checked" (boolean v))))
+
+;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmulti do! (fn [elem key val] key) :default ::default)
 
@@ -571,6 +578,13 @@
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
 (defn loop-tpl*
+  "Given a cell items containing a seqable collection, constructs a cell that
+  works like a fill vector. The template tpl is a function of one argument: the
+  formula cell containing the ith item in items. The tpl function is called
+  once (and only once) for each index in items. When the items collection
+  shrinks the DOM element created by the template is not destroyed--it is only
+  removed from the DOM and cached. When the items collection grows again those
+  cached elements will be reinserted into the DOM at their original index."
   [items tpl]
   (let [on-deck   (atom ())
         items-seq (cell= (seq items))
@@ -592,52 +606,8 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 
-(defn- cache-tpl-replace!
-  "If value exists at cache key, returns value.
-  Otherwise, insert tpl at cache key, then return tpl."
-  [cache key tpl]
-  (if-let [v (get @cache key nil)]
-    v
-    (get (swap! cache assoc key (tpl)) key nil)))
-
-(defn if-tpl*
-  "Resets current with appropriate tpl from cache.
-  cache is populated on demand, when tpl is not found for condition."
-  ([test true-tpl]
-   (if-tpl* test true-tpl identity))
-  ([test true-tpl false-tpl]
-   (let [cache (atom {})]
-     (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
-       (do-watch test
-                 (fn [_ t]
-                   (reset! current
-                           (if t
-                             (cache-tpl-replace! cache true true-tpl)
-                             (cache-tpl-replace! cache false false-tpl)))))))))
-
-(defn switch-tpl* [pivot clauses]
-  (let [cache (atom {})]
-    (with-let [current (with-meta (cell nil) {:preserve-event-handlers true})]
-      (do-watch pivot
-                (fn [old-pivot new-pivot]
-                  (if (odd? (count clauses))
-                    (throw (js/Error. "switch-tpl requires an odd number of forms: The first form must be the cell to test, and the rest of the forms must be case-template pairs."))
-                    (if new-pivot
-                      (loop [c clauses]
-                        (let [case (first c)
-                              tpl (second c)
-                              successor (next (next c))]
-                          (if (or (= case new-pivot)
-                                  (and (not successor)
-                                       (= case :else)))
-                            (cache-tpl-replace! cache case tpl)
-                            (if successor
-                              (recur successor)
-                              (throw (js/Error.
-                                      (str "switch-tpl: Uncaught case for test. "
-                                           "Use an ':else' case and an else-template as a fallback."))))))))))))))
-
 (defn route-cell
+  "Defines a cell whose value is the URI fragment."
   [& [default]]
   (let [c (cell (.. js/window -location -hash))]
     (with-let [_ (cell= (or (and (seq c) c) default))]
