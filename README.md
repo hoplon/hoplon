@@ -2,7 +2,7 @@
 
 [](dependency)
 ```clojure
-[hoplon "6.0.0-alpha10"] ;; latest release
+[hoplon "6.0.0-alpha13"] ;; latest release
 ```
 [](/dependency)
 
@@ -22,8 +22,8 @@ the following libraries as dependencies to complete the stack:
 ### Documentation
 
 * [http://hoplon.io][7]
-* [API Documentation][9]
 * [Design Document][6] (early version)
+* [The Wiki](https://github.com/hoplon/hoplon/wiki)
 
 ### Demos
 
@@ -60,7 +60,7 @@ the following libraries as dependencies to complete the stack:
 
     <!-- using dataflow to link DOM and Javelin cells -->
     <p><text>You've clicked ~{clicks} times, so far.</text></p>
-    <button on-click="{{ #(swap! clicks inc) }}">click me</button>
+    <button click="{{ #(swap! clicks inc) }}">click me</button>
   </body>
 </html>
 ```

@@ -30,20 +30,25 @@
 ;; This is an internal implementation detail, exposed for the convenience of
 ;; the hoplon.core/static macro.
 (def static-elements
+  "Experimental."
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
       (reduce {} (.get (js/jQuery "[static-id]")))))
 
 ;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn do-watch
-  ([atom f]
-   (do-watch atom nil f))
-  ([atom init f]
+  "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
+  f is a function of two arguments: the previous and next values. If init is
+  not provided the default (nil) will be used."
+  ([ref f]
+   (do-watch ref nil f))
+  ([ref init f]
    (with-let [k (gensym)]
-     (f init @atom)
-     (add-watch atom k (fn [_ _ old new] (f old new))))))
+     (f init @ref)
+     (add-watch ref k (fn [_ _ old new] (f old new))))))
 
 (defn bust-cache
+  "Experimental."
   [path]
   (let [[f & more] (reverse (split path #"/"))
         [f1 f2]    (split f #"\." 2)]
@@ -58,7 +63,7 @@
 (defn- child-vec
   [this]
   (let [x (.-childNodes this)
-        l (.-length x)] 
+        l (.-length x)]
     (loop [i 0 ret (transient [])]
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
@@ -77,6 +82,8 @@
 (def ^:private replaceChild (.. js/Element -prototype -replaceChild))
 (def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
+(def ^:private ^:dynamic *preserve-event-handlers* false)
+
 (defn- merge-kids
   [this old new]
   (let [new  (remove nil? (flatten new))
@@ -87,9 +94,12 @@
         (recur xs (cond (= x k) ks
                         (not k) (with-let [ks ks]
                                   (.call appendChild this (->node x)))
-                        (not x) (with-let [ks ks] 
+                        (not x) (with-let [ks ks]
                                   (when-not (new? k)
-                                      (.call removeChild this (->node k))))
+                                    (let [n (->node k)]
+                                      (.call removeChild this n)
+                                      (when-not *preserve-event-handlers*
+                                        (.remove (js/jQuery n))))))
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
@@ -111,7 +121,9 @@
               (let [kids (kidfn this)
                     i    (count @kids)]
                 (if (cell? x)
-                  (do-watch x #(swap! kids assoc i %2))
+                  (let [preserve? (:preserve-event-handlers (meta x))]
+                    (do-watch x #(binding [*preserve-event-handlers* preserve?]
+                                   (swap! kids assoc i %2))))
                   (swap! kids assoc i x))))))))
 
 (defn- set-removeChild!
@@ -130,7 +142,9 @@
           (this-as this
             (with-let [x x]
               (ensure-kids! this)
-              (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))))
+              (cond
+                (not y)     (swap! (kidfn this) conj x)
+                (not= x y)  (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %)))))))))
 
 (defn- set-replaceChild!
   [this kidfn]
@@ -461,7 +475,7 @@
               (when-not (or (.attr e "action") (.attr e "method"))
                 (.preventDefault %)))))))
 
-;; frp ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; frp helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn text-val!
   ([e] (.val e))
@@ -472,6 +486,8 @@
 (defn check-val!
   ([e] (.is e ":checked"))
   ([e v] (.prop e "checked" (boolean v))))
+
+;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmulti do! (fn [elem key val] key) :default ::default)
 
@@ -562,12 +578,19 @@
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
 (defn loop-tpl*
+  "Given a cell items containing a seqable collection, constructs a cell that
+  works like a fill vector. The template tpl is a function of one argument: the
+  formula cell containing the ith item in items. The tpl function is called
+  once (and only once) for each index in items. When the items collection
+  shrinks the DOM element created by the template is not destroyed--it is only
+  removed from the DOM and cached. When the items collection grows again those
+  cached elements will be reinserted into the DOM at their original index."
   [items tpl]
   (let [on-deck   (atom ())
         items-seq (cell= (seq items))
         ith-item  #(cell= (safe-nth items-seq %))
         shift!    #(with-let [x (first @%)] (swap! % rest))]
-    (with-let [current (cell [])]
+    (with-let [current (with-meta (cell []) {:preserve-event-handlers true})]
       (do-watch items-seq
         (fn [old-items new-items]
           (let [old  (count old-items)
@@ -584,6 +607,7 @@
                       (swap! on-deck conj e))))))))))
 
 (defn route-cell
+  "Defines a cell whose value is the URI fragment."
   [& [default]]
   (let [c (cell (.. js/window -location -hash))]
     (with-let [_ (cell= (or (and (seq c) c) default))]
