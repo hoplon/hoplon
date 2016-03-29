@@ -146,7 +146,7 @@
 
 (defmacro when-tpl
   [predicate & body]
-  `(if= ~predicate (do ~@body)))
+  `(if-tpl ~predicate (do ~@body)))
 
 (defmacro cond-tpl
   [& clauses]
