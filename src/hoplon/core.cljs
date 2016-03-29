@@ -97,9 +97,10 @@
                         (not x) (with-let [ks ks]
                                   (when-not (new? k)
                                     (let [n (->node k)]
-                                      (.call removeChild this n)
-                                      (when-not *preserve-event-handlers*
-                                        (.remove (js/jQuery n))))))
+                                      (when (= this (.-parentNode n))
+                                        (.call removeChild this n)
+                                        (when-not *preserve-event-handlers*
+                                          (.remove (js/jQuery n)))))))
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
@@ -463,7 +464,7 @@
 (def <!--           $comment)
 (def -->            ::-->)
 
-(defn add-initfn!  [f] (js/jQuery f))
+(defn add-initfn!  [f] (js/jQuery #(with-timeout 0 f)))
 (defn page-load    []  (.trigger (js/jQuery js/document) "page-load"))
 (defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
 
