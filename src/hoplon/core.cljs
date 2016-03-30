@@ -458,7 +458,7 @@
 (def <!--           $comment)
 (def -->            ::-->)
 
-(defn add-initfn!  [f] (js/jQuery #(with-timeout 0 f)))
+(defn add-initfn!  [f] (js/jQuery #(with-timeout 0 (f))))
 (defn page-load    []  (.trigger (js/jQuery js/document) "page-load"))
 (defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
 
