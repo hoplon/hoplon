@@ -106,6 +106,11 @@
         (set! (.-hoplonKids this) kids)
         (do-watch kids (partial merge-kids this))))))
 
+(defn- babysitter [x kids i]
+  (if (cell? x)
+    (do-watch x #(babysitter %2 kids i))
+    (swap! kids assoc i x)))
+
 (defn- set-appendChild!
   [this kidfn]
   (set! (.-appendChild this)
@@ -115,9 +120,8 @@
               (ensure-kids! this)
               (let [kids (kidfn this)
                     i    (count @kids)]
-                (if (cell? x)
-                  (do-watch x #(swap! kids assoc i %2))
-                  (swap! kids assoc i x))))))))
+                (babysitter x kids i)))))))
+
 
 (defn- set-removeChild!
   [this kidfn]
