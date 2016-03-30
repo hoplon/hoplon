@@ -94,9 +94,7 @@
                                   (.call appendChild this (->node x)))
                         (not x) (with-let [ks ks]
                                   (when-not (new? k)
-                                    (let [n (->node k)]
-                                      (when (= this (.-parentNode n))
-                                        (.call removeChild this n)))))
+                                    (.call removeChild this (->node k))))
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
