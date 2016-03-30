@@ -2,6 +2,29 @@
 
 (html
   (head
-    (link :rel "stylesheet" :href "main.css"))
+    (link :rel "stylesheet" :href "main.css")
+    (base
+      :href "http://hoplon.io/images/")
+    (title "Test examples"))
   (body
-    (h1 "hello world")))
+    (article
+      (h1 "hello world")
+      (a :href "http://hoplon.io/" "a link"))
+    (abbr :title "Cascading Style Sheet" "CSS")
+    (aside
+      (address "123 Best Street, Nowhere")
+      "Some text" (b "with cool") "styling")
+    (img
+      :src "logos/hoplon-logo.png"
+      :usemap "#logomap")
+    (html-map
+      :name "logomap"
+      (area
+        :shape "rect"
+        :coords "0,0,100,100"
+        :href "http://hoplon.io"
+        :alt "click me"))
+    (audio :controls true)
+    (bdo
+      :dir "rtl"
+      "Right to " (bdi "left"))))
