@@ -121,7 +121,7 @@
   (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (elem ~bind ~@body))))
 
-;; caching dom manipulation macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;-- caching dom manipulation macros ----------------------------------------;;
 
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom))))
 
@@ -141,8 +141,7 @@
   `(let [con# (delay ~consequent)
          alt# (delay ~alternative)
          tpl# (fn [p#] (safe-deref (if p# con# alt#)))]
-     (-> (j/cell ::none :meta {:preserve-event-handlers true})
-         (j/set-formula! tpl# [~predicate]))))
+     ((j/formula tpl#) ~predicate)))
 
 (defmacro when-tpl
   [predicate & body]
@@ -156,8 +155,7 @@
         syms2        (take (count conds) (repeatedly gensym))]
     `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
            tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
-       (-> (j/cell ::none :meta {:preserve-event-handlers true})
-           (j/set-formula! tpl# [~@conds])))))
+       ((j/formula tpl#) ~@conds))))
 
 (defmacro case-tpl
   [expr & clauses]
@@ -166,8 +164,9 @@
         syms         (take (inc (count cases)) (repeatedly gensym))]
     `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
            tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
-       (-> (j/cell ::none :meta {:preserve-event-handlers true})
-           (j/set-formula! tpl# [~expr])))))
+       ((j/formula tpl#) ~expr))))
+
+;;-- various dom macros -----------------------------------------------------;;
 
 (defmacro with-dom
   "Evaluates the body after elem has been inserted into the DOM."
@@ -206,7 +205,7 @@
       `(j/with-let [t# (.createTextNode js/document "")]
          (j/cell= (set! (.-nodeValue t#) ~i))))))
 
-;;-- experimantal -----------------------------------------------------------;;
+;;-- experimental -----------------------------------------------------------;;
 
 (defmacro elem+
   "Experimental."
