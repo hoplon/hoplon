@@ -42,48 +42,109 @@
                 "bdo"
                 "bdo[dir=\"rtl\"]"
 
-                "html"
-                ; metadata
-                "head"
-                "link"
-                "meta"
-                "style"
-                "title"
-                ; content sectioning
+                "blockquote"
+                "blockquote[cite=\"http://hoplon.io\"]"
+
+                "body"
+
+                "br"
+
+                "button"
+                "button[type=\"button\"]"
+
+                "canvas"
+
+                "caption"
+
+                "cite"
+
+                "code"
+
+                "col"
+                "colgroup"
+
+                "datalist"
+
+                "dd"
+
+                "del"
+
+                "details"
+
+                "dfn"
+
+                "div"
+
+                "dl"
+
+                "dt"
+
+                "em"
+
+                "embed"
+                "embed[src=\"foo.swf\"]"
+
+                "fieldset"
+
+                "figcaption"
+
+                "figure"
+
                 "footer"
-                "header"
+
+                "form"
+
                 "h1"
                 "h2"
                 "h3"
                 "h4"
                 "h5"
                 "h6"
+
+                "head"
+
+                "header"
+
                 "hgroup"
+
+                "hr"
+
+                "html"
+
+                "i"
+
+                "iframe[src=\"http://hoplon.io\"]"
+
+                "img"
+
+                "input"
+                "input[type=\"text\"]"
+
+                "ins"
+
+                "kbd"
+
+                "label"
+                "label[for=\"some-input\"]"
+
+                "li"
+
+                ; metadata
+                "link"
+                "meta"
+                "style"
+                "title"
+                ; content sectioning
                 "nav"
                 "section"
                 ; text content
-                "dd"
-                "div"
-                "dl"
-                "dt"
-                "figcaption"
-                "figure"
-                "hr"
-                "li"
                 "main"
                 "ol"
                 "p"
                 "pre"
                 "ul"
                 ; inline text semantics
-                "br"
-                "cite"
-                "code"
                 "data"
-                "dfn"
-                "em"
-                "i"
-                "kbd"
                 "mark"
                 "q"
                 "rp"
@@ -106,21 +167,14 @@
                 "track"
                 "video"
                 ; embedded content
-                "embed"
                 "object"
                 "param"
                 "source"
                 ; scripting
-                "canvas"
                 "noscript"
                 "script"
                 ; demarcating edits
-                "del"
-                "ins"
                 ; table content
-                "caption"
-                "col"
-                "colgroup"
                 "table"
                 "tbody"
                 "td"
@@ -129,13 +183,8 @@
                 "thead"
                 "tr"
                 ; forms
-                "button"
-                "datalist"
-                "fieldset"
-                "form"
                 "input"
                 "keygen"
-                "label"
                 "legend"
                 "meter"
                 "optgroup"
@@ -145,7 +194,6 @@
                 "select"
                 "textarea"
                 ; interactive components
-                "details"
                 "dialog"
                 "menu"
                 "menuitem"

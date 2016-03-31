@@ -8,15 +8,25 @@
     (title "Test examples"))
   (body
     (article
-      (h1 "hello world")
+      (header
+        (h1 "hello world")
+        (h2 "something"))
+      (h3 "less important")
+      (hgroup
+        (h4 "getting lower")
+        (h5 "quite specific"))
+      (h6 "maximum specificity")
       (a :href "http://hoplon.io/" "a link"))
+    (hr)
     (abbr :title "Cascading Style Sheet" "CSS")
     (aside
       (address "123 Best Street, Nowhere")
       "Some text" (b "with cool") "styling")
-    (img
-      :src "logos/hoplon-logo.png"
-      :usemap "#logomap")
+    (figure
+      (img
+        :src "logos/hoplon-logo.png"
+        :usemap "#logomap")
+      (figcaption "The logo"))
     (html-map
       :name "logomap"
       (area
@@ -25,6 +35,72 @@
         :href "http://hoplon.io"
         :alt "click me"))
     (audio :controls true)
+    (br)
     (bdo
       :dir "rtl"
-      "Right to " (bdi "left"))))
+      "Right to " (bdi "left"))
+    (blockquote
+      :cite "http://hoplon.io"
+      "Hoplon is a set of Clojure and ClojureScript libraries that pave over the web's idiosyncrasies and present a simpler way to design and build single-page web applications. Learn more on our wiki.")
+    (button
+      :type "button"
+      "click me")
+    (canvas)
+    (table
+      (caption "Monthly savings")
+      (colgroup
+        (col)
+        (col))
+      (tr
+        (th "Month")
+        (th "Savings"))
+      (tr
+        (td "January")
+        (td "$100")))
+    (cite "cite")
+    (code "(= (+ 1 1) 2)")
+    (input :list "numbers")
+    (datalist :id "numbers"
+      (option :value "one")
+      (option :value "two")
+      (option :value "three"))
+    (label :for "some-input")
+    (input :id "some-input")
+    (dl
+      (dt "Coffee")
+      (dd "Black hot drink")
+      (dt "Milk")
+      (dd "White cold drink"))
+
+    (p "My favorite color is " (del "blue") (ins "red") "!")
+
+    (details
+      (summary "Copyright 1999-2014.")
+      (p " - by Refsnes Data. All Rights Reserved.")
+      (p "All content and graphics on this web site are the property of the company Refsnes Data."))
+
+    (div (dfn "HTML") " is the " (em "standard markup") "language for creating web pages.")
+
+    (embed :src "foo.swf")
+
+    (form
+      (fieldset
+        (legend "Personalia:")
+        "Name: " (input :type "text")
+        "Email: " (input :type "text")
+        "Date of birth: " (input :type "text")))
+
+    (iframe :src "http://hoplon.io")
+
+    (ol
+      (li "Coffee")
+      (li "Tea")
+      (li "Milk"))
+
+    (ul
+      (li "Coffee")
+      (li "Tea")
+      (li "Milk"))
+
+    (footer
+      (p "Press " (kbd "cmd")))))
