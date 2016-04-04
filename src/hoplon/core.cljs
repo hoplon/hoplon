@@ -258,12 +258,9 @@
 (defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
-    (let [node #(cond (string? %) ($text %)
-                      (number? %) ($text (str %))
-                      :else       %)]
-      (doseq [x (flatten kids)]
-        (when-let [x (node x)]
-          (append-child! this x))))))
+    (doseq [x (flatten kids)]
+      (when-let [x (->node x)]
+        (append-child! this x)))))
 
 (extend-type js/Element
   IPrintWithWriter
