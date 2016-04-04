@@ -304,11 +304,11 @@
     (let [[attrs kids] (parse-args args)
           elem         (-> js/document
                            (.getElementsByTagName tag)
-                           (aget 0)
-                           ensure-kids!)]
+                           (aget 0))]
       (add-attributes! elem attrs)
       (when (not (:static attrs))
-        (reset! (.-hoplonKids elem) (vec kids))))))
+        (set! (.-innerHTML elem) nil)
+        (add-children! elem kids)))))
 
 (defn- make-elem-ctor
   [tag]
