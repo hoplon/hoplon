@@ -307,6 +307,7 @@
                            (aget 0))]
       (add-attributes! elem attrs)
       (when (not (:static attrs))
+        (set! (.-innerHTML elem) nil)
         (add-children! elem kids)))))
 
 (defn- make-elem-ctor
