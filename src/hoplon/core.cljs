@@ -108,9 +108,28 @@
 
 ;; find a way to make the swap!s traverse the tree properly instead of skipping to the end.
 (defn- babysitter [kids i x]
-  (if (cell? x)
-    (do-watch x #(babysitter kids i %2))
-    (swap! kids assoc i x)))
+  (let [watched? (cell false)]
+    (if (cell? x)
+      (when-not @watched?
+        (swap! watched? not)
+        (do-watch
+         x (fn [old-child new-child]
+             ;; if old-child is a cell, then that means it has an outdated watch.
+             ;; (remove-watch) this old-child, with the key to that watch.
+             
+             ;; if babysitter's child is a cell, then it returns the key to watch.
+             ;; (see line 112)
+             (println "testing")
+             (babysitter kids i new-child)
+             #_(let [old-k (cell nil)
+                     k (babysitter kids i new-child)]
+                 (println "testing" @old-k k)
+                 (if (cell? old-child)
+                   (remove-watch old-child old-k))
+                 (if (and (cell? new-child) k)
+                   (reset! old-k k))))))
+      (do (swap! kids assoc i x)
+          nil))))
 
 (defn- set-appendChild!
   [this kidfn]
@@ -232,8 +251,8 @@
   (if-not (instance? js/Element this)
     (f)
     (timeout
-      (fn doit []
-        (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
+     (fn doit []
+       (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -466,12 +485,12 @@
 (defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
 
 (add-initfn!
-  (fn []
-    (. (js/jQuery "body")
-       (on "submit"
-           #(let [e (js/jQuery (.-target %))]
-              (when-not (or (.attr e "action") (.attr e "method"))
-                (.preventDefault %)))))))
+ (fn []
+   (. (js/jQuery "body")
+      (on "submit"
+          #(let [e (js/jQuery (.-target %))]
+             (when-not (or (.attr e "action") (.attr e "method"))
+               (.preventDefault %)))))))
 
 ;; frp helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -590,19 +609,19 @@
         shift!    #(with-let [x (first @%)] (swap! % rest))]
     (with-let [current (cell [])]
       (do-watch items-seq
-        (fn [old-items new-items]
-          (let [old  (count old-items)
-                new  (count new-items)
-                diff (- new old)]
-            (cond (pos? diff)
-                  (doseq [i (range old new)]
-                    (let [e (or (shift! on-deck) (tpl (ith-item i)))]
-                      (swap! current conj e)))
-                  (neg? diff)
-                  (dotimes [_ (- diff)]
-                    (let [e (peek @current)]
-                      (swap! current pop)
-                      (swap! on-deck conj e))))))))))
+                (fn [old-items new-items]
+                  (let [old  (count old-items)
+                        new  (count new-items)
+                        diff (- new old)]
+                    (cond (pos? diff)
+                          (doseq [i (range old new)]
+                            (let [e (or (shift! on-deck) (tpl (ith-item i)))]
+                              (swap! current conj e)))
+                          (neg? diff)
+                          (dotimes [_ (- diff)]
+                            (let [e (peek @current)]
+                              (swap! current pop)
+                              (swap! on-deck conj e))))))))))
 
 (defn route-cell
   "Defines a cell whose value is the URI fragment."
