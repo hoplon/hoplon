@@ -106,6 +106,12 @@
         (set! (.-hoplonKids this) kids)
         (do-watch kids (partial merge-kids this))))))
 
+;; find a way to make the swap!s traverse the tree properly instead of skipping to the end.
+(defn- babysitter [kids i x]
+  (if (cell? x)
+    (do-watch x #(babysitter kids i %2))
+    (swap! kids assoc i x)))
+
 (defn- set-appendChild!
   [this kidfn]
   (set! (.-appendChild this)
@@ -115,9 +121,8 @@
               (ensure-kids! this)
               (let [kids (kidfn this)
                     i    (count @kids)]
-                (if (cell? x)
-                  (do-watch x #(swap! kids assoc i %2))
-                  (swap! kids assoc i x))))))))
+                (babysitter kids i x)))))))
+
 
 (defn- set-removeChild!
   [this kidfn]
