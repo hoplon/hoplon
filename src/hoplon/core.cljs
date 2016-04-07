@@ -487,6 +487,14 @@
   [elem key val]
   (do! elem :attr {key val}))
 
+(defmethod do! :ctx/css
+  [elem key val]
+  (.css (js/jQuery elem) (name key) (str val)))
+
+(defmethod do! :ctx/html
+  [elem key val]
+  (.attr (js/jQuery elem) (name key) (str val)))
+
 (defmethod do! :value
   [elem _ & args]
   (let [e (js/jQuery elem)]
