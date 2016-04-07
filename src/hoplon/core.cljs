@@ -479,7 +479,9 @@
 
 ;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti do! (fn [elem key val] key) :default ::default)
+(defmulti do!
+  (fn [elem key val]
+    (if-let [ctx (namespace key)] (keyword ctx) key)) :default ::default)
 
 (defmethod do! ::default
   [elem key val]
