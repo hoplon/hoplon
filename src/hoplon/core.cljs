@@ -481,17 +481,17 @@
 
 (defmulti do!
   (fn [elem key val]
-    (if-let [ctx (namespace key)] (keyword "ctx" ctx) key)) :default ::default)
+    (if-let [n (namespace key)] (keyword "ns" n) key)) :default ::default)
 
 (defmethod do! ::default
   [elem key val]
   (do! elem :attr {key val}))
 
-(defmethod do! :ctx/css
+(defmethod do! :ns/css
   [elem key val]
   (.css (js/jQuery elem) (name key) (str val)))
 
-(defmethod do! :ctx/html
+(defmethod do! [:ns/html :ns/svg]
   [elem key val]
   (.attr (js/jQuery elem) (name key) (str val)))
 
