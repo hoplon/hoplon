@@ -481,17 +481,21 @@
 
 (defmulti do!
   (fn [elem key val]
-    (if-let [n (namespace key)] (keyword "ns" n) key)) :default ::default)
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
 
 (defmethod do! ::default
   [elem key val]
   (do! elem :attr {key val}))
 
-(defmethod do! :ns/css
+(defmethod do! :css/*
   [elem key val]
   (.css (js/jQuery elem) (name key) (str val)))
 
-(defmethod do! [:ns/html :ns/svg]
+(defmethod do! :html/*
+  [elem key val]
+  (.attr (js/jQuery elem) (name key) (str val)))
+
+(defmethod do! :svg/*
   [elem key val]
   (.attr (js/jQuery elem) (name key) (str val)))
 
@@ -567,13 +571,19 @@
           elem (js/jQuery elem)]
       (.animate body (clj->js {:scrollTop (.-top (.offset elem))})))))
 
-(defmulti on! (fn [elem event callback] event) :default ::default)
+(defmulti on!
+  (fn [elem key val]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
 
 (extend-type js/jQuery.Event
   cljs.core/IDeref
   (-deref [this] (-> this .-target js/jQuery .val)))
 
 (defmethod on! ::default
+  [elem event callback]
+  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+
+(defmethod on! :html/*
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
