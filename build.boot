@@ -44,8 +44,8 @@
 
 (deftask webdriver-tests
   "Run all Selenium + Firefox tests"
-  [ w watch? bool "Watches the filesystem and reruns tests when changes are made."
-    W wip? bool "true to only run WIP tests. WIP tests will not run if false."]
+  [ w watch?  bool "Watches the filesystem and reruns tests when changes are made."
+    W wip?    bool "true to only run WIP tests. WIP tests will not run if false."]
   (comp
     (serve :dir target-dir)
     (if watch?
