@@ -45,6 +45,7 @@
                 "data"
                 "datalist"
                 "dialog"
+                "dialog[open]"
                 "dd"
                 "del"
                 "details"
