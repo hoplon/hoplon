@@ -43,7 +43,10 @@
         :href "http://hoplon.io"
         :alt "click me"))
     (audio :controls true)
-    (object :width "400" :height "400" :data "helloworld.swf")
+
+    (object :width "400" :height "400" :data "helloworld.swf"
+      (param :name "autoplay" :value "true"))
+
     (br)
     (bdo
       :dir "rtl"
@@ -51,10 +54,19 @@
     (blockquote
       :cite "http://hoplon.io"
       "Hoplon is a set of Clojure and ClojureScript libraries that pave over the web's idiosyncrasies and present a simpler way to design and build single-page web applications. Learn more on our wiki.")
+
+    (pre
+      "Text in a pre element
+      is displayed in a fixed-width
+      font, and it preserves
+      both      spaces and
+      line breaks")
+
     (button
       :type "button"
       "click me")
     (canvas)
+
     (table
       (caption "Monthly savings")
       (colgroup
@@ -66,6 +78,21 @@
       (tr
         (td "January")
         (td "$100")))
+
+    (table
+      (thead
+        (tr
+         (th "Month")
+         (th "Savings")))
+      (tfoot
+        (tr)
+        (td "Sum")
+        (td "$180"))
+      (tbody
+        (tr
+          (td "January")
+          (td "$100"))))
+
     (cite "cite")
     (code "(= (+ 1 1) 2)")
     (input :list "numbers")
@@ -95,8 +122,19 @@
     (p "Do not forget to buy " (mark "milk") " today.")
 
     (meter :value "2" :min "0" :max "10" "2 out of 10")
+    (progress :value "22" :max "100")
 
     (embed :src "foo.swf")
+
+    (video :width "320" :height "240" :controls true
+      (source :src "movie.mp4" :type "video/mp4")
+      (source :src "movie.ogg" :type "video/ogg")
+      (track :src "subtitles_no.vtt" :kind "subtitles" :srclang "no" :label "Norwegian")
+      "Your browser does not support the video tag.")
+
+    (p  "To learn AJAX, you must be familiar with the XML"
+        (wbr "Http")
+        "Request Object.")
 
     (form
       (fieldset
@@ -116,6 +154,19 @@
       (li "Coffee")
       (li "Tea")
       (li "Milk"))
+
+    (html-var "Variable")
+
+    (p "New " (u "Products"))
+    (ul
+      (li
+        (data :value "3967381398" "Mini Ketchup"))
+      (li
+        (data :value "3967381399" "Jumbo Ketchup"))
+      (li
+        (data :value "3967381400" "Mega Jumbo Ketchup")))
+
+    (p "We open at " (html-time "10:00") " every morning.")
 
     (select
       (optgroup :label "Swedish Cars"
