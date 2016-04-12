@@ -36,16 +36,28 @@
 
 (def target-dir "target")
 
+(defn test-filter-for-wip
+  [wip?]
+  (if wip?
+      '(:wip (meta %))
+      '(not (:wip (meta %)))))
+
 (deftask webdriver-tests
   "Run all Selenium + Firefox tests"
-  []
+  [ w watch? bool "Watches the filesystem and reruns tests when changes are made."
+    W wip? bool "true to only run WIP tests. WIP tests will not run if false."]
   (comp
+    (serve :dir target-dir)
+    (if watch?
+        (comp
+          (watch)
+          (speak))
+        identity)
     (hoplon)
     (cljs)
-    (prerender)
     (target :dir #{target-dir})
-    (serve :dir target-dir)
-    (test)))
+    (test
+      :filters [(test-filter-for-wip wip?)])))
 
 (deftask dev
   "Build Hoplon for local development."

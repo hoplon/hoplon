@@ -9,7 +9,7 @@
 (deftest first-test
   (is (= "hello world" (text (element "h1")))))
 
-(deftest all-html
+(deftest ^:wip all-html
   "All HTML tags can be output by Hoplon"
   ; https://developer.mozilla.org/en-US/docs/Web/HTML/Element
   (doseq [tag [ ; http://www.html-5-tutorial.com/all-html-tags.htm
