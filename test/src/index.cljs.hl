@@ -3,10 +3,18 @@
 (html
   (head
     (link :rel "stylesheet" :href "main.css")
+    (html-meta :charset "UTF-8")
     (base
       :href "http://hoplon.io/images/")
     (title "Test examples"))
   (body
+    (noscript "Your browser does not support JavaScript!")
+    (script "1;")
+
+    (nav
+      (menu :type "context" :id "mymenu"
+        (menuitem :label "Refresh")))
+
     (article
       (header
         (h1 "hello world")
@@ -35,6 +43,7 @@
         :href "http://hoplon.io"
         :alt "click me"))
     (audio :controls true)
+    (object :width "400" :height "400" :data "helloworld.swf")
     (br)
     (bdo
       :dir "rtl"
@@ -81,6 +90,12 @@
 
     (div (dfn "HTML") " is the " (em "standard markup") "language for creating web pages.")
 
+    (p "He named his car " (i "The lightning") ", because it was very fast.")
+
+    (p "Do not forget to buy " (mark "milk") " today.")
+
+    (meter :value "2" :min "0" :max "10" "2 out of 10")
+
     (embed :src "foo.swf")
 
     (form
@@ -101,6 +116,25 @@
       (li "Coffee")
       (li "Tea")
       (li "Milk"))
+
+    (select
+      (optgroup :label "Swedish Cars"
+        (option :value "volvo" "Volvo")
+        (option :value "saab" "Saab"))
+
+      (optgroup :label "German Cars"
+        (option :value "mercedes" "Mercedes")
+        (option :value "audi" "Audi")))
+
+    (let
+      [ a (cell 10)
+        b (cell 20)]
+      (form
+        (input :id "a" :value a :input #(reset! a (int @%)))
+        "+"
+        (input :id "b" :value b :input #(reset! b (int @%)))
+        "="
+        (output :for "a b" :value (cell= (+ a b)))))
 
     (footer
       (p "Press " (kbd "cmd")))))

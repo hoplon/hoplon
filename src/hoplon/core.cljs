@@ -399,6 +399,7 @@
 (def main           (make-elem-ctor "main"))
 (def mark           (make-elem-ctor "mark"))
 (def menu           (make-elem-ctor "menu"))
+(def menuitem       (make-elem-ctor "menuitem"))
 (def html-meta      (make-elem-ctor "meta"))
 (def meter          (make-elem-ctor "meter"))
 (def nav            (make-elem-ctor "nav"))
