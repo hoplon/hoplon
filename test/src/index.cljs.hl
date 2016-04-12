@@ -8,14 +8,25 @@
       :href "http://hoplon.io/images/")
     (title "Test examples")
     (style
-      "h1 {color:red};} p {color:blue};}"))
+      "h1 {color:red};} p {color:blue};}")
+    (isindex :prompt "Search Document... "))
+
   (body
     (noscript "Your browser does not support JavaScript!")
+    (noframes "Sorry, your browser does not handle frames!")
+    (frameset "cols \"25%\""
+      (frame :src "http://hoplon.io"))
+
     (script "1;")
+    (eventsource)
+    (basefont :color "red" :size "5")
+    (font :face "verdana" :color "green"
+      "This is some text!")
 
     (nav
       (menu :type "context" :id "mymenu"
-        (menuitem :label "Refresh")))
+        (menuitem :label "Refresh")
+        (command :type "command" :label "Save")))
 
     (article
       (header
@@ -84,7 +95,7 @@
         (col)
         (col))
       (tr
-        (th "Month")
+        (th (center "Month"))
         (th "Savings"))
       (tr
         (td "January")
@@ -93,8 +104,8 @@
     (table
       (thead
         (tr
-         (th "Month")
-         (th "Savings")))
+         (th (tt "Month"))
+         (th (strike "Savings"))))
       (tfoot
         (tr)
         (td "Sum")
@@ -103,6 +114,18 @@
         (tr
           (td "January")
           (td "$100"))))
+
+    (p  "Can I get "
+        (big "this ")
+        (acronym :title "as soon as possible"
+          "ASAP")
+        "?")
+
+    (applet
+      :code "Bubbles.class"
+      :width "350"
+      :height "350"
+      "Java applet that draws animated bubbles.")
 
     (cite "cite")
     (code "(= (+ 1 1) 2)")
@@ -114,6 +137,7 @@
     (label :for "some-input")
     (input :id "some-input")
     (textarea)
+    (keygen :name "security")
     (sup "foo")
     (sub "bar")
     (dl
@@ -216,4 +240,9 @@
         (output :for "a b" :value (cell= (+ a b)))))
 
     (footer
-      (p "Press " (kbd "cmd")))))
+      (p "Press " (kbd "cmd")))
+
+    (dir
+      (li "html")
+      (li "xhtml")
+      (li "css"))))
