@@ -34,14 +34,27 @@
         :scm         {:url "https://github.com/hoplon/hoplon"}
         :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
 
+(def target-dir "target")
+
 (deftask webdriver-tests
   "Run all Selenium + Firefox tests"
   []
-  (let [target-dir "target"]
-    (comp
-      (hoplon)
-      (cljs)
-      (prerender)
-      (target :dir #{target-dir})
-      (serve :dir target-dir)
-      (test))))
+  (comp
+    (hoplon)
+    (cljs)
+    (prerender)
+    (target :dir #{target-dir})
+    (serve :dir target-dir)
+    (test)))
+
+(deftask dev
+  "Build Hoplon for local development."
+  []
+  (comp
+    ; (target :dir #{target-dir})
+    (serve :dir target-dir)
+    (watch)
+    (speak)
+    (hoplon)
+    (cljs)
+    (target :dir #{target-dir})))
