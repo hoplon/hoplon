@@ -173,4 +173,3 @@
                 "wbr"]]
 
     (is (exists? tag))))
-    ; (Thread/sleep 50000)))
