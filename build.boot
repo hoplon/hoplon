@@ -63,6 +63,7 @@
   "Build Hoplon for local development."
   []
   (comp
+    (target :dir #{target-dir})
     (serve :dir target-dir)
     (watch)
     (speak)
