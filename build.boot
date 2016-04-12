@@ -47,6 +47,7 @@
   [ w watch?  bool "Watches the filesystem and reruns tests when changes are made."
     W wip?    bool "true to only run WIP tests. WIP tests will not run if false."]
   (comp
+    (target :dir #{target-dir})
     (serve :dir target-dir)
     (if watch?
         (comp
@@ -61,7 +62,7 @@
 
 (deftask dev
   "Build Hoplon for local development."
-  []
+  [
   (comp
     (target :dir #{target-dir})
     (serve :dir target-dir)
