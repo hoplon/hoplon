@@ -22,7 +22,7 @@
          '[adzerk.boot-test :refer [test]]
          '[pandeiro.boot-http :refer [serve]])
 
-(def +version+ "6.0.0-alpha13")
+(def +version+ "6.0.0-alpha14")
 
 (bootlaces! +version+)
 
