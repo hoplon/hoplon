@@ -12,7 +12,7 @@
                   [adzerk/boot-test          "1.1.1"      :scope "test"]
                   [clj-webdriver             "0.7.2"      :scope "test"]
                   [pandeiro/boot-http        "0.7.0"      :scope "test"]
-                  [org.seleniumhq.selenium/selenium-java "2.48.2" :scope "test"]
+                  [org.seleniumhq.selenium/selenium-java "2.52.0" :scope "test"]
                   [cljsjs/jquery             "1.9.1-0"]
                   [hoplon/javelin            "3.8.4"]])
 
@@ -34,14 +34,40 @@
         :scm         {:url "https://github.com/hoplon/hoplon"}
         :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
 
+(def target-dir "target")
+
+(defn test-filter-for-wip
+  [wip?]
+  (if wip?
+      '(:wip (meta %))
+      '(not (:wip (meta %)))))
+
 (deftask webdriver-tests
   "Run all Selenium + Firefox tests"
+  [ w watch?  bool "Watches the filesystem and reruns tests when changes are made."
+    W wip?    bool "true to only run WIP tests. WIP tests will not run if false."]
+  (comp
+    (target :dir #{target-dir})
+    (serve :dir target-dir)
+    (if watch?
+        (comp
+          (watch)
+          (speak))
+        identity)
+    (hoplon)
+    (cljs)
+    (target :dir #{target-dir})
+    (test
+      :filters [(test-filter-for-wip wip?)])))
+
+(deftask dev
+  "Build Hoplon for local development."
   []
-  (let [target-dir "target"]
-    (comp
-      (hoplon)
-      (cljs)
-      (prerender)
-      (target :dir #{target-dir})
-      (serve :dir target-dir)
-      (test))))
+  (comp
+    (target :dir #{target-dir})
+    (serve :dir target-dir)
+    (watch)
+    (speak)
+    (hoplon)
+    (cljs)
+    (target :dir #{target-dir})))
