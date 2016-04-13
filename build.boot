@@ -12,7 +12,7 @@
                   [adzerk/boot-test          "1.1.1"      :scope "test"]
                   [clj-webdriver             "0.7.2"      :scope "test"]
                   [pandeiro/boot-http        "0.7.0"      :scope "test"]
-                  [org.seleniumhq.selenium/selenium-java "2.48.2" :scope "test"]
+                  [org.seleniumhq.selenium/selenium-java "2.52.0" :scope "test"]
                   [cljsjs/jquery             "1.9.1-0"]
                   [hoplon/javelin            "3.8.4"]])
 
