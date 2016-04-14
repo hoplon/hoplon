@@ -282,12 +282,9 @@
 (defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
-    (let [node #(cond (string? %) ($text %)
-                      (number? %) ($text (str %))
-                      :else       %)]
-      (doseq [x (flatten kids)]
-        (when-let [x (node x)]
-          (append-child! this x))))))
+    (doseq [x (flatten kids)]
+      (when-let [x (->node x)]
+        (append-child! this x)))))
 
 (extend-type js/Element
   IPrintWithWriter
@@ -331,11 +328,12 @@
     (let [[attrs kids] (parse-args args)
           elem         (-> js/document
                            (.getElementsByTagName tag)
-                           (aget 0)
-                           ensure-kids!)]
+                           (aget 0))]
       (add-attributes! elem attrs)
       (when (not (:static attrs))
-        (reset! (.-hoplonKids elem) (vec kids))))))
+        (set! (.-hoplonKids elem) nil)
+        (set! (.-innerHTML  elem) nil)
+        (add-children! elem kids)))))
 
 (defn- make-elem-ctor
   [tag]
@@ -383,6 +381,7 @@
 (def del            (make-elem-ctor "del"))
 (def details        (make-elem-ctor "details"))
 (def dfn            (make-elem-ctor "dfn"))
+(def dialog         (make-elem-ctor "dialog"))
 (def dir            (make-elem-ctor "dir"))
 (def div            (make-elem-ctor "div"))
 (def dl             (make-elem-ctor "dl"))
@@ -419,10 +418,11 @@
 (def legend         (make-elem-ctor "legend"))
 (def li             (make-elem-ctor "li"))
 (def link           (make-elem-ctor "link"))
-(def html-map       (make-elem-ctor "map"))
 (def main           (make-elem-ctor "main"))
+(def html-map       (make-elem-ctor "map"))
 (def mark           (make-elem-ctor "mark"))
 (def menu           (make-elem-ctor "menu"))
+(def menuitem       (make-elem-ctor "menuitem"))
 (def html-meta      (make-elem-ctor "meta"))
 (def meter          (make-elem-ctor "meter"))
 (def nav            (make-elem-ctor "nav"))
@@ -440,6 +440,7 @@
 (def q              (make-elem-ctor "q"))
 (def rp             (make-elem-ctor "rp"))
 (def rt             (make-elem-ctor "rt"))
+(def rtc            (make-elem-ctor "rtc"))
 (def ruby           (make-elem-ctor "ruby"))
 (def s              (make-elem-ctor "s"))
 (def samp           (make-elem-ctor "samp"))
