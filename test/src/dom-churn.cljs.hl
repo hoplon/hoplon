@@ -9,7 +9,13 @@
       :id "input-list"
       (let [values (cell {})
             values+final (cell= (into values {:new nil}))
-            on-input! (fn [id v] (reset! values (into {} (remove #(let [[_ v] %] (= "" v)) (merge @values {id v})))))]
+            on-input! (fn [id v] (reset! values (->>
+                                                  ; Update values.
+                                                  (merge @values {id v})
+                                                  ; Filter empty strings.
+                                                  (remove #(let [[_ v] %] (= "" v)))
+                                                  ; Ensure we have a map.
+                                                  (into {}))))]
         (loop-tpl :bindings [[k v] values+final]
           (let [id (cell= (if (= :new k) (gensym) k))]
             (input
