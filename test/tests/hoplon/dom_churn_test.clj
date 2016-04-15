@@ -25,8 +25,8 @@
 
 ; We should get the same result adding and removing inputs regardless of values.
 
-(deftest ^:wip add-remove-inputs-diff
+(deftest add-remove-inputs-diff
   (add-remove-inputs! ["a" "b" "c"]))
 
-(deftest ^:wip add-remove-inputs-same
+(deftest add-remove-inputs-same
   (add-remove-inputs! (let [t "a"] [t t t])))
