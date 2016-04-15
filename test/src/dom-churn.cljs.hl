@@ -2,7 +2,8 @@
 
 (html
   (head
-    (title "DOM churn examples"))
+    (title "DOM churn examples")
+    (style "input {float: left; clear: left;"))
 
   (body
     (div
@@ -21,6 +22,4 @@
             (input
               :value v
               :id id
-              :input #(on-input! @id @%)
-              :css {:float "left"
-                    :clear "left"})))))))
+              :input #(on-input! @id @%))))))))
