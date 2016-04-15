@@ -1,0 +1,20 @@
+(page "dom-churn.html")
+
+(html
+  (head
+    (title "DOM churn examples"))
+
+  (body
+    (div
+      :id "input-list"
+      (let [values (cell {})
+            values+final (cell= (into values {:new nil}))
+            on-input! (fn [id v] (reset! values (into {} (remove #(let [[_ v] %] (= "" v)) (merge @values {id v})))))]
+        (loop-tpl :bindings [[k v] values+final]
+          (let [id (cell= (if (= :new k) (gensym) k))]
+            (input
+              :value v
+              :id id
+              :input #(on-input! @id @%)
+              :css {:float "left"
+                    :clear "left"})))))))
