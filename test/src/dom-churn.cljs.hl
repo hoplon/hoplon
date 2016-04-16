@@ -22,4 +22,15 @@
             (input
               :value v
               :id id
-              :input #(on-input! @id @%))))))))
+              :input #(on-input! @id @%)))))
+
+      (div
+        :id "add-remove"
+
+        (let [state-1 ["a" "a"]
+              state-2 ["a"]
+              current (cell [])]
+          [(span "state 1" :click #(reset! current state-1) (br))
+           (span "state 2" :click #(reset! current state-2) (br))
+           (loop-tpl :bindings [i current]
+            (input :value i))])))))
