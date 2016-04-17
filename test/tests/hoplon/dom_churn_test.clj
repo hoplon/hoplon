@@ -31,7 +31,7 @@
 (deftest add-remove-inputs-same
   (add-remove-inputs! (let [t "a"] [t t t])))
 
-(deftest ^:wip deterministic-loop-tpl
+(deftest deterministic-loop-tpl
   (let [inputs                #(elements "#deterministic-loop-tpl input")
         nth-input             #(nth (inputs) %)
         nth-value             #(value (nth-input %))
