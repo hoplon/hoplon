@@ -25,13 +25,14 @@
               :input #(on-input! @id @%))))))
 
     (div
-      :id "add-remove"
+      :id "deterministic-loop-tpl"
       :css {:clear "left"}
 
+      ; These states must line up with hoplon.dom-churn-test/deterministic-loop-tpl
       (let [state-1 ["a" "a"]
             state-2 ["a"]
             current (cell [])]
-        [(span "state 1" :click #(reset! current state-1) (br))
-         (span "state 2" :click #(reset! current state-2) (br))
+        [(span "state 1" :data-state-1 true :click #(reset! current state-1) (br))
+         (span "state 2" :data-state-2 true :click #(reset! current state-2) (br))
          (loop-tpl :bindings [i current]
           (input :value i))]))))
