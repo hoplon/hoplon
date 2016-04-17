@@ -44,10 +44,11 @@
                                     (verify-state %2))
         state-1!              #(do-state! "#deterministic-loop-tpl [data-state-1]" ["a" "a"])
         state-2!              #(do-state! "#deterministic-loop-tpl [data-state-2]" ["a"])
-        toggle-states-a-bit!  #(do  (state-1!)
-                                    (state-2!)
-                                    (state-1!)
-                                    (state-2!))]
+        ; We should be able to set the state to either state as many times as we
+        ; want, in whatever order we want, and get the same result.
+        toggle-states-a-bit!  #(let [states [state-1! state-2!]]
+                                  (dotimes [_ (+ 5 (rand-int 10))]
+                                    ((rand-nth states))))]
     (is (= 0 (count (inputs))))
     (toggle-states-a-bit!)
     (state-1!)
