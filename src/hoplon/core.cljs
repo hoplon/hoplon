@@ -169,19 +169,28 @@
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol ICustomElement
-  (-set-attribute! [this k v])
-  (-append-child!  [this child])
-  (-remove-child!  [this child])
-  (-replace-child! [this new existing])
-  (-insert-before! [this new existing]))
+  (-set-attributes! [this kvs])
+  (-set-styles!     [this kvs])
+  (-append-child!   [this child])
+  (-remove-child!   [this child])
+  (-replace-child!  [this new existing])
+  (-insert-before!  [this new existing]))
+
+(defn set-attributes!
+  ([this kvs]
+   (-set-attributes! this kvs))
+  ([this k v & kvs]
+   (set-attributes! this (apply hash-map k v kvs))))
+
+(defn set-styles!
+  ([this kvs]
+   (-set-styles! this kvs))
+  ([this k v & kvs]
+   (set-styles! this (apply hash-map k v kvs))))
 
 (defn append-child!
   [this child]
   (-append-child! this child))
-
-(defn set-attribute!
-  [this k v]
-  (-set-attribute! this k v))
 
 (defn remove-child!
   [this child]
@@ -275,14 +284,18 @@
          (add-attributes! attr)
          (add-children! kids)))))
   ICustomElement
-  (-set-attribute!
-    ([this k v]
-     (with-let [_ nil]
-       (let [k (name k)
-             e (js/jQuery this)]
+  (-set-attributes!
+    ([this kvs]
+     (let [e (js/jQuery this)]
+       (doseq [[k v] kvs :let [k (name k)]]
          (if (= false v)
            (.removeAttr e k)
            (.attr e k (if (= true v) k v)))))))
+  (-set-styles!
+    ([this kvs]
+     (let [e (js/jQuery this)]
+       (doseq [[k v] kvs]
+         (.css e (name k) (str v))))))
   (-append-child!
     ([this child]
      (if-not is-ie8
@@ -489,15 +502,15 @@
 
 (defmethod do! :css/*
   [elem key val]
-  (.css (js/jQuery elem) (name key) (str val)))
+  (set-styles! elem key val))
 
 (defmethod do! :html/*
   [elem key val]
-  (.attr (js/jQuery elem) (name key) (str val)))
+  (set-attributes! elem key val))
 
 (defmethod do! :svg/*
   [elem key val]
-  (.attr (js/jQuery elem) (name key) (str val)))
+  (set-attributes! elem key val))
 
 (defmethod do! :value
   [elem _ & args]
@@ -506,12 +519,7 @@
 
 (defmethod do! :attr
   [elem _ kvs]
-  (let [e (js/jQuery elem)]
-    (doseq [[k v] kvs]
-      (let [k (name k)]
-        (if (= false v)
-          (.removeAttr e k)
-          (.attr e k (if (= true v) k v)))))))
+  (set-attributes! elem kvs))
 
 (defmethod do! :class
   [elem _ kvs]
@@ -524,8 +532,7 @@
 
 (defmethod do! :css
   [elem _ kvs]
-  (let [e (js/jQuery elem)]
-    (doseq [[k v] kvs] (.css e (name k) (str v)))))
+  (set-styles! elem kvs))
 
 (defmethod do! :toggle
   [elem _ v]
