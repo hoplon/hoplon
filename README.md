@@ -15,9 +15,6 @@ the following libraries as dependencies to complete the stack:
   elements to the underlying Javelin cell graph.
 * [Castra][2]: a full-featured RPC library for Clojure and
   ClojureScript, providing the serverside environment.
-* [Cljson][3]: an efficient method for transferring Clojure/ClojureScript
-  data between client and server. Castra uses cljson as the underlying
-  transport protocol.
 
 ### Documentation
 
