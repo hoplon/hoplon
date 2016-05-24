@@ -1,4 +1,4 @@
-# Hoplon ![build status][14] ![epicycles][11]
+# Hoplon [![build status][14]][15] ![epicycles][11]
 
 [](dependency)
 ```clojure
@@ -129,3 +129,4 @@ this license. You must not remove this notice, or any other, from this software.
 [12]: https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready
 [13]: https://waffle.io/tailrecursion/hoplon
 [14]: https://travis-ci.org/hoplon/hoplon.svg?branch=master
+[15]: https://travis-ci.org/hoplon/hoplon
