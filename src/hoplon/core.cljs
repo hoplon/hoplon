@@ -321,7 +321,7 @@
       (add-attributes! elem attrs)
       (when (not (:static attrs))
         (set! (.-hoplonKids elem) nil)
-        (set! (.-innerHTML  elem) nil)
+        (set! (.-innerHTML  elem) "")
         (add-children! elem kids)))))
 
 (defn- make-elem-ctor
