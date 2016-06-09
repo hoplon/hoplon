@@ -79,6 +79,7 @@
 (def ^:private removeChild  (.. js/Element -prototype -removeChild))
 (def ^:private appendChild  (.. js/Element -prototype -appendChild))
 (def ^:private insertBefore (.. js/Element -prototype -insertBefore))
+(def ^:private replaceChild (.. js/Element -prototype -replaceChild))
 (def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- merge-kids
@@ -138,6 +139,15 @@
                 (not y)     (swap! (kidfn this) conj x)
                 (not= x y)  (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %)))))))))
 
+(defn- set-replaceChild!
+  [this kidfn]
+  (set! (.-replaceChild this)
+        (fn [x y]
+          (this-as this
+            (with-let [y y]
+              (ensure-kids! this)
+              (swap! (kidfn this) #(mapv (fn [z] (if (= z y) x z)) %)))))))
+
 (defn- set-setAttribute!
   [this attrfn]
   (set! (.-setAttribute this)
@@ -154,16 +164,16 @@
 (set-appendChild!  (.-prototype js/Element) #(.-hoplonKids %))
 (set-removeChild!  (.-prototype js/Element) #(.-hoplonKids %))
 (set-insertBefore! (.-prototype js/Element) #(.-hoplonKids %))
+(set-replaceChild! (.-prototype js/Element) #(.-hoplonKids %))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol IHoplonElement
+(defprotocol ICustomElement
   (-set-attributes! [this kvs])
-  (-set-styles!     [this kvs]))
-
-(defprotocol IHoplonParent
+  (-set-styles!     [this kvs])
   (-append-child!   [this child])
   (-remove-child!   [this child])
+  (-replace-child!  [this new existing])
   (-insert-before!  [this new existing]))
 
 (defn set-attributes!
@@ -185,6 +195,10 @@
 (defn remove-child!
   [this child]
   (-remove-child! this child))
+
+(defn replace-child!
+  [this new existing]
+  (-replace-child! this new existing))
 
 (defn insert-before!
   [this new existing]
@@ -269,7 +283,7 @@
        (doto this
          (add-attributes! attr)
          (add-children! kids)))))
-  IHoplonElement
+  ICustomElement
   (-set-attributes!
     ([this kvs]
      (let [e (js/jQuery this)]
@@ -282,7 +296,6 @@
      (let [e (js/jQuery this)]
        (doseq [[k v] kvs]
          (.css e (name k) (str v))))))
-  IHoplonParent
   (-append-child!
     ([this child]
      (if-not is-ie8
@@ -291,6 +304,9 @@
   (-remove-child!
     ([this child]
      (.removeChild this child)))
+  (-replace-child!
+    ([this new existing]
+     (.replaceChild this new existing)))
   (-insert-before!
     ([this new existing]
      (.insertBefore this new existing))))
