@@ -316,12 +316,9 @@
      (.insertBefore this new existing))))
 
 (defn- make-singleton-ctor
-  [tag]
+  [elem]
   (fn [& args]
-    (let [[attrs kids] (parse-args args)
-          elem         (-> js/document
-                           (.getElementsByTagName tag)
-                           (aget 0))]
+    (let [[attrs kids] (parse-args args)]
       (add-attributes! elem attrs)
       (when (not (:static attrs))
         (remove-all-kids! elem)
@@ -332,15 +329,12 @@
   (fn [& args]
     (-> js/document (.createElement tag) ensure-kids! (apply args))))
 
-(defn html
-  [& args]
-  (let [[attrs _] (parse-args args)]
-    (-> (.getElementsByTagName js/document "html")
-        (aget 0)
-        (add-attributes! attrs))))
+(defn html [& args]
+  (-> (.-documentElement js/document)
+      (add-attributes! (first (parse-args args)))))
 
-(def body           (make-singleton-ctor "body"))
-(def head           (make-singleton-ctor "head"))
+(def body           (make-singleton-ctor (.-body js/document)))
+(def head           (make-singleton-ctor (.-head js/document)))
 (def a              (make-elem-ctor "a"))
 (def abbr           (make-elem-ctor "abbr"))
 (def acronym        (make-elem-ctor "acronym"))
