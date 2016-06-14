@@ -68,11 +68,30 @@
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
 
-(defn- ->node
-  [x]
-  (cond (string? x) ($text x)
-        (number? x) ($text (str x))
-        :else       x))
+;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprotocol INode
+  (->node [this]))
+
+(extend-type string
+  INode
+  (->node [this]
+    ($text this)))
+
+(extend-type number
+  INode
+  (->node [this]
+    ($text (str this))))
+
+(extend-type js/Node
+  INode
+  (->node [this]
+    this))
+
+(extend-type javelin.core/Cell
+  INode
+  (->node [this]
+    this))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
