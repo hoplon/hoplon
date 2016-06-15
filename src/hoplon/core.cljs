@@ -225,28 +225,6 @@
 
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:private is-ie8 (not (aget js/window "Node")))
-
-(def ^:private node?
-  (if-not is-ie8
-    #(instance? js/Node %)
-    #(try (.-nodeType %) (catch js/Error _))))
-
-(def ^:private vector?*
-  (if-not is-ie8
-    vector?
-    #(try (vector? %) (catch js/Error _))))
-
-(def ^:private seq?*
-  (if-not is-ie8
-    seq?
-    #(try (seq? %) (catch js/Error _))))
-
-(defn safe-nth
-  ([coll index] (safe-nth coll index nil))
-  ([coll index not-found]
-   (try (nth coll index not-found) (catch js/Error _ not-found))))
-
 (defn timeout
   ([f] (timeout f 0))
   ([f t] (.setTimeout js/window f t)))
@@ -267,10 +245,10 @@
          [arg & args] args]
     (if-not arg
       [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)     (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+      (cond (map?     arg) (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
             (keyword? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)    (recur attr (reduce conj! kids (flatten arg)) args)
-            (vector?* arg) (recur attr (reduce conj! kids (flatten arg)) args)
+            (seq?     arg) (recur attr (reduce conj! kids (flatten arg)) args)
+            (vector?  arg) (recur attr (reduce conj! kids (flatten arg)) args)
             :else          (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
@@ -317,9 +295,7 @@
          (.css e (name k) (str v))))))
   (-append-child!
     ([this child]
-     (if-not is-ie8
-       (.appendChild this child)
-       (try (.appendChild this child) (catch js/Error _)))))
+     (.appendChild this child)))
   (-remove-child!
     ([this child]
      (.removeChild this child)))
@@ -347,10 +323,10 @@
 
 (defn html [& args]
   (-> (.-documentElement js/document)
-      (add-attributes! (first (parse-args args)))))
+      (add-attributes! (nth (parse-args args) 0))))
 
-(def body           (make-singleton-ctor (.-body js/document)))
 (def head           (make-singleton-ctor (.-head js/document)))
+(def body           (make-singleton-ctor (.-body js/document)))
 (def a              (make-elem-ctor "a"))
 (def abbr           (make-elem-ctor "abbr"))
 (def acronym        (make-elem-ctor "acronym"))
@@ -622,7 +598,7 @@
   [items tpl]
   (let [on-deck   (atom ())
         items-seq (cell= (seq items))
-        ith-item  #(cell= (safe-nth items-seq %))
+        ith-item  #(cell= (nth items-seq %))
         shift!    #(with-let [x (first @%)] (swap! % rest))]
     (with-let [current (cell [])]
       (do-watch items-seq
