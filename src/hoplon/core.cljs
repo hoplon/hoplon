@@ -83,7 +83,7 @@
 (def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- merge-kids
-  [this old new]
+  [this _ new]
   (let [new  (remove nil? (flatten new))
         new? (set new)]
     (loop [[x & xs] new
@@ -105,6 +105,10 @@
       (let [kids (atom (child-vec this))]
         (set! (.-hoplonKids this) kids)
         (do-watch kids (partial merge-kids this))))))
+
+(defn remove-all-kids!
+  [this]
+  (merge-kids this nil nil))
 
 (defn- set-appendChild!
   [this kidfn]
@@ -320,8 +324,7 @@
                            (aget 0))]
       (add-attributes! elem attrs)
       (when (not (:static attrs))
-        (set! (.-hoplonKids elem) nil)
-        (set! (.-innerHTML  elem) "")
+        (remove-all-kids! elem)
         (add-children! elem kids)))))
 
 (defn- make-elem-ctor
