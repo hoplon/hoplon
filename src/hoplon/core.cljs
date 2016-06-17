@@ -117,7 +117,7 @@
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
-(defn ensure-kids!
+(defn- ensure-kids!
   [this]
   (with-let [this this]
     (when-not (.-hoplonKids this)
@@ -125,7 +125,7 @@
         (set! (.-hoplonKids this) kids)
         (do-watch kids (partial merge-kids this))))))
 
-(defn remove-all-kids!
+(defn- remove-all-kids!
   [this]
   (merge-kids this nil nil))
 
@@ -230,6 +230,11 @@
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:private is-ie8 (not (aget js/window "Node")))
+
+(def ^:private -head*
+  (if-not is-ie8
+    #(.-head %)
+    #(.. % -documentElement -firstChild)))
 
 (def ^:private node?
   (if-not is-ie8
@@ -350,10 +355,10 @@
 
 (defn html [& args]
   (-> (.-documentElement js/document)
-      (add-attributes! (first (parse-args args)))))
+      (add-attributes! (nth (parse-args args) 0))))
 
 (def body           (make-singleton-ctor (.-body js/document)))
-(def head           (make-singleton-ctor (.-head js/document)))
+(def head           (make-singleton-ctor (-head* js/document)))
 (def a              (make-elem-ctor "a"))
 (def abbr           (make-elem-ctor "abbr"))
 (def acronym        (make-elem-ctor "acronym"))
