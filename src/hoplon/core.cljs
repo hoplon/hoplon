@@ -73,6 +73,11 @@
 (defprotocol INode
   (->node [this]))
 
+(extend-type object
+  INode
+  (->node [this]
+    this))
+
 (extend-type string
   INode
   (->node [this]
@@ -82,16 +87,6 @@
   INode
   (->node [this]
     ($text (str this))))
-
-(extend-type js/Node
-  INode
-  (->node [this]
-    this))
-
-(extend-type javelin.core/Cell
-  INode
-  (->node [this]
-    this))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -127,6 +122,7 @@
 
 (defn- remove-all-kids!
   [this]
+  (set! (.-hoplonKids this) nil)
   (merge-kids this nil nil))
 
 (defn- set-appendChild!
