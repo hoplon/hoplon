@@ -16,6 +16,25 @@ the following libraries as dependencies to complete the stack:
 * [Castra][2]: a full-featured RPC library for Clojure and
   ClojureScript, providing the serverside environment.
 
+### Browser Support
+Hoplon has been thoroughly tested on desktop and mobile devices against the
+following browsers:
+
+* IEdge   8+
+* Firefox 14+
+* Safari  5+
+* Chrome  26+
+* Opera   11+
+* Android 4.0+
+
+Note that the `embed`, `object`, and `applet` elements are not implemented on
+IE 8, and that older browsers that predate HTML 5 elements such as `Audio` and
+`Video` will not render them.  Additionally, boot development tools such as
+`boot-reload` and `boot-cljs-repl`, which inject scripts into the browser to
+fuction, do not support IE 8 (which errors when output is written to the
+console without the developer tools open).  Testing against these browsers is
+best done with simple or advanced optimizations.
+
 ### Documentation
 
 * [http://hoplon.io][7]
@@ -32,7 +51,7 @@ the following libraries as dependencies to complete the stack:
 <script type="text/hoplon">
   ;; Page declaration specifies output file path.
   (page "index.html")
-  
+
   ;; definitions are optional
   (defn my-list [& items]
     (div
@@ -41,14 +60,14 @@ the following libraries as dependencies to complete the stack:
 
   (def clicks (cell 0))
 </script>
-    
+
 <html>
   <head>
     <title>example page</title>
   </head>
   <body>
     <h1>Hello, Hoplon</h1>
-    
+
     <!-- an HTML syntax call to the my-list function -->
     <my-list>
       <span>first thing</span>

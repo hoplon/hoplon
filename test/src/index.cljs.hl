@@ -57,7 +57,7 @@
         :alt "click me"))
     (audio :controls true)
 
-    (object :width "400" :height "400" :data "helloworld.swf"
+    (html-object :width "400" :height "400" :data "helloworld.swf"
       (param :name "autoplay" :value "true"))
 
     (br)

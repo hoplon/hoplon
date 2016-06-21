@@ -71,22 +71,19 @@
 ;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol INode
-  (->node [this]))
-
-(extend-type object
-  INode
-  (->node [this]
-    this))
+  (node [this]))
 
 (extend-type string
   INode
-  (->node [this]
+  (node [this]
     ($text this)))
 
 (extend-type number
   INode
-  (->node [this]
+  (node [this]
     ($text (str this))))
+
+(defn- ->node [x] (if (satisfies? INode x) (node x) x))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -232,11 +229,6 @@
     #(.-head %)
     #(.. % -documentElement -firstChild)))
 
-(def ^:private node?
-  (if-not is-ie8
-    #(instance? js/Node %)
-    #(try (.-nodeType %) (catch js/Error _))))
-
 (def ^:private vector?*
   (if-not is-ie8
     vector?
@@ -346,8 +338,12 @@
 
 (defn- make-elem-ctor
   [tag]
-  (fn [& args]
-    (-> js/document (.createElement tag) ensure-kids! (apply args))))
+  (let [mkelem #(-> js/document (.createElement tag) ensure-kids! (apply %&))]
+    (if-not is-ie8
+      mkelem
+      (fn [& args]
+        (try (apply mkelem args)
+          (catch js/Error _ (apply (make-elem-ctor "div") args)))))))
 
 (defn html [& args]
   (-> (.-documentElement js/document)
@@ -360,10 +356,10 @@
 (def acronym        (make-elem-ctor "acronym"))
 (def address        (make-elem-ctor "address"))
 (def applet         (make-elem-ctor "applet"))
+(def audio          (make-elem-ctor "audio"))
 (def area           (make-elem-ctor "area"))
 (def article        (make-elem-ctor "article"))
 (def aside          (make-elem-ctor "aside"))
-(def audio          (make-elem-ctor "audio"))
 (def b              (make-elem-ctor "b"))
 (def base           (make-elem-ctor "base"))
 (def basefont       (make-elem-ctor "basefont"))
@@ -434,7 +430,7 @@
 (def nav            (make-elem-ctor "nav"))
 (def noframes       (make-elem-ctor "noframes"))
 (def noscript       (make-elem-ctor "noscript"))
-(def object         (make-elem-ctor "object"))
+(def html-object    (make-elem-ctor "object"))
 (def ol             (make-elem-ctor "ol"))
 (def optgroup       (make-elem-ctor "optgroup"))
 (def option         (make-elem-ctor "option"))
