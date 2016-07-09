@@ -84,7 +84,7 @@ frontend (user interface) web development.
 
 To achieve the above goals, it is necessary to perform all front-end processing
 in a single, unified evaluation environment. The semantic structure of HTML
-suggests a [Lisp](http://en.wikipedia.org/wiki/Lisp_(programming_language) type
+suggests a [Lisp](http://en.wikipedia.org/wiki/Lisp_(programming_language)) type
 language, for the following reasons:
 
 * **HTML structure is fundamentally lists.**

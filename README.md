@@ -1,8 +1,8 @@
-# Hoplon ![epicycles][11]
+# Hoplon [![build status][14]][15] ![epicycles][11]
 
 [](dependency)
 ```clojure
-[hoplon "6.0.0-alpha13"] ;; latest release
+[hoplon "6.0.0-alpha16"] ;; latest release
 ```
 [](/dependency)
 
@@ -15,9 +15,25 @@ the following libraries as dependencies to complete the stack:
   elements to the underlying Javelin cell graph.
 * [Castra][2]: a full-featured RPC library for Clojure and
   ClojureScript, providing the serverside environment.
-* [Cljson][3]: an efficient method for transferring Clojure/ClojureScript
-  data between client and server. Castra uses cljson as the underlying
-  transport protocol.
+
+### Browser Support
+Hoplon has been thoroughly tested on desktop and mobile devices against the
+following browsers:
+
+* IEdge   8+
+* Firefox 14+
+* Safari  5+
+* Chrome  26+
+* Opera   11+
+* Android 4.0+
+
+Note that the `embed`, `object`, and `applet` elements are not implemented on
+IE 8, and that older browsers that predate HTML 5 elements such as `Audio` and
+`Video` will not render them.  Additionally, boot development tools such as
+`boot-reload` and `boot-cljs-repl`, which inject scripts into the browser to
+fuction, do not support IE 8 (which errors when output is written to the
+console without the developer tools open).  Testing against these browsers is
+best done with simple or advanced optimizations.
 
 ### Documentation
 
@@ -35,7 +51,7 @@ the following libraries as dependencies to complete the stack:
 <script type="text/hoplon">
   ;; Page declaration specifies output file path.
   (page "index.html")
-  
+
   ;; definitions are optional
   (defn my-list [& items]
     (div
@@ -44,14 +60,14 @@ the following libraries as dependencies to complete the stack:
 
   (def clicks (cell 0))
 </script>
-    
+
 <html>
   <head>
     <title>example page</title>
   </head>
   <body>
     <h1>Hello, Hoplon</h1>
-    
+
     <!-- an HTML syntax call to the my-list function -->
     <my-list>
       <span>first thing</span>
@@ -131,3 +147,5 @@ this license. You must not remove this notice, or any other, from this software.
 [11]: http://img.shields.io/badge/epicycles-0-green.svg?cache=1
 [12]: https://badge.waffle.io/tailrecursion/hoplon.png?label=ready&title=Ready
 [13]: https://waffle.io/tailrecursion/hoplon
+[14]: https://travis-ci.org/hoplon/hoplon.svg?branch=master
+[15]: https://travis-ci.org/hoplon/hoplon

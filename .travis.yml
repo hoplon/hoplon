@@ -1,20 +1,13 @@
 language: clojure
-cache:
-  directories:
-  - .autoconf
-  - $HOME/.m2
 jdk:
   - oraclejdk8
 addons:
   firefox: latest
-# https://github.com/semperos/clj-webdriver/blob/master/.travis.yml
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 install:
-  - wget -O boot https://github.com/boot-clj/boot/releases/download/2.4.0/boot.sh
+  - curl -s https://api.github.com/repos/boot-clj/boot/releases |grep 'download_url.*boot\.sh' |head -1 |sed 's/^.*[:] /wget -O boot /' |bash
   - chmod 755 boot
-  - ./boot -V
-  - ./boot checkout
 script:
-  - ./boot webdriver-tests
+  - ./boot test

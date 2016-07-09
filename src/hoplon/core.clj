@@ -116,39 +116,78 @@
   `(fn [& args#] (let [~bind (parse-args args#)] ~@body)))
 
 (defmacro defelem
-  "Define a custom element."
+  "Defines an element function.
+
+  An element function creates a DOM Element (parent) given two arguments:
+
+    * `attrs` - a number of key-value pairs for attributes and their values
+    * `kids` - a sequence of DOM Elements to be appended/used inside
+
+  The returned DOM Element is itself a function which can accept more
+  attributes and child elements."
   [name & forms]
   (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (elem ~bind ~@body))))
 
-;; caching dom manipulation macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;-- caching dom manipulation macros ----------------------------------------;;
 
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom))))
 
 (defmacro loop-tpl
-  "Like for-tpl with bindings specified as the :bindings attribute."
+  "Template. Works identically to `for-tpl`, only expects a `:bidings`
+  attribute to accomodate the HTML HLisp representation:
+
+    (loop-tpl :bindings [x xs] ...)"
   [& args]
   (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
     `(loop-tpl* ~items
        (fn [item#] (j/cell-let [~bindings item#] ~body)))))
 
 (defmacro for-tpl
+  "Template. Accepts a cell-binding and returns a cell containing a sequence of
+  elements:
+
+    (for-tpl [x xs] (span x))
+
+  Must be placed inside another element."
   [[bindings items] body]
   `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
 
 (defmacro if-tpl
+  "Template. Accepts a `predicate` cell and returns a cell containing either
+  the element produced by `consequent` or `alternative`, depending on the value
+  of the predicate:
+
+    (if-tpl predicate (span \"True\") (span \"False\"))
+
+  Must be placed inside another element."
   [predicate consequent & [alternative]]
   `(let [con# (delay ~consequent)
          alt# (delay ~alternative)
          tpl# (fn [p#] (safe-deref (if p# con# alt#)))]
-     (-> (j/cell ::none :meta {:preserve-event-handlers true})
-         (j/set-formula! tpl# [~predicate]))))
+     ((j/formula tpl#) ~predicate)))
 
 (defmacro when-tpl
+  "Template. Accepts a `predicate` cell and returns a cell containing either
+  the element produced by `consequent` or nothing, depending on the value of
+  the predicate:
+
+    (when-tpl predicate (span \"Value\"))
+
+  Must be placed inside another element."
   [predicate & body]
-  `(if= ~predicate (do ~@body)))
+  `(if-tpl ~predicate (do ~@body)))
 
 (defmacro cond-tpl
+  "Template. Accepts a number of `clauses` cell-template pairs and returns a
+  cell with the value produced by the matching clause:
+
+    (cond-tpl
+      clause-a (span \"A\")
+      clause-b (span \"B\")
+      :else    (span \"Default\"))
+
+  Must be placed inside another element."
   [& clauses]
   (assert (even? (count clauses)))
   (let [[conds tpls] (apply map vector (partition 2 clauses))
@@ -156,18 +195,27 @@
         syms2        (take (count conds) (repeatedly gensym))]
     `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
            tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
-       (-> (j/cell ::none :meta {:preserve-event-handlers true})
-           (j/set-formula! tpl# [~@conds])))))
+       ((j/formula tpl#) ~@conds))))
 
 (defmacro case-tpl
+  "Template. Accepts an `expr` cell and a number of `clauses` and returns a
+  cell with the value produced by the matching clause:
+
+    (case-tpl expr
+      :a (span \"A\")
+      :b (span \"B\")
+      (span \"Default\"))
+
+  Must be placed inside another element."
   [expr & clauses]
   (let [[cases tpls] (apply map vector (partition 2 clauses))
         default      (when (odd? (count clauses)) (last clauses))
         syms         (take (inc (count cases)) (repeatedly gensym))]
     `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
            tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
-       (-> (j/cell ::none :meta {:preserve-event-handlers true})
-           (j/set-formula! tpl# [~expr])))))
+       ((j/formula tpl#) ~expr))))
+
+;;-- various dom macros -----------------------------------------------------;;
 
 (defmacro with-dom
   "Evaluates the body after elem has been inserted into the DOM."
@@ -206,7 +254,7 @@
       `(j/with-let [t# (.createTextNode js/document "")]
          (j/cell= (set! (.-nodeValue t#) ~i))))))
 
-;;-- experimantal -----------------------------------------------------------;;
+;;-- experimental -----------------------------------------------------------;;
 
 (defmacro elem+
   "Experimental."
@@ -217,7 +265,7 @@
          (-> (let [kids*# (j/cell [])
                    attr*# (j/cell ~(zipmap attr-keys (repeat nil)))]
                (j/cell-let [~bind-attr attr*#
-                          ~bind-kids (j/cell= (flatten kids*#))]
+                            ~bind-kids (j/cell= (flatten kids*#))]
                  (doto (do ~@body)
                    (set-appendChild! (constantly kids*#))
                    (set-removeChild! (constantly kids*#))
@@ -225,7 +273,31 @@
              (apply attr# kids#))))))
 
 (defmacro defelem+
-  "Experimental."
+  "Experimental.
+
+  Defines an extended element function.
+
+  An extended element function creates a DOM Element given two arguments:
+
+    * `attrs` - a number of key-value pairs for attributes and their values
+    * `kids` - a sequence of DOM Elements/Cells producing DOM Elements to be
+      appended/used inside
+
+  The returned DOM Element is itself a function which can accept more
+  attributes and child elements:
+
+    (defelem+ counter
+      [{:keys [state class]} kids]
+      (ul :class class, :click #(swap! state (fnil inc 0))
+        (loop-tpl :bingings [kid kids]
+          (li kid))
+
+  Differences to `defelem`:
+
+    - `kids` argument inside the `defelem+` is a Cell of DOM Elements
+      representing any DOM elements supplied during construction or
+      appended/removed at a later point in time.
+    - `attrs` argument must be destructured as it's also a Cell."
   [name & forms]
   (let [[_ name [_ [bind & body]]] (macroexpand-1 `(defn ~name ~@forms))]
     `(def ~name (elem+ ~bind ~@body))))

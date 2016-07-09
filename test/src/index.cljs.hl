@@ -1,7 +1,0 @@
-(page "index.html")
-
-(html
-  (head
-    (link :rel "stylesheet" :href "main.css"))
-  (body
-    (h1 "hello world")))

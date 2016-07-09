@@ -68,11 +68,22 @@
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
 
-(defn- ->node
-  [x]
-  (cond (string? x) ($text x)
-        (number? x) ($text (str x))
-        :else       x))
+;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprotocol INode
+  (node [this]))
+
+(extend-type string
+  INode
+  (node [this]
+    ($text this)))
+
+(extend-type number
+  INode
+  (node [this]
+    ($text (str this))))
+
+(defn- ->node [x] (if (satisfies? INode x) (node x) x))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -82,10 +93,8 @@
 (def ^:private replaceChild (.. js/Element -prototype -replaceChild))
 (def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
-(def ^:private ^:dynamic *preserve-event-handlers* false)
-
 (defn- merge-kids
-  [this old new]
+  [this _ new]
   (let [new  (remove nil? (flatten new))
         new? (set new)]
     (loop [[x & xs] new
@@ -96,20 +105,22 @@
                                   (.call appendChild this (->node x)))
                         (not x) (with-let [ks ks]
                                   (when-not (new? k)
-                                    (let [n (->node k)]
-                                      (.call removeChild this n)
-                                      (when-not *preserve-event-handlers*
-                                        (.remove (js/jQuery n))))))
+                                    (.call removeChild this (->node k))))
                         :else   (with-let [kids kids]
                                   (.call insertBefore this (->node x) (->node k)))))))))
 
-(defn ensure-kids!
+(defn- ensure-kids!
   [this]
   (with-let [this this]
     (when-not (.-hoplonKids this)
       (let [kids (atom (child-vec this))]
         (set! (.-hoplonKids this) kids)
         (do-watch kids (partial merge-kids this))))))
+
+(defn- remove-all-kids!
+  [this]
+  (set! (.-hoplonKids this) nil)
+  (merge-kids this nil nil))
 
 (defn- set-appendChild!
   [this kidfn]
@@ -121,9 +132,7 @@
               (let [kids (kidfn this)
                     i    (count @kids)]
                 (if (cell? x)
-                  (let [preserve? (:preserve-event-handlers (meta x))]
-                    (do-watch x #(binding [*preserve-event-handlers* preserve?]
-                                   (swap! kids assoc i %2))))
+                  (do-watch x #(swap! kids assoc i %2))
                   (swap! kids assoc i x))))))))
 
 (defn- set-removeChild!
@@ -176,19 +185,28 @@
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol ICustomElement
-  (-set-attribute! [this k v])
-  (-append-child!  [this child])
-  (-remove-child!  [this child])
-  (-replace-child! [this new existing])
-  (-insert-before! [this new existing]))
+  (-set-attributes! [this kvs])
+  (-set-styles!     [this kvs])
+  (-append-child!   [this child])
+  (-remove-child!   [this child])
+  (-replace-child!  [this new existing])
+  (-insert-before!  [this new existing]))
+
+(defn set-attributes!
+  ([this kvs]
+   (-set-attributes! this kvs))
+  ([this k v & kvs]
+   (set-attributes! this (apply hash-map k v kvs))))
+
+(defn set-styles!
+  ([this kvs]
+   (-set-styles! this kvs))
+  ([this k v & kvs]
+   (set-styles! this (apply hash-map k v kvs))))
 
 (defn append-child!
   [this child]
   (-append-child! this child))
-
-(defn set-attribute!
-  [this k v]
-  (-set-attribute! this k v))
 
 (defn remove-child!
   [this child]
@@ -206,10 +224,10 @@
 
 (def ^:private is-ie8 (not (aget js/window "Node")))
 
-(def ^:private node?
+(def ^:private -head*
   (if-not is-ie8
-    #(instance? js/Node %)
-    #(try (.-nodeType %) (catch js/Error _))))
+    #(.-head %)
+    #(.. % -documentElement -firstChild)))
 
 (def ^:private vector?*
   (if-not is-ie8
@@ -265,12 +283,9 @@
 (defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
-    (let [node #(cond (string? %) ($text %)
-                      (number? %) ($text (str %))
-                      :else       %)]
-      (doseq [x (flatten kids)]
-        (when-let [x (node x)]
-          (append-child! this x))))))
+    (doseq [x (flatten kids)]
+      (when-let [x (->node x)]
+        (append-child! this x)))))
 
 (extend-type js/Element
   IPrintWithWriter
@@ -285,14 +300,18 @@
          (add-attributes! attr)
          (add-children! kids)))))
   ICustomElement
-  (-set-attribute!
-    ([this k v]
-     (with-let [_ nil]
-       (let [k (name k)
-             e (js/jQuery this)]
+  (-set-attributes!
+    ([this kvs]
+     (let [e (js/jQuery this)]
+       (doseq [[k v] kvs :let [k (name k)]]
          (if (= false v)
            (.removeAttr e k)
            (.attr e k (if (= true v) k v)))))))
+  (-set-styles!
+    ([this kvs]
+     (let [e (js/jQuery this)]
+       (doseq [[k v] kvs]
+         (.css e (name k) (str v))))))
   (-append-child!
     ([this child]
      (if-not is-ie8
@@ -309,78 +328,66 @@
      (.insertBefore this new existing))))
 
 (defn- make-singleton-ctor
-  [tag]
+  [elem]
   (fn [& args]
-    (let [[attrs kids] (parse-args args)
-          elem         (-> js/document
-                           (.getElementsByTagName tag)
-                           (aget 0)
-                           ensure-kids!)]
+    (let [[attrs kids] (parse-args args)]
       (add-attributes! elem attrs)
       (when (not (:static attrs))
-        (reset! (.-hoplonKids elem) (vec kids))))))
+        (remove-all-kids! elem)
+        (add-children! elem kids)))))
 
 (defn- make-elem-ctor
   [tag]
-  (fn [& args]
-    (-> js/document (.createElement tag) ensure-kids! (apply args))))
+  (let [mkelem #(-> js/document (.createElement tag) ensure-kids! (apply %&))]
+    (if-not is-ie8
+      mkelem
+      (fn [& args]
+        (try (apply mkelem args)
+          (catch js/Error _ (apply (make-elem-ctor "div") args)))))))
 
-(defn html
-  [& args]
-  (let [[attrs _] (parse-args args)]
-    (-> (.getElementsByTagName js/document "html")
-        (aget 0)
-        (add-attributes! attrs))))
+(defn html [& args]
+  (-> (.-documentElement js/document)
+      (add-attributes! (nth (parse-args args) 0))))
 
-(def body           (make-singleton-ctor "body"))
-(def head           (make-singleton-ctor "head"))
+(def body           (make-singleton-ctor (.-body js/document)))
+(def head           (make-singleton-ctor (-head* js/document)))
 (def a              (make-elem-ctor "a"))
 (def abbr           (make-elem-ctor "abbr"))
-(def acronym        (make-elem-ctor "acronym"))
 (def address        (make-elem-ctor "address"))
-(def applet         (make-elem-ctor "applet"))
 (def area           (make-elem-ctor "area"))
 (def article        (make-elem-ctor "article"))
 (def aside          (make-elem-ctor "aside"))
 (def audio          (make-elem-ctor "audio"))
 (def b              (make-elem-ctor "b"))
 (def base           (make-elem-ctor "base"))
-(def basefont       (make-elem-ctor "basefont"))
 (def bdi            (make-elem-ctor "bdi"))
 (def bdo            (make-elem-ctor "bdo"))
-(def big            (make-elem-ctor "big"))
 (def blockquote     (make-elem-ctor "blockquote"))
 (def br             (make-elem-ctor "br"))
 (def button         (make-elem-ctor "button"))
 (def canvas         (make-elem-ctor "canvas"))
 (def caption        (make-elem-ctor "caption"))
-(def center         (make-elem-ctor "center"))
 (def cite           (make-elem-ctor "cite"))
 (def code           (make-elem-ctor "code"))
 (def col            (make-elem-ctor "col"))
 (def colgroup       (make-elem-ctor "colgroup"))
-(def command        (make-elem-ctor "command"))
 (def data           (make-elem-ctor "data"))
 (def datalist       (make-elem-ctor "datalist"))
 (def dd             (make-elem-ctor "dd"))
 (def del            (make-elem-ctor "del"))
 (def details        (make-elem-ctor "details"))
 (def dfn            (make-elem-ctor "dfn"))
-(def dir            (make-elem-ctor "dir"))
+(def dialog         (make-elem-ctor "dialog")) ;; experimental
 (def div            (make-elem-ctor "div"))
 (def dl             (make-elem-ctor "dl"))
 (def dt             (make-elem-ctor "dt"))
 (def em             (make-elem-ctor "em"))
 (def embed          (make-elem-ctor "embed"))
-(def eventsource    (make-elem-ctor "eventsource"))
 (def fieldset       (make-elem-ctor "fieldset"))
 (def figcaption     (make-elem-ctor "figcaption"))
 (def figure         (make-elem-ctor "figure"))
-(def font           (make-elem-ctor "font"))
 (def footer         (make-elem-ctor "footer"))
 (def form           (make-elem-ctor "form"))
-(def frame          (make-elem-ctor "frame"))
-(def frameset       (make-elem-ctor "frameset"))
 (def h1             (make-elem-ctor "h1"))
 (def h2             (make-elem-ctor "h2"))
 (def h3             (make-elem-ctor "h3"))
@@ -388,51 +395,54 @@
 (def h5             (make-elem-ctor "h5"))
 (def h6             (make-elem-ctor "h6"))
 (def header         (make-elem-ctor "header"))
-(def hgroup         (make-elem-ctor "hgroup"))
+(def hgroup         (make-elem-ctor "hgroup")) ;; experimental
 (def hr             (make-elem-ctor "hr"))
 (def i              (make-elem-ctor "i"))
 (def iframe         (make-elem-ctor "iframe"))
 (def img            (make-elem-ctor "img"))
 (def input          (make-elem-ctor "input"))
 (def ins            (make-elem-ctor "ins"))
-(def isindex        (make-elem-ctor "isindex"))
 (def kbd            (make-elem-ctor "kbd"))
 (def keygen         (make-elem-ctor "keygen"))
 (def label          (make-elem-ctor "label"))
 (def legend         (make-elem-ctor "legend"))
 (def li             (make-elem-ctor "li"))
 (def link           (make-elem-ctor "link"))
-(def html-map       (make-elem-ctor "map"))
 (def main           (make-elem-ctor "main"))
+(def html-map       (make-elem-ctor "map"))
 (def mark           (make-elem-ctor "mark"))
-(def menu           (make-elem-ctor "menu"))
+(def menu           (make-elem-ctor "menu")) ;; experimental
+(def menuitem       (make-elem-ctor "menuitem")) ;; experimental
 (def html-meta      (make-elem-ctor "meta"))
 (def meter          (make-elem-ctor "meter"))
+(def multicol       (make-elem-ctor "multicol"))
 (def nav            (make-elem-ctor "nav"))
 (def noframes       (make-elem-ctor "noframes"))
 (def noscript       (make-elem-ctor "noscript"))
-(def object         (make-elem-ctor "object"))
+(def html-object    (make-elem-ctor "object"))
 (def ol             (make-elem-ctor "ol"))
 (def optgroup       (make-elem-ctor "optgroup"))
 (def option         (make-elem-ctor "option"))
 (def output         (make-elem-ctor "output"))
 (def p              (make-elem-ctor "p"))
 (def param          (make-elem-ctor "param"))
+(def picture        (make-elem-ctor "picture")) ;; experimental
 (def pre            (make-elem-ctor "pre"))
 (def progress       (make-elem-ctor "progress"))
 (def q              (make-elem-ctor "q"))
 (def rp             (make-elem-ctor "rp"))
 (def rt             (make-elem-ctor "rt"))
+(def rtc            (make-elem-ctor "rtc"))
 (def ruby           (make-elem-ctor "ruby"))
 (def s              (make-elem-ctor "s"))
 (def samp           (make-elem-ctor "samp"))
 (def script         (make-elem-ctor "script"))
 (def section        (make-elem-ctor "section"))
 (def select         (make-elem-ctor "select"))
+(def shadow         (make-elem-ctor "shadow"))
 (def small          (make-elem-ctor "small"))
 (def source         (make-elem-ctor "source"))
 (def span           (make-elem-ctor "span"))
-(def strike         (make-elem-ctor "strike"))
 (def strong         (make-elem-ctor "strong"))
 (def style          (make-elem-ctor "style"))
 (def sub            (make-elem-ctor "sub"))
@@ -441,6 +451,7 @@
 (def table          (make-elem-ctor "table"))
 (def tbody          (make-elem-ctor "tbody"))
 (def td             (make-elem-ctor "td"))
+(def template       (make-elem-ctor "template"))
 (def textarea       (make-elem-ctor "textarea"))
 (def tfoot          (make-elem-ctor "tfoot"))
 (def th             (make-elem-ctor "th"))
@@ -449,7 +460,6 @@
 (def title          (make-elem-ctor "title"))
 (def tr             (make-elem-ctor "tr"))
 (def track          (make-elem-ctor "track"))
-(def tt             (make-elem-ctor "tt"))
 (def u              (make-elem-ctor "u"))
 (def ul             (make-elem-ctor "ul"))
 (def html-var       (make-elem-ctor "var"))
@@ -463,7 +473,7 @@
 (def <!--           $comment)
 (def -->            ::-->)
 
-(defn add-initfn!  [f] (js/jQuery f))
+(defn add-initfn!  [f] (js/jQuery #(with-timeout 0 (f))))
 (defn page-load    []  (.trigger (js/jQuery js/document) "page-load"))
 (defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
 
@@ -489,11 +499,25 @@
 
 ;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti do! (fn [elem key val] key) :default ::default)
+(defmulti do!
+  (fn [elem key val]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
 
 (defmethod do! ::default
   [elem key val]
   (do! elem :attr {key val}))
+
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem key val))
+
+(defmethod do! :html/*
+  [elem key val]
+  (set-attributes! elem key val))
+
+(defmethod do! :svg/*
+  [elem key val]
+  (set-attributes! elem key val))
 
 (defmethod do! :value
   [elem _ & args]
@@ -502,12 +526,7 @@
 
 (defmethod do! :attr
   [elem _ kvs]
-  (let [e (js/jQuery elem)]
-    (doseq [[k v] kvs]
-      (let [k (name k)]
-        (if (= false v)
-          (.removeAttr e k)
-          (.attr e k (if (= true v) k v)))))))
+  (set-attributes! elem kvs))
 
 (defmethod do! :class
   [elem _ kvs]
@@ -520,8 +539,7 @@
 
 (defmethod do! :css
   [elem _ kvs]
-  (let [e (js/jQuery elem)]
-    (doseq [[k v] kvs] (.css e (name k) (str v)))))
+  (set-styles! elem kvs))
 
 (defmethod do! :toggle
   [elem _ v]
@@ -567,13 +585,19 @@
           elem (js/jQuery elem)]
       (.animate body (clj->js {:scrollTop (.-top (.offset elem))})))))
 
-(defmulti on! (fn [elem event callback] event) :default ::default)
+(defmulti on!
+  (fn [elem key val]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
 
 (extend-type js/jQuery.Event
   cljs.core/IDeref
   (-deref [this] (-> this .-target js/jQuery .val)))
 
 (defmethod on! ::default
+  [elem event callback]
+  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+
+(defmethod on! :html/*
   [elem event callback]
   (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
 
@@ -590,7 +614,7 @@
         items-seq (cell= (seq items))
         ith-item  #(cell= (safe-nth items-seq %))
         shift!    #(with-let [x (first @%)] (swap! % rest))]
-    (with-let [current (with-meta (cell []) {:preserve-event-handlers true})]
+    (with-let [current (cell [])]
       (do-watch items-seq
         (fn [old-items new-items]
           (let [old  (count old-items)
