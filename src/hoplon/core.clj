@@ -230,8 +230,8 @@
         syms2        (take (count conds) (repeatedly gensym))]
     `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
            tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
-       ((j/formula tpl#) ~@(map (fn [reg] (if-not (= reg :else) `(j/cell= (re-matches ~reg (str ~expr))) reg)) conds)))))
-       
+       ((j/formula tpl#) ~@(map #(if-not (keyword? %) `(j/cell= (re-matches ~% (str ~expr))) %) conds)))))
+
 ;;-- various dom macros -----------------------------------------------------;;
 
 (defmacro with-dom
