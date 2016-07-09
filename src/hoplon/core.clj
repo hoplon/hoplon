@@ -215,6 +215,23 @@
            tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
        ((j/formula tpl#) ~expr))))
 
+(defmacro regex-tpl
+  "Template. Accepts an `expr` cell and a number of `clauses` and returns a
+  cell with the value produced by the matching clause:
+    (regex-tpl
+      #\"clause-a\" (span \"A\")
+      #\"clause-b\" (span \"B\")
+      :else         (span \"Default\"))
+  Must be placed inside another element."
+  [expr & clauses]
+  (assert (even? (count clauses)))
+  (let [[conds tpls] (apply map vector (partition 2 clauses))
+        syms1        (take (count conds) (repeatedly gensym))
+        syms2        (take (count conds) (repeatedly gensym))]
+    `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
+           tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
+       ((j/formula tpl#) ~@(map (fn [reg] `(j/cell= (re-matches ~reg (str ~expr)))) conds)))))
+       
 ;;-- various dom macros -----------------------------------------------------;;
 
 (defmacro with-dom
@@ -316,4 +333,3 @@
        (mapcat #(if-not (string? %)
                   [%]
                   (read-string (str "(" % "\n)"))))))
-
