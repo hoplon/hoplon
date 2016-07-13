@@ -226,11 +226,10 @@
   [expr & clauses]
   (assert (even? (count clauses)))
   (let [[conds tpls] (apply map vector (partition 2 clauses))
-        syms1        (take (count conds) (repeatedly gensym))
-        syms2        (take (count conds) (repeatedly gensym))]
-    `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
-           tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
-       ((j/formula tpl#) ~@(map #(if-not (keyword? %) `(j/cell= (re-matches ~% (str ~expr))) %) conds)))))
+        conds        (map #(if-not (keyword? %)
+                            `(j/cell= (re-matches ~% (str ~expr))) %)
+                          conds)]
+    `(cond-tpl ~@(interleave conds tpls))))
 
 ;;-- various dom macros -----------------------------------------------------;;
 
