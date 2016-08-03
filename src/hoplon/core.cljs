@@ -9,7 +9,6 @@
 (ns hoplon.core
   (:require
     [goog.Uri]
-    [cljsjs.jquery]
     [clojure.set    :refer [difference intersection]]
     [javelin.core   :refer [cell? cell lift destroy-cell!]]
     [cljs.reader    :refer [read-string]]
