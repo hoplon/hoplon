@@ -302,16 +302,16 @@
   ICustomElement
   (-set-attributes!
     ([this kvs]
-     (let [e (js/jQuery this)]
+     (let [e this]
        (doseq [[k v] kvs :let [k (name k)]]
          (if (= false v)
-           (.removeAttr e k)
-           (.attr e k (if (= true v) k v)))))))
+           (.removeAttribute e k)
+           (.setAttribute e k (if (= true v) k v)))))))
   (-set-styles!
     ([this kvs]
-     (let [e (js/jQuery this)]
+     (let [e this]
        (doseq [[k v] kvs]
-         (.css e (name k) (str v))))))
+         (aset e "style" (name k) (str v))))))
   (-append-child!
     ([this child]
      (if-not is-ie8
@@ -473,9 +473,9 @@
 (def <!--           $comment)
 (def -->            ::-->)
 
-(defn add-initfn!  [f] (js/jQuery #(with-timeout 0 (f))))
-(defn page-load    []  (.trigger (js/jQuery js/document) "page-load"))
-(defn on-page-load [f] (.on (js/jQuery js/document) "page-load" f))
+(defn add-initfn!  [f] (.ready js/document #(with-timeout 0 (f))))
+(defn page-load    []  (.dispatchEvent js/document "page-load"))
+(defn on-page-load [f] (.addEventListener js/document "page-load" f))
 
 (add-initfn!
   (fn []
@@ -484,18 +484,6 @@
            #(let [e (js/jQuery (.-target %))]
               (when-not (or (.attr e "action") (.attr e "method"))
                 (.preventDefault %)))))))
-
-;; frp helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn text-val!
-  ([e] (.val e))
-  ([e v] (let [v (str v)]
-           (when (not= v (text-val! e))
-             (.val e v)))))
-
-(defn check-val!
-  ([e] (.is e ":checked"))
-  ([e v] (.prop e "checked" (boolean v))))
 
 ;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -519,87 +507,25 @@
   [elem key val]
   (set-attributes! elem key val))
 
-(defmethod do! :value
-  [elem _ & args]
-  (let [e (js/jQuery elem)]
-    (apply (if (= "checkbox" (.attr e "type")) check-val! text-val!) e args)))
-
 (defmethod do! :attr
   [elem _ kvs]
   (set-attributes! elem kvs))
-
-(defmethod do! :class
-  [elem _ kvs]
-  (let [elem  (js/jQuery elem)
-        ->map #(zipmap % (repeat true))
-        clmap (if (map? kvs)
-                kvs
-                (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))]
-    (doseq [[c p?] clmap] (.toggleClass elem (name c) (boolean p?)))))
 
 (defmethod do! :css
   [elem _ kvs]
   (set-styles! elem kvs))
 
-(defmethod do! :toggle
-  [elem _ v]
-  (.toggle (js/jQuery elem) (boolean v)))
-
-(defmethod do! :slide-toggle
-  [elem _ v]
-  (if v
-    (.slideDown (.hide (js/jQuery elem)) "fast")
-    (.slideUp (js/jQuery elem) "fast")))
-
-(defmethod do! :fade-toggle
-  [elem _ v]
-  (if v
-    (.fadeIn (.hide (js/jQuery elem)) "fast")
-    (.fadeOut (js/jQuery elem) "fast")))
-
-(defmethod do! :focus
-  [elem _ v]
-  (with-timeout 0
-    (if v (.focus (js/jQuery elem)) (.focusout (js/jQuery elem)))))
-
-(defmethod do! :select
-  [elem _ _]
-  (.select (js/jQuery elem)))
-
-(defmethod do! :focus-select
-  [elem _ v]
-  (when v (do! elem :focus v) (do! elem :select v)))
-
-(defmethod do! :text
-  [elem _ v]
-  (.text (js/jQuery elem) (str v)))
-
-(defmethod do! :html
-  [elem _ v]
-  (.html (js/jQuery elem) v))
-
-(defmethod do! :scroll-to
-  [elem _ v]
-  (when v
-    (let [body (js/jQuery "body,html")
-          elem (js/jQuery elem)]
-      (.animate body (clj->js {:scrollTop (.-top (.offset elem))})))))
-
 (defmulti on!
   (fn [elem key val]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
 
-(extend-type js/jQuery.Event
-  cljs.core/IDeref
-  (-deref [this] (-> this .-target js/jQuery .val)))
-
 (defmethod on! ::default
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (when-dom elem #(.addEventListener elem (name event) callback)))
 
 (defmethod on! :html/*
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (when-dom elem #(.addEventListener elem (name event) callback)))
 
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
@@ -635,5 +561,5 @@
   [& [default]]
   (let [c (cell (.. js/window -location -hash))]
     (with-let [_ (cell= (or (and (seq c) c) default))]
-      (-> (js/jQuery js/window)
-          (.on "hashchange" #(reset! c (.. js/window -location -hash)))))))
+      (-> js/window
+          (.addEventListener "hashchange" #(reset! c (.. js/window -location -hash)))))))
