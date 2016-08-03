@@ -32,7 +32,7 @@
 (def static-elements
   "Experimental."
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
-      (reduce {} (.get (js/jQuery "[static-id]")))))
+      (reduce {} (.querySelector js/document "[static-id]"))))
 
 ;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -473,16 +473,16 @@
 (def <!--           $comment)
 (def -->            ::-->)
 
-(defn add-initfn!  [f] (.ready js/document #(with-timeout 0 (f))))
+(defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
 (defn page-load    []  (.dispatchEvent js/document "page-load"))
 (defn on-page-load [f] (.addEventListener js/document "page-load" f))
 
 (add-initfn!
   (fn []
-    (. (js/jQuery "body")
-       (on "submit"
-           #(let [e (js/jQuery (.-target %))]
-              (when-not (or (.attr e "action") (.attr e "method"))
+    (. (.-body js/document)
+       (addEventListener "submit"
+           #(let [e (.-target %)]
+              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
                 (.preventDefault %)))))))
 
 ;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
