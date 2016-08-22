@@ -12,7 +12,7 @@
                   [clj-webdriver                         "0.7.2"    :scope "test"]
                   [tailrecursion/boot-static             "0.1.0"    :scope "test"]
                   [org.seleniumhq.selenium/selenium-java "2.53.1"   :scope "test"]
-                  [cljsjs/jquery                         "1.9.1-0"  :scope "provided"]
+                  [cljsjs/jquery                         "1.9.1-0"]
                   [hoplon/javelin                        "3.8.4"]])
 
 (require
