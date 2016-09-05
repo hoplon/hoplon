@@ -9,7 +9,7 @@
   (str (:name info) " not declared ^:export"))
 
 (defn- confirm-export [env var]
-  (when-not (:export var)
+  (when-not (or (:export var) (= false (:bind/export a/*cljs-warnings*)))
     (clj/binding [a/*cljs-warnings* (assoc a/*cljs-warnings* :bind/export true)]
       (a/warning :bind/export env var))))
 
