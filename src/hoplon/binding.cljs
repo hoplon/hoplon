@@ -2,21 +2,30 @@
   (:refer-clojure :exclude [binding])
   (:require-macros [hoplon.binding :as b]))
 
-(def thread-bindings "Stack of binding maps." (atom []))
+(def thread-bindings
+  "Stack of binding maps like this:
+
+      {
+        my.namespace.core   {:push! (fn [] ...) :pop! (fn [] ...)}
+        other.namespace.foo {:push! (fn [] ...) :pop! (fn [] ...)}
+        ...
+
+  where the keys of the map are the Javascript variables (as symbols) and
+  the values are maps with :push! and :pop! keys, each associated with a
+  zero arity procedure that pushes or pops the thread binding for that var."
+  (atom []))
 
 (defn push-thread-bindings
-  "Given a map with munged js variable names (as strings) for keys and the
-  binding values as values, sets the variables to their new values and adds
-  the binding map to the thread-bindings stack. If there are aren't yet any
-  bindings for a variable its current value is stored in the global-bindings
-  map so it can be restored later."
+  "Pushes binding-map onto the thread-bindings stack and establishes the
+  associated bindings."
   [binding-map]
-  (swap! thread-bindings conj binding-map)
-  (doseq [{:keys [push!]} (vals binding-map)] (push!)))
+  (letfn [(reducer [xs k {:keys [push!] :as v}]
+            (assoc xs k (assoc v :pop! (push!))))]
+    (swap! thread-bindings conj (reduce-kv reducer {} binding-map))))
 
 (defn pop-thread-bindings
   "Pops the topmost binding map from thread-bindings stack and restores the
-  variables to their previous saved states."
+  associated bindings to their previous, saved values."
   []
   (let [popped (peek @thread-bindings)]
     (swap! thread-bindings pop)
@@ -26,7 +35,7 @@
   "Given a function f, returns a new function capturing the current bindings
   in its closure. When the returned function is invoked the saved bindings
   are pushed and set, f is applied to the arguments, and bindings are restored
-  to their previous values."
+  to their previous, saved values."
   [f]
   (let [binding-map (apply merge @thread-bindings)]
     (fn [& args]
