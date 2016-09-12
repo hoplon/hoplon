@@ -27,13 +27,13 @@ following browsers:
 * Opera   11+
 * Android 4.0+
 
-Note that the `embed`, `object`, and `applet` elements are not implemented on
-IE 8, and that older browsers that predate HTML 5 elements such as `Audio` and
-`Video` will not render them.  Additionally, boot development tools such as
-`boot-reload` and `boot-cljs-repl`, which inject scripts into the browser to
-fuction, do not support IE 8 (which errors when output is written to the
-console without the developer tools open).  Testing against these browsers is
-best done with simple or advanced optimizations.
+Note that the `object` element is not implemented for IE 8, and that older
+browsers that predate HTML 5 elements such as `Audio` and `Video` will not render
+them.  Additionally, boot development tasks such as `boot-reload` and
+`boot-cljs-repl`, which inject scripts into the browser to function, do not
+support IE 8 (which errors when output is written to the console without the
+developer tools open).  Testing against these browsers is best done with simple
+or advanced optimizations turned on.
 
 ### Documentation
 
