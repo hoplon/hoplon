@@ -1,27 +1,29 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do! on! set-attributes! set-styles! when-dom ICustomElement]]
+  (:require [hoplon.core :refer [do! on! when-dom]]
             [cljsjs.jquery])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
     [hoplon.core    :refer [cache-key with-timeout]]))
 
-;; jQuery Custom Element ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(extend-type js/Element
-  ICustomElement
-  (-set-attributes!
-    ([this kvs]
-     (let [e (js/jQuery this)]
-       (doseq [[k v] kvs :let [k (name k)]]
-         (if (= false v)
-           (.removeAttr e k)
-           (.attr e k (if (= true v) k v)))))))
-  (-set-styles!
-    ([this kvs]
-     (let [e (js/jQuery this)]
-       (doseq [[k v] kvs]
-         (.css e (name k) (str v)))))))
-
 ;; Helper Fn's ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn set-attributes!
+  ([this kvs]
+   (let [e (js/jQuery this)]
+     (doseq [[k v] kvs :let [k (name k)]]
+       (if (= false v)
+         (.removeAttr e k)
+         (.attr e k (if (= true v) k v))))))
+  ([this k v & kvs]
+   (set-attributes! this (apply hash-map k v kvs))))
+
+(defn set-styles!
+  ([this kvs]
+   (let [e (js/jQuery this)]
+     (doseq [[k v] kvs]
+       (.css e (name k) (str v)))))
+  ([this k v & kvs]
+   (set-styles! this (apply hash-map k v kvs))))
 
 (defn text-val!
   ([e] (.val e))
