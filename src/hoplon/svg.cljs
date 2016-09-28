@@ -3,15 +3,10 @@
   (:require
     [hoplon.core :refer [ensure-kids!]]))
 
-(def svgns "http://www.w3.org/2000/svg")
-
 (defn make-svg-ctor [tag]
-  (fn [& args]
-    (-> js/document (.createElementNS svgns tag) ensure-kids! (apply args))))
-
-(defmethod hoplon.core/do! :svg/*
-  [elem kw val]
-  (.setAttributeNS elem svgns (name kw) val))
+  (let [xmlns "http://www.w3.org/2000/svg"]
+    (fn [& args]
+      (-> js/document (.createElementNS xmlns tag) ensure-kids! (apply args)))))
 
 (def a                   (make-svg-ctor "a"))
 (def altGlyph            (make-svg-ctor "altGlyph"))
