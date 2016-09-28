@@ -1,9 +1,9 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do!]]
+  (:require [hoplon.core :refer [do! on! set-attributes! set-styles! when-dom]]
             [cljsjs.jquery])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+    [hoplon.core    :refer [cache-key with-timeout]]))
 
 ;; Helper Fn's ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -18,6 +18,31 @@
   ([e v] (.prop e "checked" (boolean v))))
 
 ;; jQuery Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod do! :hoplon.core/default
+  [elem key val]
+  (do! elem :attr {key val}))
+
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem key val))
+
+(defmethod do! :html/*
+  [elem key val]
+  (set-attributes! elem key val))
+
+(defmethod do! :svg/*
+  [elem key val]
+  (set-attributes! elem key val))
+
+(defmethod do! :attr
+  [elem _ kvs]
+  (set-attributes! elem kvs))
+
+(defmethod do! :css
+  [elem _ kvs]
+  (set-styles! elem kvs))
+
 (defmethod do! :value
   [elem _ & args]
   (let [e (js/jQuery elem)]
@@ -79,3 +104,11 @@
 (extend-type js/jQuery.Event
   cljs.core/IDeref
   (-deref [this] (-> this .-target js/jQuery .val)))
+
+(defmethod on! :hoplon.core/default
+  [elem event callback]
+  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+
+(defmethod on! :html/*
+  [elem event callback]
+  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
