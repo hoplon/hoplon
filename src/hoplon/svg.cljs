@@ -1,7 +1,12 @@
 (ns hoplon.svg
   (:refer-clojure :exclude [symbol filter mask set])
   (:require
-    [hoplon.core :refer [ensure-kids!]]))
+    [hoplon.core :refer [ensure-kids! do!]]))
+
+(defmethod do! :xlink/*
+  [elem kw val]
+  (let [xlink "http://www.w3.org/1999/xlink"]
+    (.setAttributeNS elem xlink (name kw) val)))
 
 (defn make-svg-ctor [tag]
   (let [xmlns "http://www.w3.org/2000/svg"]
