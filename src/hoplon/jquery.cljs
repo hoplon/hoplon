@@ -1,9 +1,25 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do! on! set-attributes! set-styles! when-dom]]
+  (:require [hoplon.core :refer [do! on! set-attributes! set-styles! when-dom ICustomElement]]
             [cljsjs.jquery])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
     [hoplon.core    :refer [cache-key with-timeout]]))
+
+;; jQuery Custom Element ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(extend-type js/Element
+  ICustomElement
+  (-set-attributes!
+    ([this kvs]
+     (let [e (js/jQuery this)]
+       (doseq [[k v] kvs :let [k (name k)]]
+         (if (= false v)
+           (.removeAttr e k)
+           (.attr e k (if (= true v) k v)))))))
+  (-set-styles!
+    ([this kvs]
+     (let [e (js/jQuery this)]
+       (doseq [[k v] kvs]
+         (.css e (name k) (str v)))))))
 
 ;; Helper Fn's ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -34,6 +50,20 @@
 (defmethod do! :svg/*
   [elem key val]
   (set-attributes! elem key val))
+
+(defmethod do! :attr/*
+  [elem _ kvs]
+  (set-attributes! elem kvs))
+
+(defmethod do! :prop/*
+  [elem key val]
+  (let [e (js/jQuery elem)]
+    (.prop e (name key) val)))
+
+(defmethod do! :data/*
+  [elem key val]
+  (let [e (js/jQuery elem)]
+    (.data e (name key) val)))
 
 (defmethod do! :attr
   [elem _ kvs]
