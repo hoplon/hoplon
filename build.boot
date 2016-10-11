@@ -23,7 +23,7 @@
   '[adzerk.boot-test          :refer [test]]
   '[tailrecursion.boot-static :refer [serve]])
 
-(def +version+ "6.0.0-alpha16")
+(def +version+ "6.0.0-alpha17")
 
 (bootlaces! +version+)
 
@@ -34,13 +34,14 @@
   (comp (watch) (speak) (test)))
 
 (deftask develop []
-  (comp (watch) (speak) (build-jar)))
+  (comp (watch) (target) (speak) (build-jar)))
 
 (task-options!
-  pom   {:project     'hoplon
-         :version     +version+
-         :description "Hoplon web development environment."
-         :url         "https://github.com/hoplon/hoplon"
-         :scm         {:url "https://github.com/hoplon/hoplon"}
-         :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}}
-  serve {:port 3020})
+  pom    {:project     'hoplon
+          :version     +version+
+          :description "Hoplon web development environment."
+          :url         "https://github.com/hoplon/hoplon"
+          :scm         {:url "https://github.com/hoplon/hoplon"}
+          :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}}
+  serve  {:port 3020}
+  target {:dir #{"target"}})
