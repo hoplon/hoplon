@@ -19,22 +19,6 @@
 
 ;; jQuery Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod do! :hoplon.core/default
-  [elem key val]
-  (do! elem :attr {key val}))
-
-(defmethod do! :css/*
-  [elem key val]
-  (set-styles! elem key val))
-
-(defmethod do! :html/*
-  [elem key val]
-  (set-attributes! elem key val))
-
-(defmethod do! :svg/*
-  [elem key val]
-  (set-attributes! elem key val))
-
 (defmethod do! :attr
   [elem _ kvs]
   (set-attributes! elem kvs))

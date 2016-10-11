@@ -490,9 +490,41 @@
   (fn [elem key val]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
 
+(defmethod do! ::default
+  [elem key val]
+  (do! elem :attr {key val}))
+
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem key val))
+
+(defmethod do! :html/*
+  [elem key val]
+  (set-attributes! elem key val))
+
+(defmethod do! :svg/*
+  [elem key val]
+  (set-attributes! elem key val))
+
+(defmethod do! :attr
+  [elem _ kvs]
+  (set-attributes! elem kvs))
+
+(defmethod do! :css
+  [elem _ kvs]
+  (set-styles! elem kvs))
+
 (defmulti on!
   (fn [elem key val]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+
+(defmethod on! ::default
+  [elem event callback]
+  (when-dom elem #(.addEventListener elem (name event) callback)))
+
+(defmethod on! :html/*
+  [elem event callback]
+  (when-dom elem #(.addEventListener elem (name event) callback)))
 
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
