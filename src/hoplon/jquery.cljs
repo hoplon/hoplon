@@ -1,11 +1,29 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do! on! set-attributes! set-styles! when-dom]]
+  (:require [hoplon.core :refer [do! on! when-dom]]
             [cljsjs.jquery])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
     [hoplon.core    :refer [cache-key with-timeout]]))
 
 ;; Helper Fn's ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn set-attributes!
+  ([this kvs]
+   (let [e (js/jQuery this)]
+     (doseq [[k v] kvs :let [k (name k)]]
+       (if (= false v)
+         (.removeAttr e k)
+         (.attr e k (if (= true v) k v))))))
+  ([this k v & kvs]
+   (set-attributes! this (apply hash-map k v kvs))))
+
+(defn set-styles!
+  ([this kvs]
+   (let [e (js/jQuery this)]
+     (doseq [[k v] kvs]
+       (.css e (name k) (str v)))))
+  ([this k v & kvs]
+   (set-styles! this (apply hash-map k v kvs))))
 
 (defn text-val!
   ([e] (.val e))
@@ -34,6 +52,20 @@
 (defmethod do! :svg/*
   [elem key val]
   (set-attributes! elem key val))
+
+(defmethod do! :attr/*
+  [elem _ kvs]
+  (set-attributes! elem kvs))
+
+(defmethod do! :prop/*
+  [elem key val]
+  (let [e (js/jQuery elem)]
+    (.prop e (name key) val)))
+
+(defmethod do! :data/*
+  [elem key val]
+  (let [e (js/jQuery elem)]
+    (.data e (name key) val)))
 
 (defmethod do! :attr
   [elem _ kvs]
