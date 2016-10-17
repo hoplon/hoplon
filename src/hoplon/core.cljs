@@ -57,6 +57,14 @@
          (reverse)
          (join "/"))))
 
+(defn normalize-class
+  "Class normalization for attribute providers."
+  [kvs]
+  (let [->map #(zipmap % (repeat true))]
+    (if (map? kvs)
+      kvs
+      (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
+
 ;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- child-vec
