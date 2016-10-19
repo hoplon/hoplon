@@ -219,6 +219,22 @@
   [this new existing]
   (-insert-before! this new existing))
 
+;;;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprotocol ICustomAttribute
+  (-attr! [this elem value]))
+
+(defn attribute? [this]
+  (satisfies? ICustomAttribute this))
+
+(extend-type Keyword
+  ICustomAttribute
+  (-attr! [this elem value]
+    (cond (cell? value) (do-watch value #(do! elem this %2))
+          (fn? value)   (on! elem this value)
+          :else         (do! elem this value))))
+
+
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:private is-ie8 (not (aget js/window "Node")))
@@ -263,21 +279,15 @@
          [arg & args] args]
     (if-not arg
       [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)     (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
-            (keyword? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)    (recur attr (reduce conj! kids (flatten arg)) args)
-            (vector?* arg) (recur attr (reduce conj! kids (flatten arg)) args)
-            :else          (recur attr (conj! kids arg) args)))))
+      (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+            (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
+            (seq?* arg)      (recur attr (reduce conj! kids (flatten arg)) args)
+            (vector?* arg)   (recur attr (reduce conj! kids (flatten arg)) args)
+            :else            (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
   [this attr]
-  (with-let [this this]
-    (-> (fn [this k v]
-          (with-let [this this]
-            (cond (cell? v) (do-watch v #(do! this k %2))
-                  (fn? v)   (on! this k v)
-                  :else     (do! this k v))))
-        (reduce-kv this attr))))
+  (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
 
 (defn- add-children!
   [this [child-cell & _ :as kids]]

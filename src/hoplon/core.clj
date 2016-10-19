@@ -256,6 +256,11 @@
 
 ;;-- experimental -----------------------------------------------------------;;
 
+(defmacro definterval
+  [sym timeout & body]
+  `(def ~sym (do (when (~'exists? ~sym) (js/clearInterval ~sym))
+                 (js/setInterval #(do ~@body) ~timeout))))
+
 (defmacro elem+
   "Experimental."
   [[bind-attr bind-kids] & body]
@@ -316,4 +321,3 @@
        (mapcat #(if-not (string? %)
                   [%]
                   (read-string (str "(" % "\n)"))))))
-
