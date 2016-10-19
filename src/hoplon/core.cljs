@@ -9,7 +9,7 @@
 (ns hoplon.core
   (:require
     [goog.Uri]
-    [goog.object    :refer [get set]]
+    [goog.object    :as obj]
     [clojure.set    :refer [difference intersection]]
     [javelin.core   :refer [cell? cell lift destroy-cell!]]
     [cljs.reader    :refer [read-string]]
@@ -222,7 +222,7 @@
 
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:private is-ie8 (not (get js/window "Node")))
+(def ^:private is-ie8 (not (obj/get js/window "Node")))
 
 (def ^:private -head*
   (if-not is-ie8
@@ -311,7 +311,7 @@
     ([this kvs]
      (let [e this]
        (doseq [[k v] kvs]
-         (set e "style" (name k) (str v))))))
+         (obj/set e "style" (name k) (str v))))))
   (-append-child!
     ([this child]
      (if-not is-ie8
