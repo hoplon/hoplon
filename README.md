@@ -1,5 +1,5 @@
 <a href="http://hoplon.io/">
-  <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="left" width="225px" />
+  <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
 # Hoplon [![build status][14]][15] ![epicycles][11]
 
