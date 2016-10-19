@@ -1,3 +1,6 @@
+<a href="http://hoplon.io/">
+  <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="left" width="225px" />
+</a>
 # Hoplon [![build status][14]][15] ![epicycles][11]
 
 [](dependency)
@@ -6,8 +9,9 @@
 ```
 [](/dependency)
 
-Hoplon is a set of tools and libraries for making web applications. Hoplon
-provides a compiler for web application frontend development, and includes
+Hoplon is a set of tools and libraries for making web applications.
+
+Hoplon provides a compiler for web application frontend development, and includes
 the following libraries as dependencies to complete the stack:
 
 * [Javelin][1]: a spreadsheet-like dataflow library for managing client
