@@ -94,19 +94,19 @@
 
 (defn- merge-kids
   [this _ new]
-  (let [new  (remove nil? (flatten new))
+  (let [new  (->> (flatten new) (remove nil?) (map ->node))
         new? (set new)]
     (loop [[x & xs] new
            [k & ks :as kids] (child-vec this)]
       (when (or x k)
         (recur xs (cond (= x k) ks
                         (not k) (with-let [ks ks]
-                                  (.call appendChild this (->node x)))
+                                  (.call appendChild this x))
                         (not x) (with-let [ks ks]
                                   (when-not (new? k)
-                                    (.call removeChild this (->node k))))
+                                    (.call removeChild this k)))
                         :else   (with-let [kids kids]
-                                  (.call insertBefore this (->node x) (->node k)))))))))
+                                  (.call insertBefore this x k))))))))
 
 (defn- ensure-kids!
   [this]
