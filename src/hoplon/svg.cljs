@@ -1,5 +1,5 @@
 (ns hoplon.svg
-  (:refer-clojure :exclude [symbol filter mask set])
+  (:refer-clojure :exclude [symbol filter mask set use])
   (:require
     [hoplon.core :refer [ensure-kids! do!]]))
 
