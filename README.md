@@ -83,6 +83,7 @@ Or, equivalently:
 ```
 
 ### Browser Support
+
 Hoplon has been thoroughly tested on desktop and mobile devices against the
 following browsers:
 
