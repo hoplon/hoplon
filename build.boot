@@ -42,5 +42,6 @@
           :url         "https://github.com/hoplon/hoplon"
           :scm         {:url "https://github.com/hoplon/hoplon"}
           :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}}
+  test   {:namespaces '#{hoplon.app-test}}
   serve  {:port 3020}
   target {:dir #{"target"}})
