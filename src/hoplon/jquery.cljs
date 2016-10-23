@@ -1,5 +1,5 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do! on! when-dom]]
+  (:require [hoplon.core :refer [do! on! when-dom normalize-class]]
             [cljsjs.jquery])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
@@ -83,10 +83,7 @@
 (defmethod do! :class
   [elem _ kvs]
   (let [elem  (js/jQuery elem)
-        ->map #(zipmap % (repeat true))
-        clmap (if (map? kvs)
-                kvs
-                (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))]
+        clmap (normalize-class kvs)]
     (doseq [[c p?] clmap] (.toggleClass elem (name c) (boolean p?)))))
 
 (defmethod do! :toggle
