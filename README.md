@@ -83,17 +83,15 @@ Or, equivalently:
 ```
 
 ### Browser Support
+
 Hoplon has been thoroughly tested on desktop and mobile devices against the
 following browsers:
 
-* IEdge   8+
-* Firefox 14+
-* Safari  5+
-* Chrome  26+
-* Opera   11+
-* Android 4.0+
+![IEdge](https://img.shields.io/badge/IEdge-8%2B-blue.svg) ![Firefox](https://img.shields.io/badge/Firefox-14%2B-orange.svg) ![Safari](https://img.shields.io/badge/Safari-5%2B-blue.svg)
+![Chrome](https://img.shields.io/badge/Chrome-26%2B-yellow.svg) ![Opera](https://img.shields.io/badge/Opera-11%2B-red.svg)
+![Android](https://img.shields.io/badge/Android-4%2B-green.svg)
 
-Note that the `object` element is not implemented for IE 8, and that older
+>Note that the `object` element is not implemented for IE 8, and that older
 browsers that predate HTML 5 elements such as `Audio` and `Video` will not render
 them.  Additionally, boot development tasks such as `boot-reload` and
 `boot-cljs-repl`, which inject scripts into the browser to function, do not
