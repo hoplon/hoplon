@@ -40,7 +40,8 @@
   (test-cljs :exit? true))
 
 (deftask develop-cljs-tests []
-  (comp (watch) (speak) (cljs-tests)))
+  (set-env! :source-paths #{"src" "tst/cljs"})
+  (comp (watch) (speak) (test-cljs :exit false)))
 
 (deftask develop []
   (comp (watch) (target) (speak) (build-jar)))
