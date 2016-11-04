@@ -20,7 +20,6 @@ dependencies:
 
   override:
     # Run tests here so everything loaded by test task is cached
-    - pwd
     - boot test
     - boot cljs-tests
 
