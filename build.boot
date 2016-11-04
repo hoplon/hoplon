@@ -32,6 +32,9 @@
 (replace-task!
   [t test] (fn [& xs] (comp (hoplon) (cljs) (serve) (apply t xs))))
 
+; https://github.com/boot-clj/boot/wiki/Running-Boot-on-CI-systems)
+(deftask deps [])
+
 (deftask develop-tests []
   (comp (watch) (speak) (test)))
 

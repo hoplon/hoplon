@@ -20,6 +20,7 @@ dependencies:
 
   override:
     # Run tests here so everything loaded by test task is cached.
+    - boot deps
     - boot test
     - boot cljs-tests
 
