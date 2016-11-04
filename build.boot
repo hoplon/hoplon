@@ -33,7 +33,7 @@
   [t test] (fn [& xs] (comp (hoplon) (cljs) (serve) (apply t xs))))
 
 (deftask develop-tests []
-  (comp (watch) (speak) (test))
+  (comp (watch) (speak) (test)))
 
 (deftask cljs-tests []
   (set-env! :source-paths #{"src" "tst/cljs"})
