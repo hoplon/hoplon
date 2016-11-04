@@ -1,0 +1,33 @@
+# https://github.com/boot-clj/boot/wiki/Running-Boot-on-CI-systems
+general:
+  artifacts:
+    - "/tmp"
+
+machine:
+  java:
+    version: oraclejdk8
+
+  environment:
+    _JAVA_OPTIONS: "-Xms512m -Xmx1024m"
+
+  pre:
+    - sudo sysctl fs.inotify.max_user_watches=524288
+
+dependencies:
+  pre:
+    - curl -L https://github.com/boot-clj/boot-bin/releases/download/2.5.2/boot.sh -o ~/bin/boot
+    - chmod +x ~/bin/boot
+  override:
+    # Run tests here so everything loaded by test task is cached
+    - boot test
+    - boot cljs-tests
+  cache_directories:
+    - "~/bin"
+    - "~/.m2"
+    - "~/.boot/cache/bin"
+    - "~/.boot/cache/lib"
+
+test:
+  override:
+    # Nothing to run here
+    - echo 1
