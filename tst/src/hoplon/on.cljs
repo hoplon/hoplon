@@ -1,11 +1,11 @@
 (ns+ hoplon.on
   (:page "on.html")
-  (:require [javelin.core :refer [cell]]
+  (:require [javelin.core :refer [cell cell=]]
             [hoplon.core :refer :all]))
 
 (defn click-bind-test-div
   []
-  (let [c (cell nil)
+  (let [c (cell false)
         f #(reset! c true)]
     (div :click f :data-c c "Click me!" :id "click-bind-test-div")))
 
