@@ -12,6 +12,7 @@
                   [clj-webdriver                         "0.7.2"    :scope "test"]
                   [tailrecursion/boot-static             "0.1.0"    :scope "test"]
                   [org.seleniumhq.selenium/selenium-java "2.53.1"   :scope "test"]
+                  [crisptrutski/boot-cljs-test           "0.2.2-SNAPSHOT" :scope "test"]
                   [cljsjs/jquery                         "1.9.1-0"]
                   [hoplon/javelin                        "3.8.4"]])
 
@@ -21,6 +22,7 @@
   '[adzerk.boot-reload        :refer [reload]]
   '[adzerk.boot-cljs          :refer [cljs]]
   '[adzerk.boot-test          :refer [test]]
+  '[crisptrutski.boot-cljs-test :refer [test-cljs]]
   '[tailrecursion.boot-static :refer [serve]])
 
 (def +version+ "6.0.0-alpha17")
@@ -32,6 +34,10 @@
 
 (deftask develop-tests []
   (comp (watch) (speak) (test)))
+
+(deftask develop-cljs-tests []
+  (set-env! :source-paths #{"src" "tst/cljs"})
+  (comp (watch) (speak) (test-cljs)))
 
 (deftask develop []
   (comp (watch) (target) (speak) (build-jar)))

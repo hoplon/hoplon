@@ -136,8 +136,8 @@
 
 (defmethod on! :hoplon.core/default
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (.on (js/jQuery elem) (name event) callback))
 
 (defmethod on! :html/*
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (.on (js/jQuery elem) (name event) callback))

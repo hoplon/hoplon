@@ -539,11 +539,11 @@
 
 (defmethod on! ::default
   [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+  (.addEventListener elem (name event) callback))
 
 (defmethod on! :html/*
   [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+  (.addEventListener elem (name event) callback))
 
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
