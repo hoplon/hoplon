@@ -19,7 +19,7 @@ dependencies:
     - chmod +x ~/bin/boot
 
   override:
-    # Run tests here so everything loaded by test task is cached
+    # Run tests here so everything loaded by test task is cached.
     - boot test
     - boot cljs-tests
 
