@@ -1,15 +1,25 @@
 language: clojure
 jdk:
   - oraclejdk8
+cache:
+  directories:
+    - travis_phantomjs
 addons:
   firefox: latest
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
+  # Upgrade PhantomJS to v2.1.1.
+  # https://www.npmjs.com/package/phantomjs-prebuilt
+  - "export PHANTOMJS_VERSION=2.1.1"
+  - "export PATH=$PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64/bin:$PATH"
+  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then rm -rf $PWD/travis_phantomjs; mkdir -p $PWD/travis_phantomjs; fi"
+  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then wget https://github.com/Medium/phantomjs/releases/download/v$PHANTOMJS_VERSION/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -O $PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2; fi"
+  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then tar -xvf $PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -C $PWD/travis_phantomjs; fi"
+  - "phantomjs --version"
 install:
   - curl -s https://api.github.com/repos/boot-clj/boot/releases |grep 'download_url.*boot\.sh' |head -1 |sed 's/^.*[:] /wget -O boot /' |bash
   - chmod 755 boot
-  - phantomjs -v
 script:
   - ./boot test
   - ./boot cljs-tests
