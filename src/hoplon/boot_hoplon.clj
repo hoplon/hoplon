@@ -110,6 +110,8 @@ page.open(uri, function(status) {
       (util/info "• %s\n" path)
       (pod/copy-resource path (io/file dir path)))))
 
+(def ^:private bogus-cljs-files #{"deps.cljs"})
+
 (boot/deftask ns+
   "Extended ns declarations in CLJS."
   []
@@ -119,6 +121,7 @@ page.open(uri, function(status) {
       (let [cljses    (->> (boot/fileset-diff @prev-fileset fileset)
                            (boot/input-files)
                            (boot/by-ext [".cljs"])
+                           (remove (comp bogus-cljs-files boot/tmp-path))
                            (group-by boot/tmp-path))
             cljsdep   (->> cljses (keys) (refer/sort-dep-order))
             add-tmp!  (fn [fs]
@@ -173,6 +176,7 @@ page.open(uri, function(status) {
                              (boot/fileset-diff @prev-fileset)
                              boot/input-files
                              (boot/by-ext [".cljs"])
+                             (remove (comp bogus-cljs-files boot/tmp-path))
                              (map boot/tmp-path))
                 refers  (->> (or refers #{'hoplon.jquery})
                              (filter on-classpath?)

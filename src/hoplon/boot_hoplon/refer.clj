@@ -78,24 +78,28 @@
       (vec (->> (map combine args) (mapcat expand-nested))))))
 
 (defn do-require [xs [ns & mods]]
-  (let [{:keys [defs macros]} (get-publics ns)
-        [defs macros] (map set [defs macros])
-        mods          (apply hash-map mods)
-        [names mods]  ((juxt #(% :refer) #(dissoc % :refer)) mods)
-        names         (if (= names :all) (set/union defs macros) (set names))
-        refer-defs    (set/intersection defs names)
-        refer-macros  (set/intersection macros names)
-        refer-errors  (set/difference names (set/union defs macros))
-        inset         (fnil into #{})
-        xs (if (empty? defs) xs (update-in xs [:require ns] merge mods))
-        xs (if (empty? macros) xs (update-in xs [:require-macros ns] merge mods))
-        xs (if (empty? refer-defs) xs (update-in xs [:require ns :refer] inset refer-defs))
-        xs (if (empty? refer-macros) xs (update-in xs [:require-macros ns :refer] inset refer-macros))]
-    (doseq [x (set/intersection defs macros)]
-      (util/warn "WARNING: Name conflict, %s/%s is both CLJS var and CLJ macro.\n" ns x))
-    (doseq [x (set/difference names (set/union defs macros))]
-      (util/warn "WARNING: Can't :refer %s/%s because it doesn't exist.\n" ns x))
-    xs))
+  (let [{:keys [defs macros]} (get-publics ns)]
+    (if (every? empty? [defs macros])
+      ;; If no cljs defs or clj macros can be found do nothing and just pass
+      ;; through to the cljs compiler.
+      (update-in xs [:require ns] merge {:as (gensym)} mods)
+      (let [[defs macros] (map set [defs macros])
+            mods          (apply hash-map mods)
+            [names mods]  ((juxt #(% :refer) #(dissoc % :refer)) mods)
+            names         (if (= names :all) (set/union defs macros) (set names))
+            refer-defs    (set/intersection defs names)
+            refer-macros  (set/intersection macros names)
+            refer-errors  (set/difference names (set/union defs macros))
+            inset         (fnil into #{})
+            xs (if (empty? defs) xs (update-in xs [:require ns] merge mods))
+            xs (if (empty? macros) xs (update-in xs [:require-macros ns] merge mods))
+            xs (if (empty? refer-defs) xs (update-in xs [:require ns :refer] inset refer-defs))
+            xs (if (empty? refer-macros) xs (update-in xs [:require-macros ns :refer] inset refer-macros))]
+        (doseq [x (set/intersection defs macros)]
+          (util/warn "WARNING: Name conflict, %s/%s is both CLJS var and CLJ macro.\n" ns x))
+        (doseq [x (set/difference names (set/union defs macros))]
+          (util/warn "WARNING: Can't :refer %s/%s because it doesn't exist.\n" ns x))
+        xs))))
 
 (defn do-use [xs [ns & mods]]
   (let [{:keys [defs macros]} (get-publics ns)
@@ -164,8 +168,9 @@
     (when (= tag 'ns+)
       (say-it path)
       (let [ns-form (list* 'ns ns-sym (filter valid-clause? clauses))
-            outfile (doto (io/file outdir path) io/make-parents)]
-        (->> (forms-str (rewrite-ns-form ns-form) body) (spit outfile))
+            outfile (doto (io/file outdir path) io/make-parents)
+            ns-form (rewrite-ns-form ns-form)]
+        (->> (forms-str ns-form body) (spit outfile))
         (.setLastModified outfile modtime)))))
 
 (comment
