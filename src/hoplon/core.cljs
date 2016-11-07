@@ -9,14 +9,17 @@
 (ns hoplon.core
   (:require
     [goog.Uri]
-    [goog.object    :as obj]
-    [clojure.set    :refer [difference intersection]]
-    [javelin.core   :refer [cell? cell lift destroy-cell!]]
-    [cljs.reader    :refer [read-string]]
-    [clojure.string :refer [split join blank?]])
+    [goog.object     :as obj]
+    [clojure.set     :refer [difference intersection]]
+    [javelin.core    :refer [cell? cell lift destroy-cell!]]
+    [cljs.reader     :refer [read-string]]
+    [clojure.string  :refer [split join blank?]]
+    [hoplon.protocol :refer [IHoplonNode IHoplonConstructor IHoplonElement IHoplonAttribute
+                             -node -ctor! -set-attributes! -set-styles! -append-child!
+                             -remove-child! -replace-child! -insert-before! -attr!]])
   (:require-macros
-    [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+    [javelin.core    :refer [with-let cell= prop-cell]]
+    [hoplon.core     :refer [cache-key with-timeout with-dom]]))
 
 (declare mk! do! on! $text add-children!)
 
@@ -34,7 +37,7 @@
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
       (reduce {} (.querySelector js/document "[static-id]"))))
 
-;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn do-watch
   "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
@@ -66,7 +69,75 @@
       kvs
       (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
 
-;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn safe-nth
+  ([coll index] (safe-nth coll index nil))
+  ([coll index not-found]
+   (try (nth coll index not-found) (catch js/Error _ not-found))))
+
+(defn timeout
+  ([f] (timeout f 0))
+  ([f t] (.setTimeout js/window f t)))
+
+(defn when-dom [this f]
+  (if-not (instance? js/Element this)
+    (f)
+    (timeout
+      (fn doit []
+        (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
+
+;; Hoplon Constructor ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(extend-protocol IHoplonConstructor
+  string
+  (-ctor!
+    ([this]
+      (mk! this ::default))
+    ([this key]
+      (mk! this key)))
+  object
+  (-ctor!
+    ([this]
+      (mk! this ::default))
+    ([this key]
+      (mk! this key)))
+  js/Element
+  (-ctor!
+    ([this]
+      (mk! this :elem))
+    ([this key]
+      (mk! this key))))
+
+;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(extend-protocol IHoplonNode
+  string
+  (-node [this]
+    ($text this))
+  number
+  (-node [this]
+    ($text (str this))))
+
+(defn- ->node [x] (if (satisfies? IHoplonNode x) (-node x) x))
+
+;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn attribute? [this]
+  (satisfies? IHoplonAttribute this))
+
+(extend-protocol IHoplonAttribute
+  Keyword
+  (-attr! [this elem value]
+    (cond (cell? value) (do-watch value #(do! elem this %2))
+          (fn? value)   (on! elem this value)
+          :else         (do! elem this value))))
+
+;; Hoplon Element Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def ^:private removeChild  (.. js/Element -prototype -removeChild))
+(def ^:private appendChild  (.. js/Element -prototype -appendChild))
+(def ^:private insertBefore (.. js/Element -prototype -insertBefore))
+(def ^:private replaceChild (.. js/Element -prototype -replaceChild))
+(def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- child-vec
   [this]
@@ -75,31 +146,6 @@
     (loop [i 0 ret (transient [])]
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
-
-;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol INode
-  (node [this]))
-
-(extend-type string
-  INode
-  (node [this]
-    ($text this)))
-
-(extend-type number
-  INode
-  (node [this]
-    ($text (str this))))
-
-(defn- ->node [x] (if (satisfies? INode x) (node x) x))
-
-;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def ^:private removeChild  (.. js/Element -prototype -removeChild))
-(def ^:private appendChild  (.. js/Element -prototype -appendChild))
-(def ^:private insertBefore (.. js/Element -prototype -insertBefore))
-(def ^:private replaceChild (.. js/Element -prototype -replaceChild))
-(def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- merge-kids
   [this _ new]
@@ -190,24 +236,13 @@
 (set-insertBefore! (.-prototype js/Element) #(.-hoplonKids %))
 (set-replaceChild! (.-prototype js/Element) #(.-hoplonKids %))
 
-;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol ICustomConstructor
-  (-ctor! [this] [this key]))
+;; Hoplon Element Fns ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn mk-elem!
   ([elem]
     (-ctor! elem))
-  ([key elem]
+  ([elem key]
     (-ctor! elem key)))
-
-(defprotocol ICustomElement
-  (-set-attributes! [this kvs])
-  (-set-styles!     [this kvs])
-  (-append-child!   [this child])
-  (-remove-child!   [this child])
-  (-replace-child!  [this new existing])
-  (-insert-before!  [this new existing]))
 
 (defn set-attributes!
   ([this kvs]
@@ -237,71 +272,7 @@
   [this new existing]
   (-insert-before! this new existing))
 
-;;;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol ICustomAttribute
-  (-attr! [this elem value]))
-
-(defn attribute? [this]
-  (satisfies? ICustomAttribute this))
-
-(extend-type Keyword
-  ICustomConstructor
-  (-ctor!
-    ([this]
-      (mk! this))
-    ([this key]
-      (mk! this key)))
-  ICustomAttribute
-  (-attr! [this elem value]
-    (cond (cell? value) (do-watch value #(do! elem this %2))
-          (fn? value)   (on! elem this value)
-          :else         (do! elem this value))))
-
-(extend-type string
-  ICustomConstructor
-  (-ctor!
-    ([this]
-      (mk! this ::default))
-    ([this key]
-      (mk! this key))))
-
-;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def ^:private is-ie8 (not (obj/get js/window "Node")))
-
-(def ^:private -head*
-  (if-not is-ie8
-    #(.-head %)
-    #(.. % -documentElement -firstChild)))
-
-(def ^:private vector?*
-  (if-not is-ie8
-    vector?
-    #(try (vector? %) (catch js/Error _))))
-
-(def ^:private seq?*
-  (if-not is-ie8
-    seq?
-    #(try (seq? %) (catch js/Error _))))
-
-(defn safe-nth
-  ([coll index] (safe-nth coll index nil))
-  ([coll index not-found]
-   (try (nth coll index not-found) (catch js/Error _ not-found))))
-
-(defn timeout
-  ([f] (timeout f 0))
-  ([f t] (.setTimeout js/window f t)))
-
-(defn when-dom [this f]
-  (if-not (instance? js/Element this)
-    (f)
-    (timeout
-      (fn doit []
-        (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
-
-;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hoplon Element ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- parse-args
   [args]
@@ -312,8 +283,8 @@
       [(persistent! attr) (persistent! kids)]
       (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)      (recur attr (reduce conj! kids (flatten arg)) args)
-            (vector?* arg)   (recur attr (reduce conj! kids (flatten arg)) args)
+            (seq? arg)      (recur attr (reduce conj! kids (flatten arg)) args)
+            (vector? arg)   (recur attr (reduce conj! kids (flatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
@@ -339,13 +310,7 @@
        (doto this
          (add-attributes! attr)
          (add-children! kids)))))
-  ICustomConstructor
-  (-ctor!
-    ([this]
-      (mk! this ::default))
-    ([this key]
-      (mk! this key)))
-  ICustomElement
+  IHoplonElement
   (-set-attributes!
     ([this kvs]
      (let [e this]
@@ -360,9 +325,7 @@
          (obj/set e "style" (name k) (str v))))))
   (-append-child!
     ([this child]
-     (if-not is-ie8
-       (.appendChild this child)
-       (try (.appendChild this child) (catch js/Error _)))))
+     (.appendChild this child)))
   (-remove-child!
     ([this child]
      (.removeChild this child)))
@@ -373,15 +336,35 @@
     ([this new existing]
      (.insertBefore this new existing))))
 
-;; custom constructor ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hoplon Multimethods ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmulti mk!
-  (fn [_ key]
+  (fn [elem key]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+
+(defmulti do!
+  (fn [elem key val]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+
+(defmulti on!
+  (fn [elem key val]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+
+;; Hoplon Multimethod Defaults ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod mk! ::default
   [elem _]
   (mk! elem :tag))
+
+(defmethod do! ::default
+  [elem key val]
+  (do! elem :attr {key val}))
+
+(defmethod on! ::default
+  [elem event callback]
+  (when-dom elem #(.addEventListener elem (name event) callback)))
+
+;; Hoplon Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod mk! :elem
   [elem _]
@@ -396,12 +379,52 @@
   [tag _]
   #(-> js/document (.createElement tag) ensure-kids! (apply %&)))
 
-(defn html [& args]
-  (-> (.-documentElement js/document)
-      (add-attributes! (nth (parse-args args) 0))))
+(defmethod mk! :html
+  [elem _]
+  (fn [& args]
+    (add-attributes! (.. elem -documentElement) (nth (parse-args args) 0))))
 
-(def body           (mk-elem! :elem (.-body js/document)))
-(def head           (mk-elem! :elem (-head* js/document)))
+(defmethod mk! :head
+  [elem _]
+  (mk! (.-head elem) :elem))
+
+(defmethod mk! :body
+  [elem _]
+  (mk! (.-body elem) :elem))
+
+;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem key val))
+
+(defmethod do! :html/*
+  [elem key val]
+  (set-attributes! elem key val))
+
+(defmethod do! :svg/*
+  [elem key val]
+  (set-attributes! elem key val))
+
+(defmethod do! :attr
+  [elem _ kvs]
+  (set-attributes! elem kvs))
+
+(defmethod do! :css
+  [elem _ kvs]
+  (set-styles! elem kvs))
+
+(defmethod on! :html/*
+  [elem event callback]
+  (when-dom elem #(.addEventListener elem (name event) callback)))
+
+;; Hoplon DOM Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def html           (mk-elem! js/document :html))
+
+(def head           (mk-elem! js/document :head))
+(def body           (mk-elem! js/document :body))
+
 (def a              (mk-elem! "a"))
 (def abbr           (mk-elem! "abbr"))
 (def address        (mk-elem! "address"))
@@ -536,47 +559,7 @@
               (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
                 (.preventDefault %)))))))
 
-;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmulti do!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
-
-(defmethod do! ::default
-  [elem key val]
-  (do! elem :attr {key val}))
-
-(defmethod do! :css/*
-  [elem key val]
-  (set-styles! elem key val))
-
-(defmethod do! :html/*
-  [elem key val]
-  (set-attributes! elem key val))
-
-(defmethod do! :svg/*
-  [elem key val]
-  (set-attributes! elem key val))
-
-(defmethod do! :attr
-  [elem _ kvs]
-  (set-attributes! elem kvs))
-
-(defmethod do! :css
-  [elem _ kvs]
-  (set-styles! elem kvs))
-
-(defmulti on!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
-
-(defmethod on! ::default
-  [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
-
-(defmethod on! :html/*
-  [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+;; Hoplon Cells ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
