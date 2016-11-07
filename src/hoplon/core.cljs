@@ -21,7 +21,7 @@
     [javelin.core    :refer [with-let cell= prop-cell]]
     [hoplon.core     :refer [cache-key with-timeout with-dom]]))
 
-(declare mk! do! on! $text add-children!)
+(declare mk! do! on! $text)
 
 (enable-console-print!)
 
