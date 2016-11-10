@@ -392,6 +392,14 @@
   [elem _]
   (mk! (.-body elem) :elem))
 
+(defmethod mk! :text
+  [elem _]
+  #(.createTextNode elem %))
+
+(defmethod mk! :comment
+  [elem _]
+  #(.createComment elem %))
+
 ;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod do! :css/*
@@ -413,6 +421,8 @@
 (defmethod do! :css
   [elem _ kvs]
   (set-styles! elem kvs))
+
+;; Hoplon Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod on! :html/*
   [elem event callback]
@@ -541,8 +551,8 @@
 (def wbr            (mk-elem! "wbr"))
 
 (def spliced        vector)
-(def $text          #(.createTextNode js/document %))
-(def $comment       #(.createComment js/document %))
+(def $text          (mk-elem! js/document :text))
+(def $comment       (mk-elem! js/document :comment))
 
 (def <!--           $comment)
 (def -->            ::-->)
