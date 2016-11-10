@@ -31,27 +31,20 @@
 
 ;; Hoplon IE8 Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod mk! :elem
-  [elem _]
-  (fn [& args]
-    (let [[attrs kids] (parse-args args)]
-      (add-attributes! elem attrs)
-      (when (not (:static attrs))
-        (remove-all-kids! elem)
-        (add-children! elem kids)))))
-
 (defmethod mk! :tag
   [tag _]
-  #(-> js/document (.createElement tag) ensure-kids! (apply %&)))
-
-(defmethod mk! :html
-  [elem _]
-  (fn [& args]
-    (add-attributes! elem (nth (parse-args args) 0))))
+  (let [mkelem #(-> js/document (.createElement tag) ensure-kids! (apply %&))]
+    (if-not is-ie8
+      mkelem
+      (fn [& args]
+        (try (apply mkelem args)
+          (catch js/Error _ (apply (make-elem-ctor "div") args)))))))
 
 (defmethod mk! :head
   [elem _]
-  (mk! (.. elem -documentElement -firstChild) :elem))
+  (mk! (if-not is-ie8
+    (.-head elem)
+    (.. elem -documentElement -firstChild)) :elem))
 
 ;; Hoplon IE8 Element ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -59,4 +52,6 @@
   IHoplonElement
   (-append-child!
     ([this child]
-     (try (.appendChild this child) (catch js/Error _)))))
+     (if-not is-ie8
+       (.appendChild this child)
+       (try (.appendChild this child) (catch js/Error _))))))
