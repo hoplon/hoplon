@@ -7,6 +7,8 @@
 
 ;; Helper Fn's ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn ->jq #(js/jQuery %))
+
 (defn set-attributes!
   ([this kvs]
    (let [e (js/jQuery this)]
@@ -34,6 +36,38 @@
 (defn check-val!
   ([e] (.is e ":checked"))
   ([e v] (.prop e "checked" (boolean v))))
+
+;; jQuery Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod mk! :elem
+  [elem _]
+  (fn [& args]
+    (let [[attrs kids] (parse-args args)
+          elem         (->jq elem)]
+      (add-attributes! elem attrs)
+      (when (not (:static attrs))
+        (remove-all-kids! elem)
+        (add-children! elem kids)))))
+
+(defmethod mk! :tag
+  [tag _]
+  #(-> js/document ->jq (.createElement tag) ensure-kids! (apply %&)))
+
+(defmethod mk! :html
+  [elem _]
+  (let [elem (->jq elem)]
+    (fn [& args]
+      (add-attributes! (.. elem -documentElement) (nth (parse-args args) 0)))))
+
+(defmethod mk! :head
+  [elem _]
+  (let [elem (->jq elem)]
+    (mk! (.-head elem) :elem)))
+
+(defmethod mk! :body
+  [elem _]
+  (let [elem (->jq elem)]
+    (mk! (.-body elem) :elem)))
 
 ;; jQuery Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -129,6 +163,8 @@
     (let [body (js/jQuery "body,html")
           elem (js/jQuery elem)]
       (.animate body (clj->js {:scrollTop (.-top (.offset elem))})))))
+
+;; jQuery Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (extend-type js/jQuery.Event
   cljs.core/IDeref
