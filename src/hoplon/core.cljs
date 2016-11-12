@@ -80,10 +80,16 @@
 
 (defn when-dom [this f]
   (if-not (instance? js/Element this)
-    (f)
-    (timeout
-      (fn doit []
-        (if (.contains (.-documentElement js/document) this) (f) (timeout doit 20))))))
+    (with-timeout 0 (f))
+    (if-let [v (obj/get this "_hoplonWhenDom")]
+      (.push v f)
+      (do (obj/set this "_hoplonWhenDom" (array f))
+          (with-timeout 0
+            ((fn doit []
+               (if-not (.contains (.-documentElement js/document) this)
+                 (with-timeout 20 (doit))
+                 (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
+                     (obj/set this "_hoplonWhenDom" nil))))))))))
 
 ;; Hoplon Constructor ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
