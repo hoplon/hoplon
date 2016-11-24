@@ -142,7 +142,7 @@
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom))))
 
 (defmacro loop-tpl
-  "Template. Works identically to `for-tpl`, only expects a `:bidings`
+  "Template. Works identically to `for-tpl`, only expects a `:bindings`
   attribute to accomodate the HTML HLisp representation:
 
     (loop-tpl :bindings [x xs] ...)"
