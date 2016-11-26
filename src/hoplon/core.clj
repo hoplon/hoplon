@@ -156,8 +156,7 @@
   elements:
 
     (for-tpl [x xs] (span x))
-
-  Must be placed inside another element."
+  "
   [[bindings items] body]
   `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
 
@@ -167,8 +166,7 @@
   of the predicate:
 
     (if-tpl predicate (span \"True\") (span \"False\"))
-
-  Must be placed inside another element."
+  "
   [predicate consequent & [alternative]]
   `(let [con# (delay ~consequent)
          alt# (delay ~alternative)
@@ -182,7 +180,7 @@
 
     (when-tpl predicate (span \"Value\"))
 
-  Must be placed inside another element."
+  "
   [predicate & body]
   `(if-tpl ~predicate (do ~@body)))
 
@@ -194,8 +192,7 @@
       clause-a (span \"A\")
       clause-b (span \"B\")
       :else    (span \"Default\"))
-
-  Must be placed inside another element."
+  "
   [& clauses]
   (assert (even? (count clauses)))
   (let [[conds tpls] (apply map vector (partition 2 clauses))
@@ -214,7 +211,7 @@
       :b (span \"B\")
       (span \"Default\"))
 
-  Must be placed inside another element."
+  "
   [expr & clauses]
   (let [[cases tpls] (apply map vector (partition 2 clauses))
         default      (when (odd? (count clauses)) (last clauses))
