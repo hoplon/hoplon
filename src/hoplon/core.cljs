@@ -335,7 +335,7 @@
     ([this kvs]
      (let [e this]
        (doseq [[k v] kvs]
-         (obj/set e "style" (name k) (str v))))))
+         (obj/set (.. e -style) (name k) (str v))))))
   (-append-child!
     ([this child]
      (if-not is-ie8
