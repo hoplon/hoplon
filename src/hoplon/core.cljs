@@ -80,18 +80,17 @@
 
 (defn- vflatten 
  ([tree]
-   (persistent! (vflatten tree (transient []))))  
-  ([tree list]
+   (vec (vflatten tree (array))))  
+  ([tree arr]
     (let [l (count tree)]
-      (loop [i 0 ret list]
+      (loop [i 0]
         (if (= i l)
-          ret
-          (recur 
-            (inc i) 
-            (let [x (nth tree i)]
-              (if-not (sequential? x) 
-                (conj! ret x)
-                (vflatten x ret)))))))))
+          arr
+          (let [x (nth tree i)] 
+            (if-not (sequential? x)
+              (.push arr x)
+              (vflatten x arr))
+            (recur (inc i))))))))
 
 ;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
