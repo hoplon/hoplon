@@ -76,6 +76,23 @@
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
 
+
+
+(defn- vflatten 
+ ([tree]
+   (persistent! (vflatten tree (transient []))))  
+  ([tree list]
+    (let [l (count tree)]
+      (loop [i 0 ret list]
+        (if (= i l)
+          ret
+          (recur 
+            (inc i) 
+            (let [x (nth tree i)]
+              (if-not (sequential? x) 
+                (conj! ret x)
+                (vflatten x ret)))))))))
+
 ;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol INode
@@ -103,7 +120,7 @@
 
 (defn- merge-kids
   [this _ new]
-  (let [new  (->> (flatten new) (remove nil?) (map ->node))
+  (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
         new? (set new)]
     (loop [[x & xs] new
            [k & ks :as kids] (child-vec this)]
@@ -296,8 +313,8 @@
       [(persistent! attr) (persistent! kids)]
       (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)      (recur attr (reduce conj! kids (flatten arg)) args)
-            (vector?* arg)   (recur attr (reduce conj! kids (flatten arg)) args)
+            (seq?* arg)      (recur attr (reduce conj! kids (vflatten arg)) args)
+            (vector?* arg)   (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
@@ -307,7 +324,7 @@
 (defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
-    (doseq [x (flatten kids)]
+    (doseq [x (vflatten kids)]
       (when-let [x (->node x)]
         (append-child! this x)))))
 
