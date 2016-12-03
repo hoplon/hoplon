@@ -9,16 +9,19 @@
 (ns hoplon.core
   (:require
     [goog.Uri]
-    [goog.object    :as obj]
-    [clojure.set    :refer [difference intersection]]
-    [javelin.core   :refer [cell? cell lift destroy-cell!]]
-    [cljs.reader    :refer [read-string]]
-    [clojure.string :refer [split join blank?]])
+    [goog.object     :as obj]
+    [clojure.set     :refer [difference intersection]]
+    [javelin.core    :refer [cell? cell lift destroy-cell!]]
+    [cljs.reader     :refer [read-string]]
+    [clojure.string  :refer [split join blank?]]
+    [hoplon.protocol :refer [IHoplonNode IHoplonConstructor IHoplonElement IHoplonAttribute
+                             -node -ctor! -set-attributes! -set-styles! -append-child!
+                             -remove-child! -replace-child! -insert-before! -attr!]])
   (:require-macros
-    [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+    [javelin.core    :refer [with-let cell= prop-cell]]
+    [hoplon.core     :refer [cache-key with-timeout with-dom]]))
 
-(declare do! on! $text add-children!)
+(declare mk! do! on! $text)
 
 (enable-console-print!)
 
@@ -34,7 +37,7 @@
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
       (reduce {} (.querySelector js/document "[static-id]"))))
 
-;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn do-watch
   "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
@@ -66,7 +69,81 @@
       kvs
       (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
 
-;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn safe-nth
+  ([coll index] (safe-nth coll index nil))
+  ([coll index not-found]
+   (try (nth coll index not-found) (catch js/Error _ not-found))))
+
+(defn timeout
+  ([f] (timeout f 0))
+  ([f t] (.setTimeout js/window f t)))
+
+(defn when-dom [this f]
+  (if-not (instance? js/Element this)
+    (with-timeout 0 (f))
+    (if-let [v (obj/get this "_hoplonWhenDom")]
+      (.push v f)
+      (do (obj/set this "_hoplonWhenDom" (array f))
+          (with-timeout 0
+            ((fn doit []
+               (if-not (.contains (.-documentElement js/document) this)
+                 (with-timeout 20 (doit))
+                 (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
+                     (obj/set this "_hoplonWhenDom" nil))))))))))
+
+;; Hoplon Constructor ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(extend-protocol IHoplonConstructor
+  string
+  (-ctor!
+    ([this]
+      (mk! this ::default))
+    ([this key]
+      (mk! this key)))
+  object
+  (-ctor!
+    ([this]
+      (mk! this ::default))
+    ([this key]
+      (mk! this key)))
+  js/Element
+  (-ctor!
+    ([this]
+      (mk! this :elem))
+    ([this key]
+      (mk! this key))))
+
+;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(extend-protocol IHoplonNode
+  string
+  (-node [this]
+    ($text this))
+  number
+  (-node [this]
+    ($text (str this))))
+
+(defn- ->node [x] (if (satisfies? IHoplonNode x) (-node x) x))
+
+;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn attribute? [this]
+  (satisfies? IHoplonAttribute this))
+
+(extend-protocol IHoplonAttribute
+  Keyword
+  (-attr! [this elem value]
+    (cond (cell? value) (do-watch value #(do! elem this %2))
+          (fn? value)   (on! elem this value)
+          :else         (do! elem this value))))
+
+;; Hoplon Element Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def ^:private removeChild  (.. js/Element -prototype -removeChild))
+(def ^:private appendChild  (.. js/Element -prototype -appendChild))
+(def ^:private insertBefore (.. js/Element -prototype -insertBefore))
+(def ^:private replaceChild (.. js/Element -prototype -replaceChild))
+(def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- child-vec
   [this]
@@ -75,31 +152,6 @@
     (loop [i 0 ret (transient [])]
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
-
-;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol INode
-  (node [this]))
-
-(extend-type string
-  INode
-  (node [this]
-    ($text this)))
-
-(extend-type number
-  INode
-  (node [this]
-    ($text (str this))))
-
-(defn- ->node [x] (if (satisfies? INode x) (node x) x))
-
-;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def ^:private removeChild  (.. js/Element -prototype -removeChild))
-(def ^:private appendChild  (.. js/Element -prototype -appendChild))
-(def ^:private insertBefore (.. js/Element -prototype -insertBefore))
-(def ^:private replaceChild (.. js/Element -prototype -replaceChild))
-(def ^:private setAttribute (.. js/Element -prototype -setAttribute))
 
 (defn- merge-kids
   [this _ new]
@@ -190,15 +242,13 @@
 (set-insertBefore! (.-prototype js/Element) #(.-hoplonKids %))
 (set-replaceChild! (.-prototype js/Element) #(.-hoplonKids %))
 
-;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hoplon Element Fns ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol ICustomElement
-  (-set-attributes! [this kvs])
-  (-set-styles!     [this kvs])
-  (-append-child!   [this child])
-  (-remove-child!   [this child])
-  (-replace-child!  [this new existing])
-  (-insert-before!  [this new existing]))
+(defn mk-elem!
+  ([elem]
+    (-ctor! elem))
+  ([elem key]
+    (-ctor! elem key)))
 
 (defn set-attributes!
   ([this kvs]
@@ -228,64 +278,7 @@
   [this new existing]
   (-insert-before! this new existing))
 
-;;;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol ICustomAttribute
-  (-attr! [this elem value]))
-
-(defn attribute? [this]
-  (satisfies? ICustomAttribute this))
-
-(extend-type Keyword
-  ICustomAttribute
-  (-attr! [this elem value]
-    (cond (cell? value) (do-watch value #(do! elem this %2))
-          (fn? value)   (on! elem this value)
-          :else         (do! elem this value))))
-
-
-;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def ^:private is-ie8 (not (obj/get js/window "Node")))
-
-(def ^:private -head*
-  (if-not is-ie8
-    #(.-head %)
-    #(.. % -documentElement -firstChild)))
-
-(def ^:private vector?*
-  (if-not is-ie8
-    vector?
-    #(try (vector? %) (catch js/Error _))))
-
-(def ^:private seq?*
-  (if-not is-ie8
-    seq?
-    #(try (seq? %) (catch js/Error _))))
-
-(defn safe-nth
-  ([coll index] (safe-nth coll index nil))
-  ([coll index not-found]
-   (try (nth coll index not-found) (catch js/Error _ not-found))))
-
-(defn timeout
-  ([f] (timeout f 0))
-  ([f t] (.setTimeout js/window f t)))
-
-(defn when-dom [this f]
-  (if-not (instance? js/Element this)
-    (with-timeout 0 (f))
-    (if-let [v (obj/get this "_hoplonWhenDom")]
-      (.push v f)
-      (do (obj/set this "_hoplonWhenDom" (array f))
-          (with-timeout 0
-            ((fn doit []
-               (if-not (.contains (.-documentElement js/document) this)
-                 (with-timeout 20 (doit))
-                 (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
-                     (obj/set this "_hoplonWhenDom" nil))))))))))
-
-;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hoplon Element ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- parse-args
   [args]
@@ -296,8 +289,8 @@
       [(persistent! attr) (persistent! kids)]
       (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)      (recur attr (reduce conj! kids (flatten arg)) args)
-            (vector?* arg)   (recur attr (reduce conj! kids (flatten arg)) args)
+            (seq? arg)      (recur attr (reduce conj! kids (flatten arg)) args)
+            (vector? arg)   (recur attr (reduce conj! kids (flatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
@@ -323,7 +316,7 @@
        (doto this
          (add-attributes! attr)
          (add-children! kids)))))
-  ICustomElement
+  IHoplonElement
   (-set-attributes!
     ([this kvs]
      (let [e this]
@@ -338,9 +331,7 @@
          (obj/set (.. e -style) (name k) (str v))))))
   (-append-child!
     ([this child]
-     (if-not is-ie8
-       (.appendChild this child)
-       (try (.appendChild this child) (catch js/Error _)))))
+     (.appendChild this child)))
   (-remove-child!
     ([this child]
      (.removeChild this child)))
@@ -351,8 +342,38 @@
     ([this new existing]
      (.insertBefore this new existing))))
 
-(defn- make-singleton-ctor
-  [elem]
+;; Hoplon Multimethods ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmulti mk!
+  (fn [elem key]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+
+(defmulti do!
+  (fn [elem key val]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+
+(defmulti on!
+  (fn [elem key val]
+    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+
+;; Hoplon Multimethod Defaults ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod mk! ::default
+  [elem _]
+  (mk! elem :tag))
+
+(defmethod do! ::default
+  [elem key val]
+  (do! elem :attr {key val}))
+
+(defmethod on! ::default
+  [elem event callback]
+  (when-dom elem #(.addEventListener elem (name event) callback)))
+
+;; Hoplon Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod mk! :elem
+  [elem _]
   (fn [& args]
     (let [[attrs kids] (parse-args args)]
       (add-attributes! elem attrs)
@@ -360,164 +381,32 @@
         (remove-all-kids! elem)
         (add-children! elem kids)))))
 
-(defn- make-elem-ctor
-  [tag]
-  (let [mkelem #(-> js/document (.createElement tag) ensure-kids! (apply %&))]
-    (if-not is-ie8
-      mkelem
-      (fn [& args]
-        (try (apply mkelem args)
-          (catch js/Error _ (apply (make-elem-ctor "div") args)))))))
+(defmethod mk! :tag
+  [tag _]
+  #(-> js/document (.createElement tag) ensure-kids! (apply %&)))
 
-(defn html [& args]
-  (-> (.-documentElement js/document)
-      (add-attributes! (nth (parse-args args) 0))))
+(defmethod mk! :html
+  [elem _]
+  (fn [& args]
+    (add-attributes! (.. elem -documentElement) (nth (parse-args args) 0))))
 
-(def body           (make-singleton-ctor (.-body js/document)))
-(def head           (make-singleton-ctor (-head* js/document)))
-(def a              (make-elem-ctor "a"))
-(def abbr           (make-elem-ctor "abbr"))
-(def address        (make-elem-ctor "address"))
-(def area           (make-elem-ctor "area"))
-(def article        (make-elem-ctor "article"))
-(def aside          (make-elem-ctor "aside"))
-(def audio          (make-elem-ctor "audio"))
-(def b              (make-elem-ctor "b"))
-(def base           (make-elem-ctor "base"))
-(def bdi            (make-elem-ctor "bdi"))
-(def bdo            (make-elem-ctor "bdo"))
-(def blockquote     (make-elem-ctor "blockquote"))
-(def br             (make-elem-ctor "br"))
-(def button         (make-elem-ctor "button"))
-(def canvas         (make-elem-ctor "canvas"))
-(def caption        (make-elem-ctor "caption"))
-(def cite           (make-elem-ctor "cite"))
-(def code           (make-elem-ctor "code"))
-(def col            (make-elem-ctor "col"))
-(def colgroup       (make-elem-ctor "colgroup"))
-(def data           (make-elem-ctor "data"))
-(def datalist       (make-elem-ctor "datalist"))
-(def dd             (make-elem-ctor "dd"))
-(def del            (make-elem-ctor "del"))
-(def details        (make-elem-ctor "details"))
-(def dfn            (make-elem-ctor "dfn"))
-(def dialog         (make-elem-ctor "dialog")) ;; experimental
-(def div            (make-elem-ctor "div"))
-(def dl             (make-elem-ctor "dl"))
-(def dt             (make-elem-ctor "dt"))
-(def em             (make-elem-ctor "em"))
-(def embed          (make-elem-ctor "embed"))
-(def fieldset       (make-elem-ctor "fieldset"))
-(def figcaption     (make-elem-ctor "figcaption"))
-(def figure         (make-elem-ctor "figure"))
-(def footer         (make-elem-ctor "footer"))
-(def form           (make-elem-ctor "form"))
-(def h1             (make-elem-ctor "h1"))
-(def h2             (make-elem-ctor "h2"))
-(def h3             (make-elem-ctor "h3"))
-(def h4             (make-elem-ctor "h4"))
-(def h5             (make-elem-ctor "h5"))
-(def h6             (make-elem-ctor "h6"))
-(def header         (make-elem-ctor "header"))
-(def hgroup         (make-elem-ctor "hgroup")) ;; experimental
-(def hr             (make-elem-ctor "hr"))
-(def i              (make-elem-ctor "i"))
-(def iframe         (make-elem-ctor "iframe"))
-(def img            (make-elem-ctor "img"))
-(def input          (make-elem-ctor "input"))
-(def ins            (make-elem-ctor "ins"))
-(def kbd            (make-elem-ctor "kbd"))
-(def keygen         (make-elem-ctor "keygen"))
-(def label          (make-elem-ctor "label"))
-(def legend         (make-elem-ctor "legend"))
-(def li             (make-elem-ctor "li"))
-(def link           (make-elem-ctor "link"))
-(def main           (make-elem-ctor "main"))
-(def html-map       (make-elem-ctor "map"))
-(def mark           (make-elem-ctor "mark"))
-(def menu           (make-elem-ctor "menu")) ;; experimental
-(def menuitem       (make-elem-ctor "menuitem")) ;; experimental
-(def html-meta      (make-elem-ctor "meta"))
-(def meter          (make-elem-ctor "meter"))
-(def multicol       (make-elem-ctor "multicol"))
-(def nav            (make-elem-ctor "nav"))
-(def noframes       (make-elem-ctor "noframes"))
-(def noscript       (make-elem-ctor "noscript"))
-(def html-object    (make-elem-ctor "object"))
-(def ol             (make-elem-ctor "ol"))
-(def optgroup       (make-elem-ctor "optgroup"))
-(def option         (make-elem-ctor "option"))
-(def output         (make-elem-ctor "output"))
-(def p              (make-elem-ctor "p"))
-(def param          (make-elem-ctor "param"))
-(def picture        (make-elem-ctor "picture")) ;; experimental
-(def pre            (make-elem-ctor "pre"))
-(def progress       (make-elem-ctor "progress"))
-(def q              (make-elem-ctor "q"))
-(def rp             (make-elem-ctor "rp"))
-(def rt             (make-elem-ctor "rt"))
-(def rtc            (make-elem-ctor "rtc"))
-(def ruby           (make-elem-ctor "ruby"))
-(def s              (make-elem-ctor "s"))
-(def samp           (make-elem-ctor "samp"))
-(def script         (make-elem-ctor "script"))
-(def section        (make-elem-ctor "section"))
-(def select         (make-elem-ctor "select"))
-(def shadow         (make-elem-ctor "shadow"))
-(def small          (make-elem-ctor "small"))
-(def source         (make-elem-ctor "source"))
-(def span           (make-elem-ctor "span"))
-(def strong         (make-elem-ctor "strong"))
-(def style          (make-elem-ctor "style"))
-(def sub            (make-elem-ctor "sub"))
-(def summary        (make-elem-ctor "summary"))
-(def sup            (make-elem-ctor "sup"))
-(def table          (make-elem-ctor "table"))
-(def tbody          (make-elem-ctor "tbody"))
-(def td             (make-elem-ctor "td"))
-(def template       (make-elem-ctor "template"))
-(def textarea       (make-elem-ctor "textarea"))
-(def tfoot          (make-elem-ctor "tfoot"))
-(def th             (make-elem-ctor "th"))
-(def thead          (make-elem-ctor "thead"))
-(def html-time      (make-elem-ctor "time"))
-(def title          (make-elem-ctor "title"))
-(def tr             (make-elem-ctor "tr"))
-(def track          (make-elem-ctor "track"))
-(def u              (make-elem-ctor "u"))
-(def ul             (make-elem-ctor "ul"))
-(def html-var       (make-elem-ctor "var"))
-(def video          (make-elem-ctor "video"))
-(def wbr            (make-elem-ctor "wbr"))
+(defmethod mk! :head
+  [elem _]
+  (mk! (.-head elem) :elem))
 
-(def spliced        vector)
-(def $text          #(.createTextNode js/document %))
-(def $comment       #(.createComment js/document %))
+(defmethod mk! :body
+  [elem _]
+  (mk! (.-body elem) :elem))
 
-(def <!--           $comment)
-(def -->            ::-->)
+(defmethod mk! :text
+  [elem _]
+  #(.createTextNode elem %))
 
-(defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
-(defn page-load    []  (.dispatchEvent js/document "page-load"))
-(defn on-page-load [f] (.addEventListener js/document "page-load" f))
+(defmethod mk! :comment
+  [elem _]
+  #(.createComment elem %))
 
-(add-initfn!
-  (fn []
-    (. (.-body js/document)
-       (addEventListener "submit"
-           #(let [e (.-target %)]
-              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
-                (.preventDefault %)))))))
-
-;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmulti do!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
-
-(defmethod do! ::default
-  [elem key val]
-  (do! elem :attr {key val}))
+;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod do! :css/*
   [elem key val]
@@ -539,17 +428,154 @@
   [elem _ kvs]
   (set-styles! elem kvs))
 
-(defmulti on!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
-
-(defmethod on! ::default
-  [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+;; Hoplon Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod on! :html/*
   [elem event callback]
   (when-dom elem #(.addEventListener elem (name event) callback)))
+
+;; Hoplon DOM Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def html           (mk-elem! js/document :html))
+
+(def head           (mk-elem! js/document :head))
+(def body           (mk-elem! js/document :body))
+
+(def a              (mk-elem! "a"))
+(def abbr           (mk-elem! "abbr"))
+(def address        (mk-elem! "address"))
+(def area           (mk-elem! "area"))
+(def article        (mk-elem! "article"))
+(def aside          (mk-elem! "aside"))
+(def audio          (mk-elem! "audio"))
+(def b              (mk-elem! "b"))
+(def base           (mk-elem! "base"))
+(def bdi            (mk-elem! "bdi"))
+(def bdo            (mk-elem! "bdo"))
+(def blockquote     (mk-elem! "blockquote"))
+(def br             (mk-elem! "br"))
+(def button         (mk-elem! "button"))
+(def canvas         (mk-elem! "canvas"))
+(def caption        (mk-elem! "caption"))
+(def cite           (mk-elem! "cite"))
+(def code           (mk-elem! "code"))
+(def col            (mk-elem! "col"))
+(def colgroup       (mk-elem! "colgroup"))
+(def data           (mk-elem! "data"))
+(def datalist       (mk-elem! "datalist"))
+(def dd             (mk-elem! "dd"))
+(def del            (mk-elem! "del"))
+(def details        (mk-elem! "details"))
+(def dfn            (mk-elem! "dfn"))
+(def dialog         (mk-elem! "dialog")) ;; experimental
+(def div            (mk-elem! "div"))
+(def dl             (mk-elem! "dl"))
+(def dt             (mk-elem! "dt"))
+(def em             (mk-elem! "em"))
+(def embed          (mk-elem! "embed"))
+(def fieldset       (mk-elem! "fieldset"))
+(def figcaption     (mk-elem! "figcaption"))
+(def figure         (mk-elem! "figure"))
+(def footer         (mk-elem! "footer"))
+(def form           (mk-elem! "form"))
+(def h1             (mk-elem! "h1"))
+(def h2             (mk-elem! "h2"))
+(def h3             (mk-elem! "h3"))
+(def h4             (mk-elem! "h4"))
+(def h5             (mk-elem! "h5"))
+(def h6             (mk-elem! "h6"))
+(def header         (mk-elem! "header"))
+(def hgroup         (mk-elem! "hgroup")) ;; experimental
+(def hr             (mk-elem! "hr"))
+(def i              (mk-elem! "i"))
+(def iframe         (mk-elem! "iframe"))
+(def img            (mk-elem! "img"))
+(def input          (mk-elem! "input"))
+(def ins            (mk-elem! "ins"))
+(def kbd            (mk-elem! "kbd"))
+(def keygen         (mk-elem! "keygen"))
+(def label          (mk-elem! "label"))
+(def legend         (mk-elem! "legend"))
+(def li             (mk-elem! "li"))
+(def link           (mk-elem! "link"))
+(def main           (mk-elem! "main"))
+(def html-map       (mk-elem! "map"))
+(def mark           (mk-elem! "mark"))
+(def menu           (mk-elem! "menu")) ;; experimental
+(def menuitem       (mk-elem! "menuitem")) ;; experimental
+(def html-meta      (mk-elem! "meta"))
+(def meter          (mk-elem! "meter"))
+(def multicol       (mk-elem! "multicol"))
+(def nav            (mk-elem! "nav"))
+(def noframes       (mk-elem! "noframes"))
+(def noscript       (mk-elem! "noscript"))
+(def html-object    (mk-elem! "object"))
+(def ol             (mk-elem! "ol"))
+(def optgroup       (mk-elem! "optgroup"))
+(def option         (mk-elem! "option"))
+(def output         (mk-elem! "output"))
+(def p              (mk-elem! "p"))
+(def param          (mk-elem! "param"))
+(def picture        (mk-elem! "picture")) ;; experimental
+(def pre            (mk-elem! "pre"))
+(def progress       (mk-elem! "progress"))
+(def q              (mk-elem! "q"))
+(def rp             (mk-elem! "rp"))
+(def rt             (mk-elem! "rt"))
+(def rtc            (mk-elem! "rtc"))
+(def ruby           (mk-elem! "ruby"))
+(def s              (mk-elem! "s"))
+(def samp           (mk-elem! "samp"))
+(def script         (mk-elem! "script"))
+(def section        (mk-elem! "section"))
+(def select         (mk-elem! "select"))
+(def shadow         (mk-elem! "shadow"))
+(def small          (mk-elem! "small"))
+(def source         (mk-elem! "source"))
+(def span           (mk-elem! "span"))
+(def strong         (mk-elem! "strong"))
+(def style          (mk-elem! "style"))
+(def sub            (mk-elem! "sub"))
+(def summary        (mk-elem! "summary"))
+(def sup            (mk-elem! "sup"))
+(def table          (mk-elem! "table"))
+(def tbody          (mk-elem! "tbody"))
+(def td             (mk-elem! "td"))
+(def template       (mk-elem! "template"))
+(def textarea       (mk-elem! "textarea"))
+(def tfoot          (mk-elem! "tfoot"))
+(def th             (mk-elem! "th"))
+(def thead          (mk-elem! "thead"))
+(def html-time      (mk-elem! "time"))
+(def title          (mk-elem! "title"))
+(def tr             (mk-elem! "tr"))
+(def track          (mk-elem! "track"))
+(def u              (mk-elem! "u"))
+(def ul             (mk-elem! "ul"))
+(def html-var       (mk-elem! "var"))
+(def video          (mk-elem! "video"))
+(def wbr            (mk-elem! "wbr"))
+
+(def spliced        vector)
+(def $text          (mk-elem! js/document :text))
+(def $comment       (mk-elem! js/document :comment))
+
+(def <!--           $comment)
+(def -->            ::-->)
+
+(defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
+(defn page-load    []  (.dispatchEvent js/document "page-load"))
+(defn on-page-load [f] (.addEventListener js/document "page-load" f))
+
+(add-initfn!
+  (fn []
+    (. (.-body js/document)
+       (addEventListener "submit"
+           #(let [e (.-target %)]
+              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
+                (.preventDefault %)))))))
+
+;; Hoplon Cells ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
