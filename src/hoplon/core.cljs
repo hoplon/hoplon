@@ -140,6 +140,8 @@
         (fn [x]
           (this-as this
             (with-let [x x]
+              (when (.-parentNode x)
+                (.removeChild (.-parentNode x) x))
               (ensure-kids! this)
               (let [kids (kidfn this)
                     i    (count @kids)]
