@@ -93,9 +93,11 @@
   [this]
   (let [x (.-childNodes this)
         l (.-length x)]
-    (loop [i 0 ret (transient [])]
-      (or (and (= i l) (persistent! ret))
-          (recur (inc i) (conj! ret (.item x i)))))))
+    (persistent! (with-let [r (transient [])]
+                   (loop [i 0]
+                     (when (not= i l)
+                       (conj! r (.item x i))
+                       (recur (inc i))))))))
 
 (defn- vflatten
   ([tree ->node?]
