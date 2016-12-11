@@ -43,9 +43,11 @@
   ([ref f]
    (do-watch ref nil f))
   ([ref init f]
-   (with-let [k (gensym)]
-     (f init @ref)
-     (add-watch ref k (fn [_ _ old new] (f old new))))))
+   (if (constant? ref)
+     (do (f init @ref) nil)
+     (with-let [k (gensym)]
+       (f init @ref)
+       (add-watch ref k (fn [_ _ old new] (f old new)))))))
 
 (defn bust-cache
   "Public helper.
