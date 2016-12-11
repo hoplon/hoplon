@@ -310,26 +310,28 @@
 
 (defn- parse-args
   [args]
-  (loop [attr (transient {})
-         kids (transient [])
-         [arg & args] args]
-    (if-not arg
-      [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)          (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
-            (attribute? arg)    (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)         (recur attr (reduce conj! kids (vflatten arg false)) args)
-            (vector?* arg)      (recur attr (reduce conj! kids (vflatten arg false)) args)
-            :else               (recur attr (conj! kids arg) args)))))
+  (let [attr (transient {})
+        kids (transient [])
+        k    (atom nil)]
+    (doiter [arg args]
+      (cond @k                (do (assoc! attr @k arg) (reset! k nil))
+            (map? arg)        (reduce-kv #(assoc! %1 %2 %3) attr arg)
+            (attribute? arg)  (reset! k arg)
+            (sequential? arg) (vflatten arg false kids)
+            :else             (conj! kids arg)))
+    [(persistent! attr) (persistent! kids)]))
 
 (defn- add-attributes!
   [this attr]
   (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
 
 (defn- add-children!
-  [this [child-cell & _ :as kids]]
+  [this kids]
   (with-let [this this]
-    (doseq [x (vflatten kids true)]
-      (append-child! this x))))
+    (doiter [x kids]
+      (if (sequential? x)
+        (add-children! this x)
+        (when-let [n (->node x)] (append-child! this n))))))
 
 (extend-type js/Element
   IPrintWithWriter
