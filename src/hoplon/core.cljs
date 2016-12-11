@@ -271,16 +271,6 @@
     #(.-head %)
     #(.. % -documentElement -firstChild)))
 
-(def ^:private vector?*
-  (if-not is-ie8
-    vector?
-    #(try (vector? %) (catch js/Error _))))
-
-(def ^:private seq?*
-  (if-not is-ie8
-    seq?
-    #(try (seq? %) (catch js/Error _))))
-
 (defn safe-nth
   "Like cljs.core/nth but returns nil or not found if the index is outside the coll"
   ([coll index] (safe-nth coll index nil))
