@@ -117,19 +117,19 @@
 
 (defn- merge-kids
   [this _ new]
-  (let [new  (vflatten new true)
-        new? (set new)]
-    (loop [[x & xs] new
-           [k & ks :as kids] (child-vec this)]
-      (when (or x k)
-        (recur xs (cond (= x k) ks
-                        (not k) (with-let [ks ks]
-                                  (.call appendChild this x))
-                        (not x) (with-let [ks ks]
-                                  (when-not (new? k)
-                                    (.call removeChild this k)))
-                        :else   (with-let [kids kids]
-                                  (.call insertBefore this x k))))))))
+  (let [new     (vflatten new true)
+        kids    (child-vec this)
+        new?    (set new)
+        newlen  (count new)
+        kidslen (count kids)]
+    (loop [i 0 j 0]
+      (let [x (when (< i newlen) (nth new i))
+            k (when (< j kidslen) (nth kids j))]
+        (when (or x k)
+          (recur (inc i) (cond (= x k) (inc j)
+                               (not k) (do (.call appendChild this x) (inc j))
+                               (not x) (do (.call removeChild this k) (inc j))
+                               :else   (do (.call insertBefore this x k) j))))))))
 
 (defn- ensure-kids!
   [this]
