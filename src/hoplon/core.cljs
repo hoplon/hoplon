@@ -16,7 +16,7 @@
     [clojure.string :refer [split join blank?]])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+    [hoplon.core    :refer [cache-key with-timeout with-dom doiter]]))
 
 (declare do! on! $text add-children!)
 
@@ -68,30 +68,6 @@
       kvs
       (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
 
-;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn- child-vec
-  [this]
-  (let [x (.-childNodes this)
-        l (.-length x)]
-    (loop [i 0 ret (transient [])]
-      (or (and (= i l) (persistent! ret))
-          (recur (inc i) (conj! ret (.item x i)))))))
-
-(defn- vflatten
- ([tree]
-   (persistent! (vflatten tree (transient []))))
-  ([tree ret]
-   (let [l (count tree)]
-     (loop [i 0]
-        (if (= i l)
-          ret
-          (let [x (nth tree i)]
-            (if-not (sequential? x)
-              (conj! ret x)
-              (vflatten x ret))
-            (recur (inc i))))))))
-
 ;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol INode
@@ -111,6 +87,26 @@
   [x]
   (if (satisfies? INode x) (node x) x))
 
+;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- child-vec
+  [this]
+  (let [x (.-childNodes this)
+        l (.-length x)]
+    (loop [i 0 ret (transient [])]
+      (or (and (= i l) (persistent! ret))
+          (recur (inc i) (conj! ret (.item x i)))))))
+
+(defn- vflatten
+  ([tree ->node?]
+   (persistent! (vflatten tree ->node? (transient []))))
+  ([tree ->node? ret]
+   (with-let [ret ret]
+     (doiter [x tree]
+       (if (sequential? x)
+         (vflatten x ->node? ret)
+         (when-let [n (if ->node? (->node x) x)] (conj! ret n)))))))
+
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:private removeChild  (.. js/Element -prototype -removeChild))
@@ -121,7 +117,7 @@
 
 (defn- merge-kids
   [this _ new]
-  (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
+  (let [new  (vflatten new true)
         new? (set new)]
     (loop [[x & xs] new
            [k & ks :as kids] (child-vec this)]
@@ -317,11 +313,11 @@
          [arg & args] args]
     (if-not arg
       [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
-            (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)      (recur attr (reduce conj! kids (vflatten arg)) args)
-            (vector?* arg)   (recur attr (reduce conj! kids (vflatten arg)) args)
-            :else            (recur attr (conj! kids arg) args)))))
+      (cond (map? arg)          (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+            (attribute? arg)    (recur (assoc! attr arg (first args)) kids (rest args))
+            (seq?* arg)         (recur attr (reduce conj! kids (vflatten arg false)) args)
+            (vector?* arg)      (recur attr (reduce conj! kids (vflatten arg false)) args)
+            :else               (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
   [this attr]
@@ -330,9 +326,8 @@
 (defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
-    (doseq [x (vflatten kids)]
-      (when-let [x (->node x)]
-        (append-child! this x)))))
+    (doseq [x (vflatten kids true)]
+      (append-child! this x))))
 
 (extend-type js/Element
   IPrintWithWriter
