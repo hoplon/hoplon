@@ -27,17 +27,17 @@
   the prerender task)?"
   (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
 
-;; This is an internal implementation detail, exposed for the convenience of
-;; the hoplon.core/static macro.
-(def static-elements
-  "Experimental."
+(def ^:no-doc static-elements
+  "This is an internal implementation detail, exposed for the convenience of
+  the hoplon.core/static macro. Experimental."
   (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
       (reduce {} (.querySelector js/document "[static-id]"))))
 
 ;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn do-watch
-  "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
+  "Public helper.
+  Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
   f is a function of two arguments: the previous and next values. If init is
   not provided the default (nil) will be used."
   ([ref f]
@@ -48,7 +48,8 @@
      (add-watch ref k (fn [_ _ old new] (f old new))))))
 
 (defn bust-cache
-  "Experimental."
+  "Public helper.
+  Experimental."
   [path]
   (let [[f & more] (reverse (split path #"/"))
         [f1 f2]    (split f #"\." 2)]
@@ -59,7 +60,8 @@
          (join "/"))))
 
 (defn normalize-class
-  "Class normalization for attribute providers."
+  "Public helper.
+  Class normalization for attribute providers."
   [kvs]
   (let [->map #(zipmap % (repeat true))]
     (if (map? kvs)
@@ -76,6 +78,20 @@
       (or (and (= i l) (persistent! ret))
           (recur (inc i) (conj! ret (.item x i)))))))
 
+(defn- vflatten
+ ([tree]
+   (persistent! (vflatten tree (transient []))))
+  ([tree ret]
+   (let [l (count tree)]
+     (loop [i 0]
+        (if (= i l)
+          ret
+          (let [x (nth tree i)]
+            (if-not (sequential? x)
+              (conj! ret x)
+              (vflatten x ret))
+            (recur (inc i))))))))
+
 ;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol INode
@@ -91,7 +107,9 @@
   (node [this]
     ($text (str this))))
 
-(defn- ->node [x] (if (satisfies? INode x) (node x) x))
+(defn- ->node
+  [x]
+  (if (satisfies? INode x) (node x) x))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -103,7 +121,7 @@
 
 (defn- merge-kids
   [this _ new]
-  (let [new  (->> (flatten new) (remove nil?) (map ->node))
+  (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
         new? (set new)]
     (loop [[x & xs] new
            [k & ks :as kids] (child-vec this)]
@@ -136,6 +154,8 @@
         (fn [x]
           (this-as this
             (with-let [x x]
+              (when (.-parentNode x)
+                (.removeChild (.-parentNode x) x))
               (ensure-kids! this)
               (let [kids (kidfn this)
                     i    (count @kids)]
@@ -264,15 +284,18 @@
     #(try (seq? %) (catch js/Error _))))
 
 (defn safe-nth
+  "Like cljs.core/nth but returns nil or not found if the index is outside the coll"
   ([coll index] (safe-nth coll index nil))
   ([coll index not-found]
    (try (nth coll index not-found) (catch js/Error _ not-found))))
 
 (defn timeout
+  "Executes a fuction after a delay, if no delay is passed, 0 is used as a default."
   ([f] (timeout f 0))
   ([f t] (.setTimeout js/window f t)))
 
-(defn when-dom [this f]
+(defn when-dom
+  [this f]
   (if-not (instance? js/Element this)
     (with-timeout 0 (f))
     (if-let [v (obj/get this "_hoplonWhenDom")]
@@ -296,8 +319,8 @@
       [(persistent! attr) (persistent! kids)]
       (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)      (recur attr (reduce conj! kids (flatten arg)) args)
-            (vector?* arg)   (recur attr (reduce conj! kids (flatten arg)) args)
+            (seq?* arg)      (recur attr (reduce conj! kids (vflatten arg)) args)
+            (vector?* arg)   (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
@@ -307,7 +330,7 @@
 (defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
-    (doseq [x (flatten kids)]
+    (doseq [x (vflatten kids)]
       (when-let [x (->node x)]
         (append-child! this x)))))
 
@@ -335,7 +358,7 @@
     ([this kvs]
      (let [e this]
        (doseq [[k v] kvs]
-         (obj/set e "style" (name k) (str v))))))
+         (obj/set (.. e -style) (name k) (str v))))))
   (-append-child!
     ([this child]
      (if-not is-ie8
@@ -373,129 +396,723 @@
   (-> (.-documentElement js/document)
       (add-attributes! (nth (parse-args args) 0))))
 
-(def body           (make-singleton-ctor (.-body js/document)))
-(def head           (make-singleton-ctor (-head* js/document)))
-(def a              (make-elem-ctor "a"))
-(def abbr           (make-elem-ctor "abbr"))
-(def address        (make-elem-ctor "address"))
-(def area           (make-elem-ctor "area"))
-(def article        (make-elem-ctor "article"))
-(def aside          (make-elem-ctor "aside"))
-(def audio          (make-elem-ctor "audio"))
-(def b              (make-elem-ctor "b"))
-(def base           (make-elem-ctor "base"))
-(def bdi            (make-elem-ctor "bdi"))
-(def bdo            (make-elem-ctor "bdo"))
-(def blockquote     (make-elem-ctor "blockquote"))
-(def br             (make-elem-ctor "br"))
-(def button         (make-elem-ctor "button"))
-(def canvas         (make-elem-ctor "canvas"))
-(def caption        (make-elem-ctor "caption"))
-(def cite           (make-elem-ctor "cite"))
-(def code           (make-elem-ctor "code"))
-(def col            (make-elem-ctor "col"))
-(def colgroup       (make-elem-ctor "colgroup"))
-(def data           (make-elem-ctor "data"))
-(def datalist       (make-elem-ctor "datalist"))
-(def dd             (make-elem-ctor "dd"))
-(def del            (make-elem-ctor "del"))
-(def details        (make-elem-ctor "details"))
-(def dfn            (make-elem-ctor "dfn"))
-(def dialog         (make-elem-ctor "dialog")) ;; experimental
-(def div            (make-elem-ctor "div"))
-(def dl             (make-elem-ctor "dl"))
-(def dt             (make-elem-ctor "dt"))
-(def em             (make-elem-ctor "em"))
-(def embed          (make-elem-ctor "embed"))
-(def fieldset       (make-elem-ctor "fieldset"))
-(def figcaption     (make-elem-ctor "figcaption"))
-(def figure         (make-elem-ctor "figure"))
-(def footer         (make-elem-ctor "footer"))
-(def form           (make-elem-ctor "form"))
-(def h1             (make-elem-ctor "h1"))
-(def h2             (make-elem-ctor "h2"))
-(def h3             (make-elem-ctor "h3"))
-(def h4             (make-elem-ctor "h4"))
-(def h5             (make-elem-ctor "h5"))
-(def h6             (make-elem-ctor "h6"))
-(def header         (make-elem-ctor "header"))
-(def hgroup         (make-elem-ctor "hgroup")) ;; experimental
-(def hr             (make-elem-ctor "hr"))
-(def i              (make-elem-ctor "i"))
-(def iframe         (make-elem-ctor "iframe"))
-(def img            (make-elem-ctor "img"))
-(def input          (make-elem-ctor "input"))
-(def ins            (make-elem-ctor "ins"))
-(def kbd            (make-elem-ctor "kbd"))
-(def keygen         (make-elem-ctor "keygen"))
-(def label          (make-elem-ctor "label"))
-(def legend         (make-elem-ctor "legend"))
-(def li             (make-elem-ctor "li"))
-(def link           (make-elem-ctor "link"))
-(def main           (make-elem-ctor "main"))
-(def html-map       (make-elem-ctor "map"))
-(def mark           (make-elem-ctor "mark"))
-(def menu           (make-elem-ctor "menu")) ;; experimental
-(def menuitem       (make-elem-ctor "menuitem")) ;; experimental
-(def html-meta      (make-elem-ctor "meta"))
-(def meter          (make-elem-ctor "meter"))
-(def multicol       (make-elem-ctor "multicol"))
-(def nav            (make-elem-ctor "nav"))
-(def noframes       (make-elem-ctor "noframes"))
-(def noscript       (make-elem-ctor "noscript"))
-(def html-object    (make-elem-ctor "object"))
-(def ol             (make-elem-ctor "ol"))
-(def optgroup       (make-elem-ctor "optgroup"))
-(def option         (make-elem-ctor "option"))
-(def output         (make-elem-ctor "output"))
-(def p              (make-elem-ctor "p"))
-(def param          (make-elem-ctor "param"))
-(def picture        (make-elem-ctor "picture")) ;; experimental
-(def pre            (make-elem-ctor "pre"))
-(def progress       (make-elem-ctor "progress"))
-(def q              (make-elem-ctor "q"))
-(def rp             (make-elem-ctor "rp"))
-(def rt             (make-elem-ctor "rt"))
-(def rtc            (make-elem-ctor "rtc"))
-(def ruby           (make-elem-ctor "ruby"))
-(def s              (make-elem-ctor "s"))
-(def samp           (make-elem-ctor "samp"))
-(def script         (make-elem-ctor "script"))
-(def section        (make-elem-ctor "section"))
-(def select         (make-elem-ctor "select"))
-(def shadow         (make-elem-ctor "shadow"))
-(def small          (make-elem-ctor "small"))
-(def source         (make-elem-ctor "source"))
-(def span           (make-elem-ctor "span"))
-(def strong         (make-elem-ctor "strong"))
-(def style          (make-elem-ctor "style"))
-(def sub            (make-elem-ctor "sub"))
-(def summary        (make-elem-ctor "summary"))
-(def sup            (make-elem-ctor "sup"))
-(def table          (make-elem-ctor "table"))
-(def tbody          (make-elem-ctor "tbody"))
-(def td             (make-elem-ctor "td"))
-(def template       (make-elem-ctor "template"))
-(def textarea       (make-elem-ctor "textarea"))
-(def tfoot          (make-elem-ctor "tfoot"))
-(def th             (make-elem-ctor "th"))
-(def thead          (make-elem-ctor "thead"))
-(def html-time      (make-elem-ctor "time"))
-(def title          (make-elem-ctor "title"))
-(def tr             (make-elem-ctor "tr"))
-(def track          (make-elem-ctor "track"))
-(def u              (make-elem-ctor "u"))
-(def ul             (make-elem-ctor "ul"))
-(def html-var       (make-elem-ctor "var"))
-(def video          (make-elem-ctor "video"))
-(def wbr            (make-elem-ctor "wbr"))
+(def body
+  "Creates a singleton `body` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-singleton-ctor (.-body js/document)))
 
-(def spliced        vector)
-(def $text          #(.createTextNode js/document %))
-(def $comment       #(.createComment js/document %))
+(def head
+  "Creates a singleton `head` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-singleton-ctor (-head* js/document)))
 
-(def <!--           $comment)
-(def -->            ::-->)
+(def a
+  "Creates an `a` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "a"))
+
+(def abbr
+  "Creates an `abbr` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "abbr"))
+
+(def address
+  "Creates an `address` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "address"))
+
+(def area
+  "Creates an `area` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "area"))
+
+(def article
+  "Creates an `article` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "article"))
+
+(def aside
+  "Creates an `aside` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "aside"))
+
+(def audio
+  "Creates an `audio` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "audio"))
+
+(def b
+  "Creates an `b` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "b"))
+
+(def base
+  "Creates an `base` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "base"))
+
+(def bdi
+  "Creates an `bdi` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "bdi"))
+
+(def bdo
+  "Creates an `bdo` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "bdo"))
+
+(def blockquote
+  "Creates an `blockquote` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "blockquote"))
+
+(def br
+  "Creates an `br` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "br"))
+
+(def button
+  "Creates an `button` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "button"))
+
+(def canvas
+  "Creates an `canvas` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "canvas"))
+
+(def caption
+  "Creates an `caption` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "caption"))
+
+(def cite
+  "Creates an `cite` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "cite"))
+
+(def code
+  "Creates an `code` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "code"))
+
+(def col
+  "Creates an `col` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "col"))
+
+(def colgroup
+  "Creates an `colgroup` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "colgroup"))
+
+(def data
+  "Creates an `data` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "data"))
+
+(def datalist
+  "Creates an `datalist` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "datalist"))
+
+(def dd
+  "Creates an `dd` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "dd"))
+
+(def del
+  "Creates an `del` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "del"))
+
+(def details
+  "Creates an `details` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "details"))
+
+(def dfn
+  "Creates an `dfn` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "dfn"))
+
+(def dialog
+  "Creates an `dialog` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "dialog")) ;; experimental
+
+(def div
+  "Creates an `div` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "div"))
+
+(def dl
+  "Creates an `dl` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "dl"))
+
+(def dt
+  "Creates an `dt` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "dt"))
+
+(def em
+  "Creates an `em` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "em"))
+
+(def embed
+  "Creates an `embed` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "embed"))
+
+(def fieldset
+  "Creates an `fieldset` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "fieldset"))
+
+(def figcaption
+  "Creates an `figcaption` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "figcaption"))
+
+(def figure
+  "Creates an `figure` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "figure"))
+
+(def footer
+  "Creates an `footer` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "footer"))
+
+(def form
+  "Creates an `form` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "form"))
+
+(def h1
+  "Creates an `h1` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "h1"))
+
+(def h2
+  "Creates an `h2` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "h2"))
+
+(def h3
+  "Creates an `h3` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "h3"))
+
+(def h4
+  "Creates an `h4` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "h4"))
+
+(def h5
+  "Creates an `h5` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "h5"))
+
+(def h6
+  "Creates an `h6` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "h6"))
+
+(def header
+  "Creates an `header` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "header"))
+
+(def hgroup
+  "Creates an `hgroup` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "hgroup")) ;; experimental
+
+(def hr
+  "Creates an `hr` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "hr"))
+
+(def i
+  "Creates an `i` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "i"))
+
+(def iframe
+  "Creates an `iframe` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "iframe"))
+
+(def img
+  "Creates an `img` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "img"))
+
+(def input
+  "Creates an `input` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "input"))
+
+(def ins
+  "Creates an `ins` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "ins"))
+
+(def kbd
+  "Creates an `kbd` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "kbd"))
+
+(def keygen
+  "Creates an `keygen` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "keygen"))
+
+(def label
+  "Creates an `label` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "label"))
+
+(def legend
+  "Creates an `legend` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "legend"))
+
+(def li
+  "Creates an `li` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "li"))
+
+(def link
+  "Creates an `link` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "link"))
+
+(def main
+  "Creates an `main` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "main"))
+
+(def html-map
+  "Creates an `map` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "map"))
+
+(def mark
+  "Creates an `mark` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "mark"))
+
+(def menu
+  "Creates an `menu` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "menu")) ;; experimental
+
+(def menuitem
+  "Creates an `menuitem` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "menuitem")) ;; experimental
+
+(def html-meta
+  "Creates an `meta` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "meta"))
+
+(def meter
+  "Creates an `meter` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "meter"))
+
+(def multicol
+  "Creates an `multicol` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "multicol"))
+
+(def nav
+  "Creates an `nav` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "nav"))
+
+(def noframes
+  "Creates an `noframes` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "noframes"))
+
+(def noscript
+  "Creates an `noscript` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "noscript"))
+
+(def html-object
+  "Creates an `object` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "object"))
+
+(def ol
+  "Creates an `ol` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "ol"))
+
+(def optgroup
+  "Creates an `optgroup` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "optgroup"))
+
+(def option
+  "Creates an `option` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "option"))
+
+(def output
+  "Creates an `output` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "output"))
+
+(def p
+  "Creates an `p` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "p"))
+
+(def param
+  "Creates an `param` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "param"))
+
+(def picture
+  "Creates an `picture` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "picture")) ;; experimental
+
+(def pre
+  "Creates an `pre` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "pre"))
+
+(def progress
+  "Creates an `progress` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "progress"))
+
+(def q
+  "Creates an `q` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "q"))
+
+(def rp
+  "Creates an `rp` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "rp"))
+
+(def rt
+  "Creates an `rt` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "rt"))
+
+(def rtc
+  "Creates an `rtc` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "rtc"))
+
+(def ruby
+  "Creates an `ruby` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "ruby"))
+
+(def s
+  "Creates an `s` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "s"))
+
+(def samp
+  "Creates an `samp` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "samp"))
+
+(def script
+  "Creates an `script` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "script"))
+
+(def section
+  "Creates an `section` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "section"))
+
+(def select
+  "Creates an `select` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "select"))
+
+(def shadow
+  "Creates an `shadow` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "shadow"))
+
+(def small
+  "Creates an `small` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "small"))
+
+(def source
+  "Creates an `source` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "source"))
+
+(def span
+  "Creates an `span` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "span"))
+
+(def strong
+  "Creates an `strong` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "strong"))
+
+(def style
+  "Creates an `style` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "style"))
+
+(def sub
+  "Creates an `sub` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "sub"))
+
+(def summary
+  "Creates an `summary` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "summary"))
+
+(def sup
+  "Creates an `sup` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "sup"))
+
+(def table
+  "Creates an `table` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "table"))
+
+(def tbody
+  "Creates an `tbody` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "tbody"))
+
+(def td
+  "Creates an `td` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "td"))
+
+(def template
+  "Creates an `template` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "template"))
+
+(def textarea
+  "Creates an `textarea` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "textarea"))
+
+(def tfoot
+  "Creates an `tfoot` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "tfoot"))
+
+(def th
+  "Creates an `th` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "th"))
+
+(def thead
+  "Creates an `thead` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "thead"))
+
+(def html-time
+  "Creates an `time` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "time"))
+
+(def title
+  "Creates an `title` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "title"))
+
+(def tr
+  "Creates an `tr` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "tr"))
+
+(def track
+  "Creates an `track` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "track"))
+
+(def u
+  "Creates an `u` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "u"))
+
+(def ul
+  "Creates an `ul` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "ul"))
+
+(def html-var
+  "Creates an `var` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "var"))
+
+(def video
+  "Creates an `video` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "video"))
+
+(def wbr
+  "Creates an `wbr` element.
+  You can pass attributes as a map or keyword value pairs (but not both at the
+  same time) and children after the attributes."
+  (make-elem-ctor "wbr"))
+
+(def spliced
+  "Alias to vector"
+  vector)
+
+(defn $text
+  "Given a string creates a text node"
+  [str]
+  (.createTextNode js/document str))
+
+(defn $comment
+  "Given a string creates a comment node"
+  [str]
+  (.createComment js/document str))
+
+(def <!--
+  "Given a string creates a comment node"
+  $comment)
+
+(def -->
+  "Closing placeholder for <!-- to be used in html"
+  ::-->)
 
 (defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
 (defn page-load    []  (.dispatchEvent js/document "page-load"))
