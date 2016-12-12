@@ -11,7 +11,7 @@
     [goog.Uri]
     [goog.object    :as obj]
     [clojure.set    :refer [difference intersection]]
-    [javelin.core   :refer [cell? cell lift destroy-cell!]]
+    [javelin.core   :refer [cell? cell lift destroy-cell! constant?]]
     [cljs.reader    :refer [read-string]]
     [clojure.string :refer [split join blank?]])
   (:require-macros
