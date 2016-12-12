@@ -11,8 +11,7 @@
   (:require [clojure.walk    :as walk]
             [clojure.string  :as string]
             [javelin.core    :as j]
-            [clojure.reader  :as r])
-  (:require-macros [hoplon.core :refer [cache-key]]))
+            [clojure.reader  :as r]))
 
 (create-ns 'js)
 
