@@ -346,6 +346,14 @@
        (doto this
          (add-attributes! attr)
          (add-children! kids)))))
+  ILookup
+  (-lookup
+    ([this k]
+     (-lookup this k nil))
+    ([this k not-found]
+     (if-let [v (.attr (js/jQuery this) (name k))]
+       v
+       not-found)))
   ICustomElement
   (-set-attributes!
     ([this kvs]
