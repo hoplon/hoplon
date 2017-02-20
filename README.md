@@ -22,6 +22,8 @@ the following libraries as dependencies to complete the stack:
 
 ### Example
 
+Using .hl files:
+
 ```clojure
 (page "index.html")
 
@@ -46,7 +48,21 @@ the following libraries as dependencies to complete the stack:
     (button :click #(swap! clicks inc) "click me")))
 ```
 
-Or, equivalently:
+Using .cljs files:
+
+```clojure
+(ns ^{:hoplon/page "index.html"} demo.index
+  (:require
+    [hoplon.core :as h]
+    [javelin.core :as j]
+    [hoplon.jquery]))
+
+(h/html
+  (h/body
+    (h/h1 "Hello, Hoplon!")))
+```
+
+Using HTML syntax:
 
 ```xml
 <script type="text/hoplon">
