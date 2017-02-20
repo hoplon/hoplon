@@ -22,7 +22,7 @@ the following libraries as dependencies to complete the stack:
 
 ### Example
 
-Using .hl files:
+#### Using .hl files:
 
 ```clojure
 (page "index.html")
@@ -48,7 +48,7 @@ Using .hl files:
     (button :click #(swap! clicks inc) "click me")))
 ```
 
-Using .cljs files:
+#### Using .cljs files:
 
 ```clojure
 (ns ^{:hoplon/page "index.html"} demo.index
@@ -62,7 +62,7 @@ Using .cljs files:
     (h/h1 "Hello, Hoplon!")))
 ```
 
-Using HTML syntax:
+#### Using HTML syntax:
 
 ```xml
 <script type="text/hoplon">
