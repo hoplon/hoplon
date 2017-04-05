@@ -148,20 +148,56 @@
   (set! (.-hoplonKids this) nil)
   (merge-kids this nil nil))
 
+(defn- native?
+  "Returns true if elem is a native element. Native elements' children
+  are not managed by Hoplon."
+  [elem]
+  (and (instance? js/Element elem)
+       (-> elem .-hoplonKids nil?)))
+
+(defn- managed?
+  "Returns true if elem is a managed element. Managed elements have
+  their children managed by Hoplon."
+  [elem]
+  (not (native? elem)))
+
+(defn- managed-append-child
+  "Appends `child` to `parent` for the case of `parent` being a
+  managed element."
+  [parent child kidfn]
+  (with-let [child child]
+    (ensure-kids! parent)
+    (let [kids (kidfn parent)
+          i    (count @kids)]
+      (if (cell? child)
+        (do-watch child #(swap! kids assoc i %2))
+        (swap! kids assoc i child)))))
+
 (defn- set-appendChild!
   [this kidfn]
   (set! (.-appendChild this)
-        (fn [x]
+        (fn [child]
           (this-as this
-            (with-let [x x]
-              (when (.-parentNode x)
-                (.removeChild (.-parentNode x) x))
-              (ensure-kids! this)
-              (let [kids (kidfn this)
-                    i    (count @kids)]
-                (if (cell? x)
-                  (do-watch x #(swap! kids assoc i %2))
-                  (swap! kids assoc i x))))))))
+            (when (.-parentNode child)
+              (.removeChild (.-parentNode child) child))
+            (cond
+              ;; Use the browser-native function for speed in the case
+              ;; where no children are cells.
+              (and (native? this) (not (cell? child)))
+              (.call appendChild this child)
+
+              (and (native? this) (cell? child))
+              (managed-append-child this child kidfn)
+
+              (managed? this)
+              (managed-append-child this child kidfn)
+
+              :else
+              (throw (ex-info "Unexpected child type" {:reason    ::unexpected-child-type
+                                                       :child     child
+                                                       :native?   (native? child)
+                                                       :managed? (managed? child)
+                                                       :this      this})))))))
 
 (defn- set-removeChild!
   [this kidfn]
@@ -385,7 +421,7 @@
 
 (defn- make-elem-ctor
   [tag]
-  (let [mkelem #(-> js/document (.createElement tag) ensure-kids! (apply %&))]
+  (let [mkelem #(-> js/document (.createElement tag) (apply %&))]
     (if-not is-ie8
       mkelem
       (fn [& args]
