@@ -118,8 +118,8 @@ page.open(uri, function(status) {
 
 (def ^:private bogus-cljs-files #{"deps.cljs"})
 
-(boot/deftask ns+
-  "Extended ns declarations in CLJS."
+(boot/deftask ^{:deprecated true} ns+
+  "DEPRECATED. Extended ns declarations in CLJS."
   []
   (let [prev-fileset (atom nil)
         tmp-cljs+    (boot/tmp-dir!)]
