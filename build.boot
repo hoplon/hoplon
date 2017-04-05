@@ -13,7 +13,7 @@
                   [org.clojure/clojure                   "1.7.0"]
                   [org.clojure/clojurescript             "1.7.122"]
                   [cljsjs/jquery                         "1.9.1-0"]
-                  [hoplon/javelin                        "3.8.4"]])
+                  [hoplon/javelin                        "3.8.5"]])
 
 (require
   '[adzerk.bootlaces          :refer :all]

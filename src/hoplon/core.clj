@@ -29,6 +29,19 @@
 (defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
 (defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
 
+(defmacro doiter [[bind coll] & body]
+  `(let [coll# ~coll]
+     (if (satisfies? cljs.core/IIndexed coll#)
+       (let [l# (count coll#)]
+         (loop [i# 0]
+           (when (< i# l#)
+             (let [~bind (nth coll# i#)] ~@body)
+             (recur (inc i#)))))
+       (loop [xs# coll#]
+         (when (seq xs#)
+           (let [~bind (first xs#)] ~@body)
+           (recur (rest xs#)))))))
+
 (defmacro cache-key []
   (or (System/getProperty "hoplon.cacheKey")
       (let [u (.. (UUID/randomUUID) toString (replaceAll "-" ""))]

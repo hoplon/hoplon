@@ -11,12 +11,12 @@
     [goog.Uri]
     [goog.object    :as obj]
     [clojure.set    :refer [difference intersection]]
-    [javelin.core   :refer [cell? cell lift destroy-cell!]]
+    [javelin.core   :refer [cell? cell lift destroy-cell! constant?]]
     [cljs.reader    :refer [read-string]]
     [clojure.string :refer [split join blank?]])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+    [hoplon.core    :refer [cache-key with-timeout with-dom doiter]]))
 
 (declare do! on! $text add-children!)
 
@@ -43,9 +43,11 @@
   ([ref f]
    (do-watch ref nil f))
   ([ref init f]
-   (with-let [k (gensym)]
-     (f init @ref)
-     (add-watch ref k (fn [_ _ old new] (f old new))))))
+   (if (constant? ref)
+     (do (f init @ref) nil)
+     (with-let [k (gensym)]
+       (f init @ref)
+       (add-watch ref k (fn [_ _ old new] (f old new)))))))
 
 (defn bust-cache
   "Public helper.
@@ -68,30 +70,6 @@
       kvs
       (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
 
-;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn- child-vec
-  [this]
-  (let [x (.-childNodes this)
-        l (.-length x)]
-    (loop [i 0 ret (transient [])]
-      (or (and (= i l) (persistent! ret))
-          (recur (inc i) (conj! ret (.item x i)))))))
-
-(defn- vflatten
- ([tree]
-   (persistent! (vflatten tree (transient []))))
-  ([tree ret]
-   (let [l (count tree)]
-     (loop [i 0]
-        (if (= i l)
-          ret
-          (let [x (nth tree i)]
-            (if-not (sequential? x)
-              (conj! ret x)
-              (vflatten x ret))
-            (recur (inc i))))))))
-
 ;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol INode
@@ -111,6 +89,28 @@
   [x]
   (if (satisfies? INode x) (node x) x))
 
+;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- child-vec
+  [this]
+  (let [x (.-childNodes this)
+        l (.-length x)]
+    (persistent! (with-let [r (transient [])]
+                   (loop [i 0]
+                     (when (not= i l)
+                       (conj! r (.item x i))
+                       (recur (inc i))))))))
+
+(defn- vflatten
+  ([tree ->node?]
+   (persistent! (vflatten tree ->node? (transient []))))
+  ([tree ->node? ret]
+   (with-let [ret ret]
+     (doiter [x tree]
+       (if (sequential? x)
+         (vflatten x ->node? ret)
+         (when-let [n (if ->node? (->node x) x)] (conj! ret n)))))))
+
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:private removeChild  (.. js/Element -prototype -removeChild))
@@ -121,19 +121,19 @@
 
 (defn- merge-kids
   [this _ new]
-  (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
-        new? (set new)]
-    (loop [[x & xs] new
-           [k & ks :as kids] (child-vec this)]
-      (when (or x k)
-        (recur xs (cond (= x k) ks
-                        (not k) (with-let [ks ks]
-                                  (.call appendChild this x))
-                        (not x) (with-let [ks ks]
-                                  (when-not (new? k)
-                                    (.call removeChild this k)))
-                        :else   (with-let [kids kids]
-                                  (.call insertBefore this x k))))))))
+  (let [new     (vflatten new true)
+        kids    (child-vec this)
+        new?    (set new)
+        newlen  (count new)
+        kidslen (count kids)]
+    (loop [i 0 j 0]
+      (let [x (when (< i newlen) (nth new i))
+            k (when (< j kidslen) (nth kids j))]
+        (when (or x k)
+          (recur (inc i) (cond (= x k) (inc j)
+                               (not k) (do (.call appendChild this x) (inc j))
+                               (not x) (do (.call removeChild this k) (inc j))
+                               :else   (do (.call insertBefore this x k) j))))))))
 
 (defn- ensure-kids!
   [this]
@@ -309,16 +309,6 @@
     #(.-head %)
     #(.. % -documentElement -firstChild)))
 
-(def ^:private vector?*
-  (if-not is-ie8
-    vector?
-    #(try (vector? %) (catch js/Error _))))
-
-(def ^:private seq?*
-  (if-not is-ie8
-    seq?
-    #(try (seq? %) (catch js/Error _))))
-
 (defn safe-nth
   "Like cljs.core/nth but returns nil or not found if the index is outside the coll"
   ([coll index] (safe-nth coll index nil))
@@ -348,27 +338,28 @@
 
 (defn- parse-args
   [args]
-  (loop [attr (transient {})
-         kids (transient [])
-         [arg & args] args]
-    (if-not arg
-      [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
-            (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)      (recur attr (reduce conj! kids (vflatten arg)) args)
-            (vector?* arg)   (recur attr (reduce conj! kids (vflatten arg)) args)
-            :else            (recur attr (conj! kids arg) args)))))
+  (let [attr (transient {})
+        kids (transient [])
+        k    (atom nil)]
+    (doiter [arg args]
+      (cond @k                (do (assoc! attr @k arg) (reset! k nil))
+            (map? arg)        (reduce-kv #(assoc! %1 %2 %3) attr arg)
+            (attribute? arg)  (reset! k arg)
+            (sequential? arg) (vflatten arg false kids)
+            :else             (conj! kids arg)))
+    [(persistent! attr) (persistent! kids)]))
 
 (defn- add-attributes!
   [this attr]
   (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
 
 (defn- add-children!
-  [this [child-cell & _ :as kids]]
+  [this kids]
   (with-let [this this]
-    (doseq [x (vflatten kids)]
-      (when-let [x (->node x)]
-        (append-child! this x)))))
+    (doiter [x kids]
+      (if (sequential? x)
+        (add-children! this x)
+        (when-let [n (->node x)] (append-child! this n))))))
 
 (extend-type js/Element
   IPrintWithWriter
