@@ -351,7 +351,7 @@
   (loop [attr (transient {})
          kids (transient [])
          [arg & args] args]
-    (if-not arg
+    (if-not (or arg args)
       [(persistent! attr) (persistent! kids)]
       (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
