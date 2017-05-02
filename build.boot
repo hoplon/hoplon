@@ -9,6 +9,7 @@
                   [clj-webdriver                         "0.7.2"    :scope "test"]
                   [tailrecursion/boot-static             "0.1.0"    :scope "test"]
                   [org.seleniumhq.selenium/selenium-java "2.53.1"   :scope "test"]
+                  [com.codeborne/phantomjsdriver         "1.2.1"    :scope "test" :exclusions [org.seleniumhq.selenium/selenium-java]]
                   [boot-codox                            "0.10.1"   :scope "test"]
                   [org.clojure/clojure                   "1.7.0"]
                   [org.clojure/clojurescript             "1.7.122"]
