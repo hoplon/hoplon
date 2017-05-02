@@ -17,7 +17,7 @@
 
 (require
   '[adzerk.bootlaces          :refer :all]
-  '[hoplon.boot-hoplon        :refer [hoplon prerender]]
+  '[hoplon.boot-hoplon        :refer [hoplon ns+ prerender]]
   '[adzerk.boot-reload        :refer [reload]]
   '[adzerk.boot-cljs          :refer [cljs]]
   '[adzerk.boot-test          :refer [test]]
@@ -29,7 +29,7 @@
 (bootlaces! +version+)
 
 (replace-task!
-  [t test] (fn [& xs] (comp (hoplon) (cljs) (serve) (apply t xs))))
+  [t test] (fn [& xs] (comp (hoplon) (ns+) (cljs) (serve) (apply t xs))))
 
 (deftask develop-tests []
   (comp (watch) (speak) (test)))
