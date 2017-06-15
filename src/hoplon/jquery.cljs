@@ -11,7 +11,7 @@
   ([this kvs]
    (let [e (js/jQuery this)]
      (doseq [[k v] kvs :let [k (name k)]]
-       (if (= false v)
+       (if-not v
          (.removeAttr e k)
          (.attr e k (if (= true v) k v))))))
   ([this k v & kvs]

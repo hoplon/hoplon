@@ -387,7 +387,7 @@
     ([this kvs]
      (let [e this]
        (doseq [[k v] kvs :let [k (name k)]]
-         (if (= false v)
+         (if-not v
            (.removeAttribute e k)
            (.setAttribute e k (if (= true v) k v)))))))
   (-set-styles!
