@@ -1,11 +1,12 @@
 <a href="http://hoplon.io/">
   <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
-# Hoplon [![build status][14]][15] ![epicycles][11]
+
+# Hoplon [![build status][14]][15] ![epicycles][11] #
 
 [](dependency)
 ```clojure
-[hoplon "6.0.0-alpha17"] ;; latest release
+[hoplon "7.0.1"] ;; latest release
 ```
 [](/dependency)
 
@@ -20,10 +21,23 @@ the following libraries as dependencies to complete the stack:
 * [Castra][2]: a full-featured RPC library for Clojure and
   ClojureScript, providing the serverside environment.
 
+### Quickstart
+
+Install [Boot](http://boot-clj.com) and then generate a starter project with:
+
+    boot -d boot/new new -t hoplon -n hoplon-starter-project
+
 ### Example
+
+`src/pages/index.cljs`:
 
 ```clojure
 (page "index.html")
+
+(ns ^{:hoplon/page "index.html"} pages.index
+  (:require [hoplon.core  :as h :refer [div ul li html head title body h1 span p button text]]
+            [javelin.core :as j :refer [cell cell=]]
+            [hoplon.jquery]))
 
 (defn my-list [& items]
   (div
@@ -44,42 +58,6 @@ the following libraries as dependencies to complete the stack:
 
     (p (text "You've clicked ~{clicks} times, so far."))
     (button :click #(swap! clicks inc) "click me")))
-```
-
-Or, equivalently:
-
-```xml
-<script type="text/hoplon">
-  ;; Page declaration specifies output file path.
-  (page "index.html")
-
-  ;; definitions are optional
-  (defn my-list [& items]
-    (div
-      :class "my-list"
-      (apply ul (map #(li (div :class "my-list-item" %)) items))))
-
-  (def clicks (cell 0))
-</script>
-
-<html>
-  <head>
-    <title>example page</title>
-  </head>
-  <body>
-    <h1>Hello, Hoplon</h1>
-
-    <!-- an HTML syntax call to the my-list function -->
-    <my-list>
-      <span>first thing</span>
-      <span>second thing</span>
-    </my-list>
-
-    <!-- using dataflow to link DOM and Javelin cells -->
-    <p><text>You've clicked ~{clicks} times, so far.</text></p>
-    <button click="{{ #(swap! clicks inc) }}">click me</button>
-  </body>
-</html>
 ```
 
 ### Browser Support

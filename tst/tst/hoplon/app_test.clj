@@ -8,7 +8,7 @@
   ([t]
    (selenium-driver! t "http://localhost:3020"))
   ([t to]
-   (taxi/set-driver! {:browser :firefox} to)
+   (taxi/set-driver! {:browser :phantomjs} to)
    (t)
    (taxi/quit)))
 

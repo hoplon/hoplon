@@ -110,10 +110,16 @@ page.open(uri, function(status) {
       (util/info "• %s\n" path)
       (pod/copy-resource path (io/file dir path)))))
 
+(defn- on-classpath?
+  [ns-sym]
+  (let [base (-> ns-sym munge str (.replaceAll "\\." "/"))]
+    (or (io/resource (str base ".cljs"))
+        (io/resource (str base ".cljc")))))
+
 (def ^:private bogus-cljs-files #{"deps.cljs"})
 
-(boot/deftask ns+
-  "Extended ns declarations in CLJS."
+(boot/deftask ^{:deprecated true} ns+
+  "DEPRECATED. Extended ns declarations in CLJS."
   []
   (let [prev-fileset (atom nil)
         tmp-cljs+    (boot/tmp-dir!)]
@@ -138,12 +144,6 @@ page.open(uri, function(status) {
               (refer/rewrite-ns-path say-it modtime tmp-cljs+ path)
               (recur paths (add-tmp! fs)))))))))
 
-(defn- on-classpath?
-  [ns-sym]
-  (let [base (-> ns-sym munge str (.replaceAll "\\." "/"))]
-    (or (io/resource (str base ".cljs"))
-        (io/resource (str base ".cljc")))))
-
 (boot/deftask hoplon
   "Build Hoplon web application."
   [p pretty-print bool    "Pretty-print CLJS files created by the Hoplon compiler."
@@ -156,44 +156,42 @@ page.open(uri, function(status) {
         tmp-html     (boot/tmp-dir!)
         pod          (future @hoplon-pod)
         extract!     (delay (extract-deps! tmp-hl))]
-    (comp
-      (if manifest
-        (boot/with-pre-wrap fileset
-          (-> fileset (write-manifest! tmp-hl) boot/commit!))
-        (boot/with-pre-wrap fileset
-          @extract!
-          (let [fileset (boot/commit!
-                          (boot/add-source
-                            fileset
-                            tmp-hl
-                            :mergers pod/standard-jar-mergers))
-                hls     (->> fileset
-                             (boot/fileset-diff @prev-fileset)
-                             boot/input-files
-                             (boot/by-ext [".hl"])
-                             (map boot/tmp-path))
-                cljses  (->> fileset
-                             (boot/fileset-diff @prev-fileset)
-                             boot/input-files
-                             (boot/by-ext [".cljs"])
-                             (remove (comp bogus-cljs-files boot/tmp-path))
-                             (map boot/tmp-path))
-                refers  (->> (or refers #{'hoplon.jquery})
-                             (filter on-classpath?)
-                             (set))
-                options (assoc *opts* :refers refers)]
-            (reset! prev-fileset fileset)
-            (pod/with-call-in @pod
-              (hoplon.boot-hoplon.impl/hoplon
-                ~(.getPath tmp-cljs)
-                ~(.getPath tmp-html)
-                [~@(concat hls cljses)]
-                ~options))
-            (-> fileset
-                (boot/add-source tmp-cljs)
-                (boot/add-resource tmp-html)
-                boot/commit!))))
-      (ns+))))
+    (if manifest
+      (boot/with-pre-wrap fileset
+        (-> fileset (write-manifest! tmp-hl) boot/commit!))
+      (boot/with-pre-wrap fileset
+        @extract!
+        (let [fileset (boot/commit!
+                       (boot/add-source
+                        fileset
+                        tmp-hl
+                        :mergers pod/standard-jar-mergers))
+              hls     (->> fileset
+                           (boot/fileset-diff @prev-fileset)
+                           boot/input-files
+                           (boot/by-ext [".hl"])
+                           (map boot/tmp-path))
+              cljses  (->> fileset
+                           (boot/fileset-diff @prev-fileset)
+                           boot/input-files
+                           (boot/by-ext [".cljs"])
+                           (remove (comp bogus-cljs-files boot/tmp-path))
+                           (map boot/tmp-path))
+              refers  (->> (or refers #{'hoplon.jquery})
+                           (filter on-classpath?)
+                           (set))
+              options (assoc *opts* :refers refers)]
+          (reset! prev-fileset fileset)
+          (pod/with-call-in @pod
+            (hoplon.boot-hoplon.impl/hoplon
+             ~(.getPath tmp-cljs)
+             ~(.getPath tmp-html)
+             [~@(concat hls cljses)]
+             ~options))
+          (-> fileset
+              (boot/add-source tmp-cljs)
+              (boot/add-resource tmp-html)
+              boot/commit!))))))
 
 (boot/deftask html2cljs
   "Convert file from html syntax to cljs syntax."

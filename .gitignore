@@ -43,3 +43,6 @@ pom.xml
 /target/
 /test/target/
 /zzz/
+
+### TESTS #####################################################################
+phantomjsdriver.log
