@@ -134,8 +134,9 @@
   The returned DOM Element is itself a function which can accept more
   attributes and child elements."
   [name & forms]
-  (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
-    `(def ~name (elem ~bind ~@body))))
+  (let [[_ name [_ & fdecl]] (macroexpand-1 `(defn ~name ~@forms))
+        [docstr & [bind & body]] (if (string? (first fdecl)) fdecl (conj fdecl nil))]
+    `(def ^{:doc ~docstr} ~name (elem ~bind ~@body))))
 
 ;;-- caching dom manipulation macros ----------------------------------------;;
 
