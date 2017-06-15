@@ -121,7 +121,8 @@
 (defmacro elem
   "Create an anonymous custom element."
   [bind & body]
-  `(fn [& args#] (let [~bind (parse-args args#)] ~@body)))
+  (let [[prepost & body] (if (map? (first body)) body (conj body nil))]
+    `(fn [& args#] ~(or prepost {}) (let [~bind (parse-args args#)] ~@body))))
 
 (defmacro defelem
   "Defines an element function.
