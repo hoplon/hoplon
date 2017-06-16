@@ -25,7 +25,7 @@
   '[tailrecursion.boot-static :refer [serve]]
   '[codox.boot                :refer [codox]])
 
-(def +version+ "7.0.1")
+(def +version+ "7.0.2")
 
 (bootlaces! +version+)
 
