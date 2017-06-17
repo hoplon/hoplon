@@ -121,7 +121,8 @@
 (defmacro elem
   "Create an anonymous custom element."
   [bind & body]
-  `(fn [& args#] (let [~bind (parse-args args#)] ~@body)))
+  (let [[prepost & body] (if (map? (first body)) body (conj body nil))]
+    `(fn [& args#] ~(or prepost {}) (let [~bind (parse-args args#)] ~@body))))
 
 (defmacro defelem
   "Defines an element function.
@@ -134,8 +135,9 @@
   The returned DOM Element is itself a function which can accept more
   attributes and child elements."
   [name & forms]
-  (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
-    `(def ~name (elem ~bind ~@body))))
+  (let [[_ name [_ & fdecl]] (macroexpand-1 `(defn ~name ~@forms))
+        [docstr & [bind & body]] (if (string? (first fdecl)) fdecl (conj fdecl nil))]
+    `(def ^{:doc ~docstr} ~name (elem ~bind ~@body))))
 
 ;;-- caching dom manipulation macros ----------------------------------------;;
 
