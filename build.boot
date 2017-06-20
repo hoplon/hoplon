@@ -6,6 +6,7 @@
                            [adzerk/bootlaces                      "0.1.13"   :scope "test"]
                            [adzerk/boot-reload                    "0.5.1"    :scope "test"]
                            [adzerk/boot-test                      "1.2.0"    :scope "test"]
+                           [org.clojure/test.check                "0.9.0"    :scope "test"]
                            [clj-webdriver                         "0.7.2"    :scope "test"]
                            [tailrecursion/boot-static             "0.1.0"    :scope "test"]
                            [org.seleniumhq.selenium/selenium-java "3.4.0"    :scope "test"]
