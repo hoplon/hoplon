@@ -13,7 +13,7 @@
                            [com.codeborne/phantomjsdriver         "1.4.3"    :scope "test" :exclusions [org.seleniumhq.selenium/selenium-java]]
                            [boot-codox                            "0.10.3"   :scope "test"]
                            [org.clojure/clojure                   ~(clojure-version)]
-                           [org.clojure/clojurescript             "1.9.562"]
+                           [org.clojure/clojurescript             "1.9.660"]
                            [cljsjs/jquery                         "3.2.1-0"]
                            [hoplon/javelin                        "3.9.0"]]))
 
