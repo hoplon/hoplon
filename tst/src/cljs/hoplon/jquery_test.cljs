@@ -11,4 +11,5 @@
  ; is nothing in this namespace and let hoplon.core handle :svg/*
  ; https://github.com/hoplon/hoplon/issues/173
  (let [el (hoplon.svg/svg :svg/viewBox "0 0 10 10")]
-  (is (= "0 0 10 10" (.getAttribute el "viewBox")))))
+  (is (= "0 0 10 10" (.getAttribute el "viewBox")))
+  (is (= nil (.getAttribute el "viewbox")))))
