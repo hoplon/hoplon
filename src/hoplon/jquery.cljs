@@ -49,9 +49,6 @@
   [elem key val]
   (set-attributes! elem key val))
 
-; Intentionally not implementing :svg/* in jQuery.
-; https://github.com/hoplon/hoplon/issues/173
-
 (defmethod do! :attr/*
   [elem _ kvs]
   (set-attributes! elem kvs))
