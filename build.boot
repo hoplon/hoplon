@@ -6,6 +6,8 @@
                            [adzerk/bootlaces                      "0.1.13"   :scope "test"]
                            [adzerk/boot-reload                    "0.4.11"   :scope "test"]
                            [adzerk/boot-test                      "1.1.2"    :scope "test"]
+                           [lein-doo                              "0.1.7"    :scope "test"]
+                           [crisptrutski/boot-cljs-test           "0.3.0"    :scope "test"]
                            [clj-webdriver                         "0.7.2"    :scope "test"]
                            [tailrecursion/boot-static             "0.1.0"    :scope "test"]
                            [org.seleniumhq.selenium/selenium-java "2.53.1"   :scope "test"]
@@ -23,7 +25,8 @@
   '[adzerk.boot-cljs          :refer [cljs]]
   '[adzerk.boot-test          :refer [test]]
   '[tailrecursion.boot-static :refer [serve]]
-  '[codox.boot                :refer [codox]])
+  '[codox.boot                :refer [codox]]
+  '[crisptrutski.boot-cljs-test :refer [test-cljs]])
 
 (def +version+ "7.0.2")
 
@@ -37,6 +40,12 @@
 
 (deftask develop []
   (comp (watch) (target) (speak) (build-jar)))
+
+(replace-task!
+ [t test-cljs]
+ (fn [& xs]
+  (set-env! :source-paths #{"src" "tst/src/cljs"})
+  (apply t xs)))
 
 (task-options!
   pom    {:project     'hoplon
