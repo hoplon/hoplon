@@ -3,22 +3,34 @@
   hoplon.jquery
   [hoplon.core :as h]
   [javelin.core :as j]
-  [cljs.test :refer-macros [deftest is]]))
+  [cljs.test :refer-macros [deftest is async]]))
 
 (deftest ??sorting-elements
- (let [data (j/cell {:a 1 :b 1 :c 2})
-       el (h/div
-           (h/for-tpl [[k v] (j/cell= (sort-by
-                                       (fn [[k v]] [v k])
-                                       data))]
+ (async done
+  (let [data (j/cell {:a 1 :b 1 :c 2})
+        sorted-data (j/cell= (sort-by (fn [[k v]] [v k]) data))
+        el (h/div
+            (h/for-tpl [[k v] sorted-data]
+             (h/input
+              :data-k k
+              :value (j/cell= (get data k))
+              :input #(swap! data assoc @k (int @%)))))
+        read-vals (fn [el]
+                   (map
+                    #(-> % js/jQuery .val)
+                    (-> el js/jQuery (.find "input") array-seq)))
+        read-ks (fn [el]
+                 (map
+                  #(-> % js/jQuery (.attr "data-k"))
+                  (-> el js/jQuery (.find "input") array-seq)))]
+   (-> js/document .-body (.appendChild el))
 
-            (h/input
-             :value (j/cell= (get data k))
-             :input #(swap! data assoc @k @%))))
-       read-vals (fn [el]
-                  (map
-                   #(-> % js/jQuery .val)
-                   (-> el js/jQuery (.find "input") array-seq)))]
-  (is (= ["1" "1" "2"] (read-vals el)))
-  (-> el js/jQuery (.find "input") (.val 2) (.trigger "input"))
-  (is (= ["1" "2" "2"] (read-vals el)))))
+   (h/with-dom el
+    (is (= ["1" "1" "2"] (read-vals el)))
+    (is (= [":a" ":b" ":c"] (read-ks el)))
+
+    (-> el js/jQuery (.find "input") .first (.val 2) (.trigger "input"))
+    (is (= {:a 2 :b 1 :c 2} @data)) ; passes
+    (is (= [":b" ":a" ":c"] (read-ks el))) ; passes
+    (is (= ["1" "2" "2"] (read-vals el))) ; fails with ["2" "2" "2"]!
+    (done)))))
