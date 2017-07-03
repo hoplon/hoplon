@@ -301,7 +301,7 @@
           (and (sequential? value)
                (every? cell? value))
           (let [[v-cell & c-cells] value
-                f #(do! elem this @v-cell))]
+                f #(do! elem this @v-cell)]
            (do-watch v-cell #(do! elem this %2))
            (when c-cells
             (doseq [c c-cells] (do-watch c f))))
