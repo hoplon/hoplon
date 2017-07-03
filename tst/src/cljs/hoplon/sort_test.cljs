@@ -13,7 +13,7 @@
             (h/for-tpl [[k v] sorted-data]
              (h/input
               :data-k k
-              :value [(j/cell= (get data k)) sorted-data]
+              :value v
               :input #(swap! data assoc @k (int @%)))))
         read-vals (fn [el]
                    (map
