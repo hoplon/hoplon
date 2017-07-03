@@ -297,6 +297,15 @@
   (-attr! [this elem value]
     (cond (cell? value) (do-watch value #(do! elem this %2))
           (fn? value)   (on! elem this value)
+
+          (and (sequential? value)
+               (every? cell? value))
+          (let [[v-cell & c-cells] value
+                f #(do! elem this @v-cell))]
+           (do-watch v-cell #(do! elem this %2))
+           (when c-cells
+            (doseq [c c-cells] (do-watch c f))))
+
           :else         (do! elem this value))))
 
 
