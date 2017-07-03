@@ -29,8 +29,8 @@
     (is (= ["1" "1" "2"] (read-vals el)))
     (is (= [":a" ":b" ":c"] (read-ks el)))
 
-    (-> el js/jQuery (.find "input") .first (.val 2) (.trigger "input"))
-    (is (= {:a 2 :b 1 :c 2} @data)) ; passes
-    (is (= [":b" ":a" ":c"] (read-ks el))) ; passes
-    (is (= ["1" "2" "2"] (read-vals el))) ; fails with ["2" "2" "2"]!
+    (-> el js/jQuery (.find "input") .first (.val 3) (.trigger "input"))
+    (is (= {:a 3 :b 1 :c 2} @data)) ; passes
+    (is (= [":b" ":c" ":a"] (read-ks el))) ; passes
+    (is (= ["1" "2" "3"] (read-vals el))) ; fails with ["3" "2" "3"]!
     (done)))))
