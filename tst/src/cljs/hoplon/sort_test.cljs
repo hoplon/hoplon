@@ -13,26 +13,27 @@
             (h/for-tpl [[k v] sorted-data]
              (h/input
               :data-k k
-              :value [v data]
-              ; :value v
-              :input #(swap! data assoc @k (int @%)))))
+              :data-v v
+              :value v
+              :click #(swap! data assoc @k (int @%)))))
         read-vals (fn [el]
                    (map
                     #(-> % js/jQuery .val)
                     (-> el js/jQuery (.find "input") array-seq)))
-        read-ks (fn [el]
+        read-ks (fn [el k]
                  (map
-                  #(-> % js/jQuery (.attr "data-k"))
+                  #(-> % js/jQuery (.attr k))
                   (-> el js/jQuery (.find "input") array-seq)))]
    (-> js/document .-body (.appendChild el))
 
    (h/with-dom el
     (is (= ["1" "1" "2"] (read-vals el)))
-    (is (= [":a" ":b" ":c"] (read-ks el)))
+    (is (= [":a" ":b" ":c"] (read-ks el "data-k")))
 
-    (-> el js/jQuery (.find "input") .first (.val 3) (.trigger "input"))
+    (-> el js/jQuery (.find "input") .first (.val 3) (.trigger "click"))
     (is (= {:a 3 :b 1 :c 2} @data)) ; passes
-    (is (= [":b" ":c" ":a"] (read-ks el))) ; passes
+    (is (= [":b" ":c" ":a"] (read-ks el "data-k"))) ; passes
+    (is (= ["1" "2" "3"] (read-ks el "data-v"))) ; passes
     (is (= ["1" "2" "3"] (read-vals el))) ; fails with ["3" "2" "3"]!
     (done)))))
 
