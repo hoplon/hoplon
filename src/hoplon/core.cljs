@@ -297,6 +297,12 @@
   (-attr! [this elem value]
     (cond (cell? value) (do-watch value #(do! elem this %2))
           (fn? value)   (on! elem this value)
+
+          (and (sequential? value)
+               (every? cell? value))
+          (let [vs (apply javelin.core/alts! value)]
+           (do-watch vs #(do! elem this @(first value))))
+
           :else         (do! elem this value))))
 
 
