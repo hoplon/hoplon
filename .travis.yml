@@ -6,3 +6,4 @@ install:
   - chmod 755 boot
 script:
   - ./boot test
+  - ./boot test-cljs -x

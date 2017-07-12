@@ -49,10 +49,6 @@
   [elem key val]
   (set-attributes! elem key val))
 
-(defmethod do! :svg/*
-  [elem key val]
-  (set-attributes! elem key val))
-
 (defmethod do! :attr/*
   [elem _ kvs]
   (set-attributes! elem kvs))
