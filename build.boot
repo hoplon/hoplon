@@ -21,7 +21,7 @@
   '[codox.boot                :refer [codox]]
   '[crisptrutski.boot-cljs-test :refer [test-cljs]])
 
-(def +version+ "7.0.3")
+(def +version+ "7.1.0-SNAPSHOT")
 
 (bootlaces! +version+)
 
