@@ -8,21 +8,20 @@
 
 (ns hoplon.core
   (:refer-clojure :exclude [subs name])
-  (:import [java.util UUID])
   (:require [clojure.walk    :as walk]
-            [clojure.java.io :as io]
             [clojure.string  :as string]
-            [javelin.core    :as j]))
+            [javelin.core    :as j]
+            [clojure.reader  :as r]))
 
 (create-ns 'js)
 
-(try (let [env  @(do (require 'boot.pod) (resolve 'boot.pod/env))
-           fail @(do (require 'boot.util) (resolve 'boot.util/fail))]
-       (when-let [dep (some-> (->> env (:dependencies) (group-by first))
-                              (get 'hoplon/boot-hoplon) (first) (pr-str))]
-         (fail "The boot-hoplon dependency has been incorporated into hoplon and is no longer needed.\n")
-         (fail "Please remove %s from your :dependencies.\n" dep)))
-     (catch Throwable _))
+;(try (let [env  @(do (require 'boot.pod) (resolve 'boot.pod/env))
+;           fail @(do (require 'boot.util) (resolve 'boot.util/fail))]
+;       (when-let [dep (some-> (->> env (:dependencies) (group-by first))
+;                              (get 'hoplon/boot-hoplon) (first) (pr-str))]
+;         (fail "The boot-hoplon dependency has been incorporated into hoplon and is no longer needed.\n")
+;         (fail "Please remove %s from your :dependencies.\n" dep)))
+;     (catch Throwable _))
 
 ;;-- helpers ----------------------------------------------------------------;;
 
@@ -31,10 +30,10 @@
 
 (defmacro cache-key []
   (or (System/getProperty "hoplon.cacheKey")
-      (let [u (.. (UUID/randomUUID) toString (replaceAll "-" ""))]
+      (let [u (.. (random-uuid) toString (replaceAll "-" ""))]
         (System/setProperty "hoplon.cacheKey" u)
         u)))
-
+        
 (defn bust-cache
   [path]
   (let [[f & more] (reverse (string/split path #"/"))
@@ -49,7 +48,7 @@
   (if (string? docstring) (list (first pair) docstring (last pair)) pair))
 
 (defn do-def [docstring bindings values]
-  (->> (macroexpand `(let [~bindings ~values]))
+  (->> (macroexpand '`(let [~bindings ~values]))
        (second)
        (walk/postwalk-replace
          {'clojure.lang.PersistentHashMap/create '(partial apply hash-map)})
@@ -73,7 +72,7 @@
   head of the String."
   [s]
   (try
-    (let [r (-> s java.io.StringReader. java.io.PushbackReader.)]
+    (let [r (r/push-back-reader s)]
       [(read r) (slurp r)])
     (catch Exception e))) ; this indicates an invalid form -- the head of s is just string data
 
@@ -134,7 +133,7 @@
   The returned DOM Element is itself a function which can accept more
   attributes and child elements."
   [name & forms]
-  (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
+  (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 '`(defn ~name ~@forms))]
     `(def ~name (elem ~bind ~@body))))
 
 ;;-- caching dom manipulation macros ----------------------------------------;;
@@ -309,7 +308,7 @@
       appended/removed at a later point in time.
     - `attrs` argument must be destructured as it's also a Cell."
   [name & forms]
-  (let [[_ name [_ [bind & body]]] (macroexpand-1 `(defn ~name ~@forms))]
+  (let [[_ name [_ [bind & body]]] (macroexpand-1 '`(defn ~name ~@forms))]
     `(def ~name (elem+ ~bind ~@body))))
 
 (defmacro static
