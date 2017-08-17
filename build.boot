@@ -1,5 +1,5 @@
 (set-env!
-  :source-paths   #{"src" "tst/src"}
+  :source-paths   #{"src"}
   :dependencies (template [[adzerk/boot-cljs                      "2.1.2"    :scope "test"]
                            [adzerk/bootlaces                      "0.1.13"   :scope "test"]
                            [adzerk/boot-reload                    "0.5.1"    :scope "test"]
@@ -32,7 +32,7 @@
 (replace-task!
  [t test-cljs]
  (fn [& xs]
-  (set-env! :resource-paths #{"src" "tst/src/cljs"})
+  (set-env! :resource-paths #{"tst/src/cljs"})
   (apply t xs)))
 
 (deftask develop-tests []
