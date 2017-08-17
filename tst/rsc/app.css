@@ -1,4 +1,0 @@
-/* workaround for refresh issues in webkit-based browsers */
-@-webkit-keyframes androidBugfix {from { padding: 0; } to { padding: 0; }}
-body { -webkit-animation: androidBugfix infinite 1s; }
-/* end workaround */

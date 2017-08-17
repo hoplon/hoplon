@@ -5,5 +5,4 @@ install:
   - curl -s https://api.github.com/repos/boot-clj/boot/releases |grep 'download_url.*boot\.sh' |head -1 |sed 's/^.*[:] /wget -O boot /' |bash
   - chmod 755 boot
 script:
-  - ./boot test
   - ./boot test-cljs -x
