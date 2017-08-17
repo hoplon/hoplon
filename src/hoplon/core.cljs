@@ -387,6 +387,13 @@
       (when-let [x (->node x)]
         (append-child! this x)))))
 
+(defn- invoke!
+  [this & args]
+  (let [[attr kids] (parse-args args)]
+    (doto this
+      (add-attributes! attr)
+      (add-children! kids))))
+
 (extend-type js/Element
   IPrintWithWriter
   (-pr-writer
@@ -394,11 +401,50 @@
      (write-all writer "#<Element: " (.-tagName this) ">")))
   IFn
   (-invoke
-    ([this & args]
-     (let [[attr kids] (parse-args args)]
-       (doto this
-         (add-attributes! attr)
-         (add-children! kids)))))
+    ([this]
+     (invoke! this))
+    ([this a]
+     (invoke! this a))
+    ([this a b]
+     (invoke! this a b))
+    ([this a b c]
+     (invoke! this a b c))
+    ([this a b c d]
+     (invoke! this a b c d))
+    ([this a b c d e]
+     (invoke! this a b c d e))
+    ([this a b c d e f]
+     (invoke! this a b c d e f))
+    ([this a b c d e f g]
+     (invoke! this a b c d e f g))
+    ([this a b c d e f g h]
+     (invoke! this a b c d e f g h))
+    ([this a b c d e f g h i]
+     (invoke! this a b c d e f g h i))
+    ([this a b c d e f g h i j]
+     (invoke! this a b c d e f g h i j))
+    ([this a b c d e f g h i j k]
+     (invoke! this a b c d e f g h i j k))
+    ([this a b c d e f g h i j k l]
+     (invoke! this a b c d e f g h i j k l))
+    ([this a b c d e f g h i j k l m]
+     (invoke! this a b c d e f g h i j k l m))
+    ([this a b c d e f g h i j k l m n]
+     (invoke! this a b c d e f g h i j k l m n))
+    ([this a b c d e f g h i j k l m n o]
+     (invoke! this a b c d e f g h i j k l m n o))
+    ([this a b c d e f g h i j k l m n o p]
+     (invoke! this a b c d e f g h i j k l m n o p))
+    ([this a b c d e f g h i j k l m n o p q]
+     (invoke! this a b c d e f g h i j k l m n o p q))
+    ([this a b c d e f g h i j k l m n o p q r]
+     (invoke! this a b c d e f g h i j k l m n o p q r))
+    ([this a b c d e f g h i j k l m n o p q r s]
+     (invoke! this a b c d e f g h i j k l m n o p q r s))
+    ([this a b c d e f g h i j k l m n o p q r s t]
+     (invoke! this a b c d e f g h i j k l m n o p q r s t))
+    ([this a b c d e f g h i j k l m n o p q r s t rest]
+     (apply invoke! this a b c d e f g h i j k l m n o p q r s t rest)))
   ICustomElement
   (-set-attributes!
     ([this kvs]
