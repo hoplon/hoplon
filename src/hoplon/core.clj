@@ -139,7 +139,7 @@
 
 ;;-- caching dom manipulation macros ----------------------------------------;;
 
-(defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom))))
+(defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom nil))))
 
 (defmacro loop-tpl
   "Template. Works identically to `for-tpl`, only expects a `:bindings`
