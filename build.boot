@@ -32,7 +32,7 @@
 (replace-task!
  [t test-cljs]
  (fn [& xs]
-  (set-env! :resource-paths #{"tst/src/cljs"})
+  (set-env! :source-paths #{"tst/src/cljs"})
   (apply t xs)))
 
 (deftask develop-tests []
