@@ -2,19 +2,19 @@
   :asset-paths    #{"tst/rsc"}
   :source-paths   #{"src" "tst/src"}
   :resource-paths #{"tst/tst"}
-  :dependencies (template [[adzerk/boot-cljs                      "1.7.48-3" :scope "test"]
+  :dependencies (template [[adzerk/boot-cljs                      "2.0.0" :scope "test"]
                            [adzerk/bootlaces                      "0.1.13"   :scope "test"]
-                           [adzerk/boot-reload                    "0.4.11"   :scope "test"]
-                           [adzerk/boot-test                      "1.1.2"    :scope "test"]
+                           [adzerk/boot-reload                    "0.5.1"   :scope "test"]
+                           [adzerk/boot-test                      "1.2.0"    :scope "test"]
                            [lein-doo                              "0.1.7"    :scope "test"]
                            [crisptrutski/boot-cljs-test           "0.3.0"    :scope "test"]
                            [clj-webdriver                         "0.7.2"    :scope "test"]
                            [tailrecursion/boot-static             "0.1.0"    :scope "test"]
-                           [org.seleniumhq.selenium/selenium-java "2.53.1"   :scope "test"]
-                           [com.codeborne/phantomjsdriver         "1.2.1"    :scope "test" :exclusions [org.seleniumhq.selenium/selenium-java]]
-                           [boot-codox                            "0.10.1"   :scope "test"]
+                           [org.seleniumhq.selenium/selenium-java "3.4.0"   :scope "test"]
+                           [com.codeborne/phantomjsdriver         "1.4.3"    :scope "test" :exclusions [org.seleniumhq.selenium/selenium-java]]
+                           [boot-codox                            "0.10.3"   :scope "test"]
                            [org.clojure/clojure                   ~(clojure-version)]
-                           [org.clojure/clojurescript             "1.7.122"]
+                           [org.clojure/clojurescript             "1.9.655"]
                            [cljsjs/jquery                         "1.9.1-0"]
                            [hoplon/javelin                        "3.9.0"]]))
 
