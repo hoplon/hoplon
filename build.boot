@@ -1,6 +1,6 @@
 (set-env!
-  :source-paths   #{"src" "tst/src"}
-  :dependencies (template [[adzerk/boot-cljs                      "2.1.2"    :scope "test"]
+  :source-paths   #{"src"}
+  :dependencies (template [[adzerk/boot-cljs                      "2.0.0"    :scope "test"]
                            [adzerk/bootlaces                      "0.1.13"   :scope "test"]
                            [adzerk/boot-reload                    "0.5.1"    :scope "test"]
                            [adzerk/boot-test                      "1.2.0"    :scope "test"]
@@ -8,7 +8,7 @@
                            [lein-doo                              "0.1.7"    :scope "test"]
                            [crisptrutski/boot-cljs-test           "0.3.2"    :scope "test"]
                            [org.clojure/clojure                   ~(clojure-version)]
-                           [org.clojure/clojurescript             "1.9.562"]
+                           [org.clojure/clojurescript             "1.9.660"]
                            [org.clojure/test.check                "0.9.0"]
                            [cljsjs/jquery                         "3.2.1-0"]
                            [hoplon/javelin                        "3.9.0"]]))
@@ -32,7 +32,7 @@
 (replace-task!
  [t test-cljs]
  (fn [& xs]
-  (set-env! :source-paths #{"src" "tst/src/cljs"})
+  (set-env! :source-paths #{"tst/src/cljs"})
   (apply t xs)))
 
 (deftask develop-tests []
