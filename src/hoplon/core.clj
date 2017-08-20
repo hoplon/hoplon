@@ -12,7 +12,9 @@
   (:require [clojure.walk    :as walk]
             [clojure.java.io :as io]
             [clojure.string  :as string]
-            [javelin.core    :as j]))
+            [clojure.spec.alpha :as spec]
+            [javelin.core    :as j]
+            [hoplon.spec]))
 
 (create-ns 'js)
 
@@ -121,7 +123,10 @@
 (defmacro elem
   "Create an anonymous custom element."
   [bind & body]
-  `(fn [& args#] (let [~bind (parse-args args#)] ~@body)))
+  (let [[prepost & body] (if (map? (first body)) body (conj body nil))]
+    `(fn [& args#] ~(or prepost {}) (let [~bind (parse-args args#)] ~@body))))
+
+(spec/fdef elem :args :hoplon.spec/elem :ret any?)
 
 (defmacro defelem
   "Defines an element function.
@@ -134,8 +139,11 @@
   The returned DOM Element is itself a function which can accept more
   attributes and child elements."
   [name & forms]
-  (let [[_ name [_ & [[bind & body]]]] (macroexpand-1 `(defn ~name ~@forms))]
-    `(def ~name (elem ~bind ~@body))))
+  (let [[_ name [_ & [fdecl]]] (macroexpand-1 `(defn ~name ~@forms))
+        [docstr & [bind & body]] (if (string? (first fdecl)) fdecl (conj fdecl nil))]
+    `(def ^{:doc ~docstr} ~name (elem ~bind ~@body))))
+
+(spec/fdef defelem :args :hoplon.spec/defelem :ret any?)
 
 ;;-- caching dom manipulation macros ----------------------------------------;;
 
@@ -151,6 +159,8 @@
     `(loop-tpl* ~items
        (fn [item#] (j/cell-let [~bindings item#] ~body)))))
 
+(spec/fdef loop-tpl :args :hoplon.spec/loop-tpl :ret any?)
+
 (defmacro for-tpl
   "Template. Accepts a cell-binding and returns a cell containing a sequence of
   elements:
@@ -159,6 +169,8 @@
   "
   [[bindings items] body]
   `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
+
+(spec/fdef for-tpl :args :hoplon.spec/for-tpl :ret any?)
 
 (defmacro if-tpl
   "Template. Accepts a `predicate` cell and returns a cell containing either
@@ -173,6 +185,8 @@
          tpl# (fn [p#] (safe-deref (if p# con# alt#)))]
      ((j/formula tpl#) ~predicate)))
 
+(spec/fdef if-tpl :args :hoplon.spec/if-tpl :ret any?)
+
 (defmacro when-tpl
   "Template. Accepts a `predicate` cell and returns a cell containing either
   the element produced by `consequent` or nothing, depending on the value of
@@ -183,6 +197,8 @@
   "
   [predicate & body]
   `(if-tpl ~predicate (do ~@body)))
+
+(spec/fdef when-tpl :args :hoplon.spec/when-tpl :ret any?)
 
 (defmacro cond-tpl
   "Template. Accepts a number of `clauses` cell-template pairs and returns a
@@ -202,6 +218,8 @@
            tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
        ((j/formula tpl#) ~@conds))))
 
+(spec/fdef cond-tpl :args :hoplon.spec/cond-tpl :ret any?)
+
 (defmacro case-tpl
   "Template. Accepts an `expr` cell and a number of `clauses` and returns a
   cell with the value produced by the matching clause:
@@ -219,6 +237,8 @@
     `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
            tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
        ((j/formula tpl#) ~expr))))
+
+(spec/fdef case-tpl :args :hoplon.spec/case-tpl :ret any?)
 
 ;;-- various dom macros -----------------------------------------------------;;
 

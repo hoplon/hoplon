@@ -13,7 +13,10 @@
     [clojure.set    :refer [difference intersection]]
     [javelin.core   :refer [cell? cell lift destroy-cell!]]
     [cljs.reader    :refer [read-string]]
-    [clojure.string :refer [split join blank?]])
+    [clojure.string :refer [split join blank?]]
+    [cljs.spec.alpha :as spec]
+    [cljs.spec.test.alpha :as spect]
+    [hoplon.spec])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
     [hoplon.core    :refer [cache-key with-timeout with-dom]]))
@@ -286,6 +289,20 @@
 
 ;;;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn -do! [elem this value]
+  (do! elem this value))
+
+(defn -on! [elem this value]
+  (on! elem this value))
+
+(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
+
+(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
+
+(defn spec! []
+  (spect/instrument `-do!)
+  (spect/instrument `-on!))
+
 (defprotocol ICustomAttribute
   (-attr! [this elem value]))
 
@@ -295,9 +312,9 @@
 (extend-type Keyword
   ICustomAttribute
   (-attr! [this elem value]
-    (cond (cell? value) (do-watch value #(do! elem this %2))
-          (fn? value)   (on! elem this value)
-          :else         (do! elem this value))))
+    (cond (cell? value) (do-watch value #(-do! elem this %2))
+          (fn? value)   (-on! elem this value)
+          :else         (-do! elem this value))))
 
 
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -370,6 +387,13 @@
       (when-let [x (->node x)]
         (append-child! this x)))))
 
+(defn- invoke!
+  [this & args]
+  (let [[attr kids] (parse-args args)]
+    (doto this
+      (add-attributes! attr)
+      (add-children! kids))))
+
 (extend-type js/Element
   IPrintWithWriter
   (-pr-writer
@@ -377,11 +401,50 @@
      (write-all writer "#<Element: " (.-tagName this) ">")))
   IFn
   (-invoke
-    ([this & args]
-     (let [[attr kids] (parse-args args)]
-       (doto this
-         (add-attributes! attr)
-         (add-children! kids)))))
+    ([this]
+     (invoke! this))
+    ([this a]
+     (invoke! this a))
+    ([this a b]
+     (invoke! this a b))
+    ([this a b c]
+     (invoke! this a b c))
+    ([this a b c d]
+     (invoke! this a b c d))
+    ([this a b c d e]
+     (invoke! this a b c d e))
+    ([this a b c d e f]
+     (invoke! this a b c d e f))
+    ([this a b c d e f g]
+     (invoke! this a b c d e f g))
+    ([this a b c d e f g h]
+     (invoke! this a b c d e f g h))
+    ([this a b c d e f g h i]
+     (invoke! this a b c d e f g h i))
+    ([this a b c d e f g h i j]
+     (invoke! this a b c d e f g h i j))
+    ([this a b c d e f g h i j k]
+     (invoke! this a b c d e f g h i j k))
+    ([this a b c d e f g h i j k l]
+     (invoke! this a b c d e f g h i j k l))
+    ([this a b c d e f g h i j k l m]
+     (invoke! this a b c d e f g h i j k l m))
+    ([this a b c d e f g h i j k l m n]
+     (invoke! this a b c d e f g h i j k l m n))
+    ([this a b c d e f g h i j k l m n o]
+     (invoke! this a b c d e f g h i j k l m n o))
+    ([this a b c d e f g h i j k l m n o p]
+     (invoke! this a b c d e f g h i j k l m n o p))
+    ([this a b c d e f g h i j k l m n o p q]
+     (invoke! this a b c d e f g h i j k l m n o p q))
+    ([this a b c d e f g h i j k l m n o p q r]
+     (invoke! this a b c d e f g h i j k l m n o p q r))
+    ([this a b c d e f g h i j k l m n o p q r s]
+     (invoke! this a b c d e f g h i j k l m n o p q r s))
+    ([this a b c d e f g h i j k l m n o p q r s t]
+     (invoke! this a b c d e f g h i j k l m n o p q r s t))
+    ([this a b c d e f g h i j k l m n o p q r s t rest]
+     (apply invoke! this a b c d e f g h i j k l m n o p q r s t rest)))
   ICustomElement
   (-set-attributes!
     ([this kvs]
