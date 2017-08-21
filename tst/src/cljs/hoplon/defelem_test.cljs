@@ -18,6 +18,12 @@
   :data-bar foo
   (dissoc attributes :foo)))
 
+(h/defelem div--destructured-attributes-only
+ [{:keys [foo] :as attributes}]
+ (h/div
+  :data-bar foo
+  (dissoc attributes :foo)))
+
 (h/defelem div--children
  [_ children]
  (h/div children))
@@ -35,6 +41,7 @@
 
  ; destructuring attributes
  (is (.webkitMatchesSelector (div--destructured :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]"))
+ (is (.webkitMatchesSelector (div--destructured-attributes-only :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]"))
 
  (doseq [el [; children arguments
              (div--children (h/span) (h/p))
