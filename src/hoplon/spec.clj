@@ -7,7 +7,7 @@
 (spec/def ::attr-kids
   (spec/cat
     :attr :clojure.core.specs.alpha/binding-form
-    :kids :clojure.core.specs.alpha/binding-form))
+    :kids (spec/? :clojure.core.specs.alpha/binding-form)))
 
 (spec/def ::forms
   any?)
