@@ -34,7 +34,7 @@
  (is (.webkitMatchesSelector (div--attributes :data-foo true) "div[data-foo]"))
 
  ; destructuring attributes
- (is (.webkitMatchesSelector (div--destructured :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]")))
+ (is (.webkitMatchesSelector (div--destructured :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]"))
 
  (doseq [el [; children arguments
              (div--children (h/span) (h/p))
