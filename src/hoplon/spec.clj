@@ -5,9 +5,9 @@
   #(-> % count even?))
 
 (spec/def ::attr-kids
-  (spec/tuple
-    :clojure.core.specs.alpha/binding-form
-    :clojure.core.specs.alpha/binding-form))
+  (spec/cat
+    :attr :clojure.core.specs.alpha/binding-form
+    :kids :clojure.core.specs.alpha/binding-form))
 
 (spec/def ::forms
   any?)
