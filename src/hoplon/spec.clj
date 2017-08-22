@@ -10,7 +10,7 @@
     :kids (spec/? :clojure.core.specs.alpha/binding-form)))
 
 (spec/def ::forms
-  any?)
+  (spec/nilable any?))
 
 (spec/def ::prepost
   (spec/and map? (spec/keys :opt-un [::pre ::post])))
