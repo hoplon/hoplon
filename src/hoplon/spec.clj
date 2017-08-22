@@ -25,13 +25,13 @@
   (spec/and keyword? (partial = :bindings)))
 
 (spec/def ::binding-cell
-  (spec/cat :name :clojure.core.specs.alpha/binding-form :cell ::forms))
+  (spec/cat :binding :clojure.core.specs.alpha/binding-form :cell ::forms))
 
 (spec/def ::loop-tpl
   (spec/cat :bindings-kw ::bindings-kw :bindings ::binding-cell :forms ::forms))
 
 (spec/def ::for-tpl
-  (spec/cat :bindings ::binding-cell :forms ::forms))
+  (spec/cat :bindings ::binding-cell :forms (spec/* ::forms)))
 
 (spec/def ::if-tpl
   (spec/cat :predicate any? :consequent ::forms :alternative (spec/? ::forms)))
