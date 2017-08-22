@@ -25,7 +25,7 @@
   (spec/and keyword? (partial = :bindings)))
 
 (spec/def ::binding-cell
-  (spec/cat :name simple-symbol? :cell ::forms))
+  (spec/cat :name :clojure.core.specs.alpha/binding-form :cell ::forms))
 
 (spec/def ::loop-tpl
   (spec/cat :bindings-kw ::bindings-kw :bindings ::binding-cell :forms ::forms))
