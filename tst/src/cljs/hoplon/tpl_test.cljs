@@ -24,7 +24,7 @@
             (h/div t)))
        find-text (fn [el]
                   (map
-                   .-textContent
+                   #(.-textContent %)
                    (array-seq
                     (.querySelectorAll el "div"))))]
   (is (= ["1" "2" "3"]
