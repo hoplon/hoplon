@@ -18,24 +18,39 @@
   (is (.querySelector el "span.bar"))))
 
 (deftest ??for-tpl
- (let [c (j/cell [1 2 3])
-       el (h/div
-           (h/for-tpl [t c]
-            (h/div t)))
-       find-text (fn [el]
-                  (map
-                   #(.-textContent %)
-                   (array-seq
-                    (.querySelectorAll el "div"))))]
-  (is (= ["1" "2" "3"]
-       (find-text el)))
-  (reset! c ["a" "b" "c"])
-  (is (= ["a" "b" "c"]
-       (find-text el)))
+ (let [find-text (fn [el]
+                   (map
+                    #(.-textContent %)
+                    (array-seq
+                     (.querySelectorAll el "div"))))]
+  ; the most common use-case is a sequence in a cell
+  (let [c (j/cell [1 2 3])
+        el (h/div
+            (h/for-tpl [t c]
+             (h/div t)))]
+   (is (= ["1" "2" "3"]
+        (find-text el)))
+   (reset! c ["a" "b" "c"])
+   (is (= ["a" "b" "c"]
+        (find-text el))))
 
+  ; we want to be able to handle regular (non-cell) sequences
   (let [ts ["x" "y" "z"]]
    (is (= ts
         (find-text
          (h/div
           (h/for-tpl [t ts]
-           (h/div t)))))))))
+           (h/div t)))))))
+
+  ; we want to be able to handle empty sequences and nil
+  (let [c (j/cell [])]
+   (is (= []
+        (find-text
+         (h/div
+          (h/for-tpl [v c]
+           (h/div v))))))
+   (is (= []
+        (find-text
+         (h/div
+          (h/for-tpl [v (j/cell= (seq c))]
+           (h/div v)))))))))
