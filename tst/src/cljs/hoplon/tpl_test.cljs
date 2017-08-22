@@ -18,24 +18,31 @@
   (is (.querySelector el "span.bar"))))
 
 (deftest ??for-tpl
- (let [c (j/cell [1 2 3])
-       el (h/div
-           (h/for-tpl [t c]
-            (h/div t)))
-       find-text (fn [el]
-                  (map
-                   #(.-textContent %)
-                   (array-seq
-                    (.querySelectorAll el "div"))))]
-  (is (= ["1" "2" "3"]
-       (find-text el)))
-  (reset! c ["a" "b" "c"])
-  (is (= ["a" "b" "c"]
-       (find-text el)))
+ (let [find-text (fn [el]
+                   (map
+                    #(.-textContent %)
+                    (array-seq
+                     (.querySelectorAll el "div"))))]
+  (let [c (j/cell [1 2 3])
+        el (h/div
+            (h/for-tpl [t c]
+             (h/div t)))]
+   (is (= ["1" "2" "3"]
+        (find-text el)))
+   (reset! c ["a" "b" "c"])
+   (is (= ["a" "b" "c"]
+        (find-text el))))
 
   (let [ts ["x" "y" "z"]]
    (is (= ts
         (find-text
          (h/div
           (h/for-tpl [t ts]
-           (h/div t)))))))))
+           (h/div t)))))))
+
+  (let [c (j/cell [])
+        el (h/div
+            (h/for-tpl [v (j/cell= (seq c))]
+             (h/div v)))]
+   (is (= []
+        (find-text el))))))
