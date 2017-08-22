@@ -43,9 +43,14 @@
            (h/div t)))))))
 
   ; we want to be able to handle empty sequences and nil
-  (let [c (j/cell [])
-        el (h/div
-            (h/for-tpl [v (j/cell= (seq c))]
-             (h/div v)))]
+  (let [c (j/cell [])]
    (is (= []
-        (find-text el))))))
+        (find-text
+         (h/div
+          (h/for-tpl [v c]
+           (h/div v))))))
+   (is (= []
+        (find-text
+         (h/div
+          (h/for-tpl [v (j/cell= (seq c))]
+           (h/div v)))))))))
