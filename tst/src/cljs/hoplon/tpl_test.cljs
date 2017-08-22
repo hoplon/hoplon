@@ -20,7 +20,7 @@
 (deftest ??for-tpl
  (let [c (j/cell [1 2 3])
        el (h/div
-           (h/for-tpl t c
+           (h/for-tpl [t c]
             (h/div t)))
        find-text (fn [el]
                   (map
@@ -34,8 +34,8 @@
        (find-text el)))
 
   (let [ts ["x" "y" "z"]]
-   (is (= ts)
-    (find-text
-     (h/div
-      (h/for-tpl t ts
-       (h/div t))))))))
+   (is (= ts
+        (find-text
+         (h/div
+          (h/for-tpl [t ts]
+           (h/div t)))))))))
