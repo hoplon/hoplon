@@ -16,3 +16,19 @@
   (reset! c false)
   (is (not (.querySelector el "p.foo")))
   (is (.querySelector el "span.bar"))))
+
+(deftest ??for-tpl
+ (let [c (j/cell [1 2 3])
+       el (h/div
+           (h/for-tpl n c
+            (h/div n)))
+       find-text (fn [el]
+                  (map
+                   .-textContent
+                   (array-seq
+                    (.querySelectorAll el "div"))))]
+  (is (= ["1" "2" "3"]
+       (find-text el)))
+  (reset! c ["a" "b" "c"])
+  (is (= ["a" "b" "c"]
+       (find-text el)))))
