@@ -23,6 +23,7 @@
                     #(.-textContent %)
                     (array-seq
                      (.querySelectorAll el "div"))))]
+  ; the most common use-case is a sequence in a cell
   (let [c (j/cell [1 2 3])
         el (h/div
             (h/for-tpl [t c]
@@ -33,6 +34,7 @@
    (is (= ["a" "b" "c"]
         (find-text el))))
 
+  ; we want to be able to handle regular (non-cell) sequences
   (let [ts ["x" "y" "z"]]
    (is (= ts
         (find-text
@@ -40,6 +42,7 @@
           (h/for-tpl [t ts]
            (h/div t)))))))
 
+  ; we want to be able to handle empty sequences and nil
   (let [c (j/cell [])
         el (h/div
             (h/for-tpl [v (j/cell= (seq c))]
