@@ -1,9 +1,9 @@
-(ns hoplon.tags-test
+(ns hoplon.elements-test
  (:require
   [hoplon.core :as h]
   [cljs.test :refer-macros [deftest is]]))
 
-(def tags
+(def elements
  [[h/html "html"]
   ; Calling h/body from phantomjs triggers an error.
   ; https://github.com/hoplon/hoplon/issues/197
@@ -119,6 +119,13 @@
   [h/video "video"]
   [h/wbr "wbr"]])
 
-(deftest ??tags
- (doseq [[f s] tags]
+(deftest ??elements
+ (doseq [[f s] elements]
   (is (.webkitMatchesSelector (f) s) (str "Element did not match selector: " s))))
+
+(deftest ??element-creation
+ ; we want to handle at least as many children as the arity of invoke!
+ (apply h/div (take 21 (repeatedly h/div)))
+
+ ; we want to handle an arbitrary number of children
+ (apply h/div (take 22 (repeatedly h/div))))
