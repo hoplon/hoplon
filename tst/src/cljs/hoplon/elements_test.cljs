@@ -125,7 +125,10 @@
 
 (deftest ??element-creation
  ; we want to handle at least as many children as the arity of invoke!
- (apply h/div (take 21 (repeatedly h/div)))
+ (apply
+  h/div
+  (conj (vec (take 20 (repeatedly h/div)))
+   [(h/div)]))
 
  ; we want to handle an arbitrary number of children
  (apply h/div (take 22 (repeatedly h/div))))

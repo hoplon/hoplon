@@ -444,7 +444,7 @@
     ([this a b c d e f g h i j k l m n o p q r s t]
      (invoke! this a b c d e f g h i j k l m n o p q r s t))
     ([this a b c d e f g h i j k l m n o p q r s t rest]
-     (apply invoke! this a b c d e f g h i j k l m n o p q r s t rest)))
+     (invoke! this a b c d e f g h i j k l m n o p q r s t rest)))
   ICustomElement
   (-set-attributes!
     ([this kvs]
