@@ -319,29 +319,6 @@
 
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:private is-ie8 (not (obj/get js/window "Node")))
-
-(def ^:private -head*
-  (if-not is-ie8
-    #(.-head %)
-    #(.. % -documentElement -firstChild)))
-
-(def ^:private vector?*
-  (if-not is-ie8
-    vector?
-    #(try (vector? %) (catch js/Error _))))
-
-(def ^:private seq?*
-  (if-not is-ie8
-    seq?
-    #(try (seq? %) (catch js/Error _))))
-
-(defn safe-nth
-  "Like cljs.core/nth but returns nil or not found if the index is outside the coll"
-  ([coll index] (safe-nth coll index nil))
-  ([coll index not-found]
-   (try (nth coll index not-found) (catch js/Error _ not-found))))
-
 (defn timeout
   "Executes a fuction after a delay, if no delay is passed, 0 is used as a default."
   ([f] (timeout f 0))
@@ -363,7 +340,7 @@
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- parse-args
+(defn parse-args
   [args]
   (loop [attr (transient {})
          kids (transient [])
@@ -372,8 +349,8 @@
       [(persistent! attr) (persistent! kids)]
       (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq?* arg)      (recur attr (reduce conj! kids (vflatten arg)) args)
-            (vector?* arg)   (recur attr (reduce conj! kids (vflatten arg)) args)
+            (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
+            (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
@@ -460,9 +437,7 @@
          (obj/set (.. e -style) (name k) (str v))))))
   (-append-child!
     ([this child]
-     (if-not is-ie8
-       (.appendChild this child)
-       (try (.appendChild this child) (catch js/Error _)))))
+     (.appendChild this child)))
   (-remove-child!
     ([this child]
      (.removeChild this child)))
@@ -473,7 +448,7 @@
     ([this new existing]
      (.insertBefore this new existing))))
 
-(defn- make-singleton-ctor
+(defn- mksingleton
   [elem]
   (fn [& args]
     (let [[attrs kids] (parse-args args)]
@@ -482,142 +457,139 @@
         (remove-all-kids! elem)
         (add-children! elem kids)))))
 
-(defn- make-elem-ctor
-  [tag]
-  (let [mkelem #(-> js/document (.createElement tag) (apply %&))]
-    (if-not is-ie8
-      mkelem
-      (fn [& args]
-        (try (apply mkelem args)
-          (catch js/Error _ (apply (make-elem-ctor "div") args)))))))
+(defn- mkelem [tag]
+  (fn [& args]
+    (let [[attr kids] (parse-args args)
+          elem (.createElement js/document tag)]
+      (elem attr kids))))
 
 (defn html [& args]
   "Updates the document's `html` element in place."
   (-> (.-documentElement js/document)
-      (add-attributes! (nth (parse-args args) 0))))
+      (add-attributes! (first (parse-args args)))))
 
 (def head
   "Updates the document's `head` element in place."
-  (make-singleton-ctor (-head* js/document)))
+  (mksingleton (.-head js/document)))
 
 (def body
   "Updates the document's `body` element in place."
-  (make-singleton-ctor (.-body js/document)))
+  (mksingleton (.-body js/document)))
 
-(def a              (make-elem-ctor "a"))
-(def abbr           (make-elem-ctor "abbr"))
-(def address        (make-elem-ctor "address"))
-(def area           (make-elem-ctor "area"))
-(def article        (make-elem-ctor "article"))
-(def aside          (make-elem-ctor "aside"))
-(def audio          (make-elem-ctor "audio"))
-(def b              (make-elem-ctor "b"))
-(def base           (make-elem-ctor "base"))
-(def bdi            (make-elem-ctor "bdi"))
-(def bdo            (make-elem-ctor "bdo"))
-(def blockquote     (make-elem-ctor "blockquote"))
-(def br             (make-elem-ctor "br"))
-(def button         (make-elem-ctor "button"))
-(def canvas         (make-elem-ctor "canvas"))
-(def caption        (make-elem-ctor "caption"))
-(def cite           (make-elem-ctor "cite"))
-(def code           (make-elem-ctor "code"))
-(def col            (make-elem-ctor "col"))
-(def colgroup       (make-elem-ctor "colgroup"))
-(def data           (make-elem-ctor "data"))
-(def datalist       (make-elem-ctor "datalist"))
-(def dd             (make-elem-ctor "dd"))
-(def del            (make-elem-ctor "del"))
-(def details        (make-elem-ctor "details"))
-(def dfn            (make-elem-ctor "dfn"))
-(def dialog         (make-elem-ctor "dialog")) ;; experimental
-(def div            (make-elem-ctor "div"))
-(def dl             (make-elem-ctor "dl"))
-(def dt             (make-elem-ctor "dt"))
-(def em             (make-elem-ctor "em"))
-(def embed          (make-elem-ctor "embed"))
-(def fieldset       (make-elem-ctor "fieldset"))
-(def figcaption     (make-elem-ctor "figcaption"))
-(def figure         (make-elem-ctor "figure"))
-(def footer         (make-elem-ctor "footer"))
-(def form           (make-elem-ctor "form"))
-(def h1             (make-elem-ctor "h1"))
-(def h2             (make-elem-ctor "h2"))
-(def h3             (make-elem-ctor "h3"))
-(def h4             (make-elem-ctor "h4"))
-(def h5             (make-elem-ctor "h5"))
-(def h6             (make-elem-ctor "h6"))
-(def header         (make-elem-ctor "header"))
-(def hgroup         (make-elem-ctor "hgroup")) ;; experimental
-(def hr             (make-elem-ctor "hr"))
-(def i              (make-elem-ctor "i"))
-(def iframe         (make-elem-ctor "iframe"))
-(def img            (make-elem-ctor "img"))
-(def input          (make-elem-ctor "input"))
-(def ins            (make-elem-ctor "ins"))
-(def kbd            (make-elem-ctor "kbd"))
-(def keygen         (make-elem-ctor "keygen"))
-(def label          (make-elem-ctor "label"))
-(def legend         (make-elem-ctor "legend"))
-(def li             (make-elem-ctor "li"))
-(def link           (make-elem-ctor "link"))
-(def main           (make-elem-ctor "main"))
-(def html-map       (make-elem-ctor "map"))
-(def mark           (make-elem-ctor "mark"))
-(def menu           (make-elem-ctor "menu")) ;; experimental
-(def menuitem       (make-elem-ctor "menuitem")) ;; experimental
-(def html-meta      (make-elem-ctor "meta"))
-(def meter          (make-elem-ctor "meter"))
-(def multicol       (make-elem-ctor "multicol"))
-(def nav            (make-elem-ctor "nav"))
-(def noframes       (make-elem-ctor "noframes"))
-(def noscript       (make-elem-ctor "noscript"))
-(def html-object    (make-elem-ctor "object"))
-(def ol             (make-elem-ctor "ol"))
-(def optgroup       (make-elem-ctor "optgroup"))
-(def option         (make-elem-ctor "option"))
-(def output         (make-elem-ctor "output"))
-(def p              (make-elem-ctor "p"))
-(def param          (make-elem-ctor "param"))
-(def picture        (make-elem-ctor "picture")) ;; experimental
-(def pre            (make-elem-ctor "pre"))
-(def progress       (make-elem-ctor "progress"))
-(def q              (make-elem-ctor "q"))
-(def rp             (make-elem-ctor "rp"))
-(def rt             (make-elem-ctor "rt"))
-(def rtc            (make-elem-ctor "rtc"))
-(def ruby           (make-elem-ctor "ruby"))
-(def s              (make-elem-ctor "s"))
-(def samp           (make-elem-ctor "samp"))
-(def script         (make-elem-ctor "script"))
-(def section        (make-elem-ctor "section"))
-(def select         (make-elem-ctor "select"))
-(def shadow         (make-elem-ctor "shadow"))
-(def small          (make-elem-ctor "small"))
-(def source         (make-elem-ctor "source"))
-(def span           (make-elem-ctor "span"))
-(def strong         (make-elem-ctor "strong"))
-(def style          (make-elem-ctor "style"))
-(def sub            (make-elem-ctor "sub"))
-(def summary        (make-elem-ctor "summary"))
-(def sup            (make-elem-ctor "sup"))
-(def table          (make-elem-ctor "table"))
-(def tbody          (make-elem-ctor "tbody"))
-(def td             (make-elem-ctor "td"))
-(def template       (make-elem-ctor "template"))
-(def textarea       (make-elem-ctor "textarea"))
-(def tfoot          (make-elem-ctor "tfoot"))
-(def th             (make-elem-ctor "th"))
-(def thead          (make-elem-ctor "thead"))
-(def html-time      (make-elem-ctor "time"))
-(def title          (make-elem-ctor "title"))
-(def tr             (make-elem-ctor "tr"))
-(def track          (make-elem-ctor "track"))
-(def u              (make-elem-ctor "u"))
-(def ul             (make-elem-ctor "ul"))
-(def html-var       (make-elem-ctor "var"))
-(def video          (make-elem-ctor "video"))
-(def wbr            (make-elem-ctor "wbr"))
+(def a              (mkelem "a"))
+(def abbr           (mkelem "abbr"))
+(def address        (mkelem "address"))
+(def area           (mkelem "area"))
+(def article        (mkelem "article"))
+(def aside          (mkelem "aside"))
+(def audio          (mkelem "audio"))
+(def b              (mkelem "b"))
+(def base           (mkelem "base"))
+(def bdi            (mkelem "bdi"))
+(def bdo            (mkelem "bdo"))
+(def blockquote     (mkelem "blockquote"))
+(def br             (mkelem "br"))
+(def button         (mkelem "button"))
+(def canvas         (mkelem "canvas"))
+(def caption        (mkelem "caption"))
+(def cite           (mkelem "cite"))
+(def code           (mkelem "code"))
+(def col            (mkelem "col"))
+(def colgroup       (mkelem "colgroup"))
+(def data           (mkelem "data"))
+(def datalist       (mkelem "datalist"))
+(def dd             (mkelem "dd"))
+(def del            (mkelem "del"))
+(def details        (mkelem "details"))
+(def dfn            (mkelem "dfn"))
+(def dialog         (mkelem "dialog")) ;; experimental
+(def div            (mkelem "div"))
+(def dl             (mkelem "dl"))
+(def dt             (mkelem "dt"))
+(def em             (mkelem "em"))
+(def embed          (mkelem "embed"))
+(def fieldset       (mkelem "fieldset"))
+(def figcaption     (mkelem "figcaption"))
+(def figure         (mkelem "figure"))
+(def footer         (mkelem "footer"))
+(def form           (mkelem "form"))
+(def h1             (mkelem "h1"))
+(def h2             (mkelem "h2"))
+(def h3             (mkelem "h3"))
+(def h4             (mkelem "h4"))
+(def h5             (mkelem "h5"))
+(def h6             (mkelem "h6"))
+(def header         (mkelem "header"))
+(def hgroup         (mkelem "hgroup")) ;; experimental
+(def hr             (mkelem "hr"))
+(def i              (mkelem "i"))
+(def iframe         (mkelem "iframe"))
+(def img            (mkelem "img"))
+(def input          (mkelem "input"))
+(def ins            (mkelem "ins"))
+(def kbd            (mkelem "kbd"))
+(def keygen         (mkelem "keygen"))
+(def label          (mkelem "label"))
+(def legend         (mkelem "legend"))
+(def li             (mkelem "li"))
+(def link           (mkelem "link"))
+(def main           (mkelem "main"))
+(def html-map       (mkelem "map"))
+(def mark           (mkelem "mark"))
+(def menu           (mkelem "menu")) ;; experimental
+(def menuitem       (mkelem "menuitem")) ;; experimental
+(def html-meta      (mkelem "meta"))
+(def meter          (mkelem "meter"))
+(def multicol       (mkelem "multicol"))
+(def nav            (mkelem "nav"))
+(def noframes       (mkelem "noframes"))
+(def noscript       (mkelem "noscript"))
+(def html-object    (mkelem "object"))
+(def ol             (mkelem "ol"))
+(def optgroup       (mkelem "optgroup"))
+(def option         (mkelem "option"))
+(def output         (mkelem "output"))
+(def p              (mkelem "p"))
+(def param          (mkelem "param"))
+(def picture        (mkelem "picture")) ;; experimental
+(def pre            (mkelem "pre"))
+(def progress       (mkelem "progress"))
+(def q              (mkelem "q"))
+(def rp             (mkelem "rp"))
+(def rt             (mkelem "rt"))
+(def rtc            (mkelem "rtc"))
+(def ruby           (mkelem "ruby"))
+(def s              (mkelem "s"))
+(def samp           (mkelem "samp"))
+(def script         (mkelem "script"))
+(def section        (mkelem "section"))
+(def select         (mkelem "select"))
+(def shadow         (mkelem "shadow"))
+(def small          (mkelem "small"))
+(def source         (mkelem "source"))
+(def span           (mkelem "span"))
+(def strong         (mkelem "strong"))
+(def style          (mkelem "style"))
+(def sub            (mkelem "sub"))
+(def summary        (mkelem "summary"))
+(def sup            (mkelem "sup"))
+(def table          (mkelem "table"))
+(def tbody          (mkelem "tbody"))
+(def td             (mkelem "td"))
+(def template       (mkelem "template"))
+(def textarea       (mkelem "textarea"))
+(def tfoot          (mkelem "tfoot"))
+(def th             (mkelem "th"))
+(def thead          (mkelem "thead"))
+(def html-time      (mkelem "time"))
+(def title          (mkelem "title"))
+(def tr             (mkelem "tr"))
+(def track          (mkelem "track"))
+(def u              (mkelem "u"))
+(def ul             (mkelem "ul"))
+(def html-var       (mkelem "var"))
+(def video          (mkelem "video"))
+(def wbr            (mkelem "wbr"))
 
 (def spliced        vector)
 (def $text          #(.createTextNode js/document %))
@@ -691,7 +663,7 @@
   [items tpl]
   (let [on-deck   (atom ())
         items-seq (cell= (seq items))
-        ith-item  #(cell= (safe-nth items-seq %))
+        ith-item  #(cell= (nth items-seq %))
         shift!    #(with-let [x (first @%)] (swap! % rest))]
     (with-let [current (cell [])]
       (do-watch items-seq
