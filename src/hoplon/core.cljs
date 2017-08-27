@@ -251,7 +251,7 @@
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol ICustomElement
+(defprotocol IHoplonElement
   (-set-attributes! [this kvs])
   (-set-styles!     [this kvs])
   (-append-child!   [this child])
@@ -303,14 +303,14 @@
   (spect/instrument `-do!)
   (spect/instrument `-on!))
 
-(defprotocol ICustomAttribute
+(defprotocol IHoplonAttribute
   (-attr! [this elem value]))
 
 (defn attribute? [this]
-  (satisfies? ICustomAttribute this))
+  (satisfies? IHoplonAttribute this))
 
 (extend-type Keyword
-  ICustomAttribute
+  IHoplonAttribute
   (-attr! [this elem value]
     (cond (cell? value) (do-watch value #(-do! elem this %2))
           (fn? value)   (-on! elem this value)
@@ -436,7 +436,7 @@
       (lookup! this k))
     ([this k not-found]
       (lookup! this k not-found)))
-  ICustomElement
+  IHoplonElement
   (-set-attributes!
     ([this kvs]
      (let [e this]
