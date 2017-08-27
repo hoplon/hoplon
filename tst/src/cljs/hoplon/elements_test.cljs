@@ -139,3 +139,21 @@
   (take
    (+ 22 (rand-int 20))
    (repeatedly h/div))))
+
+(deftest ??element-attributes
+ (let [el-fn (first (rand-nth elements))]
+  ; simply adding "data-foo" as an attribute
+  (doseq [e [(el-fn #{:data-foo})
+             (el-fn :data-foo true)
+             (el-fn {:data-foo true})]]
+   (is (.webkitMatchesSelector e "[data-foo=\"data-foo\"]")))
+
+  ; setting a specific cljs value (such as a keyword) for "data-foo"
+  (doseq [e [(el-fn :data-foo :data-foo)
+             (el-fn {:data-foo :data-foo})]]
+   (is (.webkitMatchesSelector e "[data-foo=\":data-foo\"]")))
+  ; ability to set "true" is important for some HTML APIs, e.g. "draggable" for
+  ; HTML5 drag and drop.
+  (is (.webkitMatchesSelector
+       (el-fn {:data-foo "true"})
+       "[data-foo=\"true\"]"))))
