@@ -8,6 +8,7 @@
   (is (.webkitMatchesSelector el "div.foo"))
   (is (.querySelector el "p"))
 
+  ; the el itself should act as a fn that accepts attributes and children
   (el (h/span) :class "bar")
   (is (.webkitMatchesSelector el "div.foo.bar"))
   (is (.querySelector el "p"))
