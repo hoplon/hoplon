@@ -29,14 +29,16 @@
 (deftask develop []
   (comp (watch) (target) (speak) (build-jar)))
 
+(def test-cljs-options {:process-shim false})
+
 (replace-task!
  [t test-cljs]
  (fn [& xs]
   (set-env! :source-paths #{"tst/src/cljs"})
-  (apply t xs)))
+  (apply t :cljs-opts test-cljs-options xs)))
 
 (deftask develop-tests []
-  (comp (watch) (speak) (test-cljs)))
+  (comp (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
 
 (task-options!
   pom    {:project     'hoplon
