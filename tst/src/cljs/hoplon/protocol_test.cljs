@@ -13,3 +13,12 @@
   (is (.webkitMatchesSelector el "div.foo.bar"))
   (is (.querySelector el "p"))
   (is (.querySelector el "span"))))
+
+(deftest ??element-ILookup
+ (let [c1 (h/p)
+       c2 (h/span)
+       el (h/div c1 c2 :data-foo "foo")]
+  (is (= "foo" (:data-foo el)))
+  (is (= "foo" (get el :data-foo)))
+  (is (= c1 (get el 0)))
+  (is (= c2 (get el 1)))))
