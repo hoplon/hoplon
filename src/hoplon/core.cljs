@@ -348,6 +348,7 @@
     (if-not (or arg args)
       [(persistent! attr) (persistent! kids)]
       (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+            (set? arg)       (recur (reduce #(assoc! %1 %2 true) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
             (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
             (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
@@ -370,6 +371,13 @@
     (doto this
       (add-attributes! attr)
       (add-children! kids))))
+
+(defn- lookup!
+  ([this k]
+    (cond (attribute? k) (.getAttribute this (name k))
+      :else (goog.object/get (.-children this) k)))
+  ([this k not-found]
+    (or (lookup! this k) not-found)))
 
 (extend-type js/Element
   IPrintWithWriter
@@ -422,6 +430,12 @@
      (invoke! this a b c d e f g h i j k l m n o p q r s t))
     ([this a b c d e f g h i j k l m n o p q r s t rest]
      (invoke! this a b c d e f g h i j k l m n o p q r s t rest)))
+  ILookup
+  (-lookup
+    ([this k]
+      (lookup! this k))
+    ([this k not-found]
+      (lookup! this k not-found)))
   ICustomElement
   (-set-attributes!
     ([this kvs]
