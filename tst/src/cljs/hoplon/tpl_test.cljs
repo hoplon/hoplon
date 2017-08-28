@@ -19,10 +19,10 @@
 
 (deftest ??for-tpl
  (let [find-text (fn [el]
-                   (map
-                    #(.-textContent %)
-                    (array-seq
-                     (.querySelectorAll el "div"))))]
+                  (map
+                   #(.-textContent %)
+                   (array-seq
+                    (.querySelectorAll el "div"))))]
   ; the most common use-case is a sequence in a cell
   (let [c (j/cell [1 2 3])
         el (h/div
