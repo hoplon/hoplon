@@ -677,7 +677,7 @@
   [items tpl]
   (let [on-deck   (atom ())
         items-seq (cell= (seq items))
-        ith-item  #(cell= (nth items-seq %))
+        ith-item  #(cell= (nth items-seq % nil))
         shift!    #(with-let [x (first @%)] (swap! % rest))]
     (with-let [current (cell [])]
       (do-watch items-seq
