@@ -22,7 +22,7 @@
   ([this kvs]
    (let [e (js/jQuery this)]
      (doseq [[k v] kvs]
-       (.css e (name k) (str v)))))
+       (.addClass e (name k) (str v)))))
   ([this k v & kvs]
    (set-styles! this (apply hash-map k v kvs))))
 
