@@ -14,8 +14,16 @@
   (el :class/baz "baz")
   (is (.webkitMatchesSelector el ".foo.bar.baz"))
 
-  (is (.webkitMatchesSelector
-       (h/div
-        :class #{"foo" "bar"}
-        :class/baz "baz")
-       ".foo.bar.baz"))))
+  (el :class {"foo" false
+              "baz" false
+              "bar" true})
+  (is (.webkitMatchesSelector el ".bar"))
+  (is (not (.webkitMatchesSelector el ".foo")))
+  (is (not (.webkitMatchesSelector el ".baz"))))
+
+ (is (.webkitMatchesSelector
+      (h/div
+       :class #{"foo" "bar"}
+       :class/baz "baz"
+       :class/bing #{"bing"})
+      ".foo.bar.baz.bing")))
