@@ -636,15 +636,15 @@
 
 (defmethod do! :css/*
   [elem key val]
-  (set-styles! elem key val))
+  (set-styles! elem val))
 
 (defmethod do! :html/*
   [elem key val]
-  (set-attributes! elem key val))
+  (set-attributes! elem val))
 
 (defmethod do! :svg/*
   [elem key val]
-  (set-attributes! elem key val))
+  (set-attributes! elem val))
 
 (defmethod do! :attr
   [elem _ kvs]
