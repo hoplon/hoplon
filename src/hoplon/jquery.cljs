@@ -131,6 +131,14 @@
   [_]
   (spec/attr :hoplon.spec/class))
 
+(defmethod do! :class/*
+  [elem _ kvs]
+  (do! elem :class kvs))
+
+(defmethod spec/do! :class/*
+  [_]
+  (spec/attr :hoplon.spec/class))
+
 (defmethod do! :toggle
   [elem _ v]
   (.toggle (js/jQuery elem) (boolean v)))
