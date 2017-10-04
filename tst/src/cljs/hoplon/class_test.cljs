@@ -11,11 +11,11 @@
   (el :class "bar")
   (is (.webkitMatchesSelector el ".foo.bar"))
 
-  (el :baz/class "baz")
+  (el :class/baz "baz")
   (is (.webkitMatchesSelector el ".foo.bar.baz"))
 
   (is (.webkitMatchesSelector
        (h/div
         :class #{"foo" "bar"}
-        :baz/class "baz")
+        :class/baz "baz")
        ".foo.bar.baz"))))
