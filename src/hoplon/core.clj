@@ -145,6 +145,19 @@
 
 (spec/fdef defelem :args :hoplon.spec/defelem :ret any?)
 
+(defmacro defattr
+  "Defines an attribute function.
+
+  An element attribute is a function given three arguments:
+
+    * `elem` - the target DOM Element containing the attribute
+    * `key` - the attribute keyword or symbol
+    * `value` - the attribute value
+
+  The attribute function is called whenever the value argument changes."
+  [name & forms]
+  `(defmethod hoplon.core/do! ~name ~@forms))
+
 ;;-- caching dom manipulation macros ----------------------------------------;;
 
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom nil))))
