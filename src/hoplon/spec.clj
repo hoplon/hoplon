@@ -21,6 +21,15 @@
 (spec/def ::defelem
   (spec/cat :name simple-symbol? :docstring (spec/? string?) :forms (spec/* ::forms)))
 
+(spec/def ::attr-args
+  (spec/cat
+    :elem simple-symbol?
+    :attr simple-symbol?
+    :value ::forms))
+
+(spec/def ::defattr
+  (spec/cat :name (spec/or :keyword keyword? :symbol simple-symbol?) :args ::attr-args :forms (spec/* ::forms)))
+
 (spec/def ::bindings-kw
   (spec/and keyword? (partial = :bindings)))
 

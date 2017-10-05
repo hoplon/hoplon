@@ -158,6 +158,8 @@
   [name & forms]
   `(defmethod hoplon.core/do! ~name ~@forms))
 
+(spec/fdef defelem :args :hoplon.spec/defelem :ret any?)
+
 ;;-- caching dom manipulation macros ----------------------------------------;;
 
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom nil))))
