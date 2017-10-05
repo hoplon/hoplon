@@ -1,4 +1,4 @@
-(ns hoplon.attribute-test
+(ns hoplon.defattr-test
  (:require
   [hoplon.core :as h]
   hoplon.jquery
