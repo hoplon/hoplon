@@ -7,7 +7,7 @@
 (h/defattr :baz [elem key value]
   (elem :attr {key value}))
 
-(deftest ??attribute
+(deftest ??defattr
  (let [el (h/div :baz true)]
   (is (.webkitMatchesSelector el "div[baz]"))
 
