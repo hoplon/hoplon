@@ -5,6 +5,7 @@
             [goog.events :as events]
             [goog.fx.dom :as fxdom]
             [goog.style :as style]
+            [goog.object :as obj]
             [hoplon.core :refer [on! do! normalize-class]]
             [hoplon.spec :as spec])
   (:require-macros
@@ -112,3 +113,8 @@
 (defmethod spec/do! :scroll-to
   [_]
   (spec/attr :hoplon.spec/boolean))
+
+(defmethod on! :hoplon.core/default
+  [elem event callback]
+  (let [event (obj/get events/EventType (name event))]
+    (when-dom elem #(events/listen elem event callback))))
