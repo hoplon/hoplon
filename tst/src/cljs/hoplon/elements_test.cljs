@@ -4,13 +4,36 @@
   [hoplon.core :as h]
   [cljs.test :refer-macros [deftest is]]))
 
+(deftest ??singletons
+ ; initially both head and body are unmanaged
+ (doseq [[e s] [[(.-head js/document) "head"]
+                [(.-body js/document) "body"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (hoplon.core/native? e))
+  (is (hoplon.core/native-node? e))
+  (is (not (hoplon.core/managed? e))))
+
+ ; calling hoplon singleton fns will start managing the relevant el
+ (doseq [[e s] [[(h/head) "head"]
+                [(h/body) "body"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (not (hoplon.core/native? e)))
+  (is (not (hoplon.core/native-node? e)))
+  (is (hoplon.core/managed? e)))
+
+ ; the els will still be considered managed even if referenced directly
+ (doseq [[e s] [[(.-head js/document) "head"]
+                [(.-body js/document) "body"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (not (hoplon.core/native? e)))
+  (is (not (hoplon.core/native-node? e)))
+  (is (hoplon.core/managed? e))))
+
 (def elements
- [; singletons should be tested elsewhere
-  ; [h/html "html"]
-  ; Calling h/body from phantomjs triggers an error.
-  ; https://github.com/hoplon/hoplon/issues/197
-  ; [h/body "body"]
-  [h/head "head"]
+ [
   [h/a "a"]
   [h/abbr "abbr"]
   [h/address "address"]

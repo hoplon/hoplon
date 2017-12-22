@@ -182,7 +182,6 @@
    (instance? js/Element elem)
    (-> elem .-hoplon)))
 
-
 (defn- managed-append-child
   "Appends `child` to `parent` for the case of `parent` being a
   managed element."
@@ -505,7 +504,8 @@
      (add-attributes! elem attrs)
      (when (not (:static attrs))
        (remove-all-kids! elem)
-       (add-children! elem kids)))))
+       (add-children! elem kids))
+     elem)))
 
 (defn- mkelem [tag]
   (fn [& args]
@@ -520,12 +520,21 @@
       (add-attributes! (first (parse-args args)))))
 
 (def head
-  "Updates the document's `head` element in place."
+  "Updates and returns the document's `head` element in place."
   (mksingleton (.-head js/document)))
 
 (def body
-  "Updates the document's `body` element in place."
-  (mksingleton (.-body js/document)))
+ "Updates and returns the document's `body` element in place. Creates `body`
+ if not exists."
+ (mksingleton
+  (do
+   ; https://github.com/hoplon/hoplon/issues/197
+   (when-not (.-body js/document)
+    ; https://developer.mozilla.org/en-US/docs/Web/API/Document/body
+    (set!
+     (.-body js/document)
+     (.createElement js/document "body")))
+   (.-body js/document))))
 
 (def a              (mkelem "a"))
 (def abbr           (mkelem "abbr"))
