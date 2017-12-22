@@ -5,7 +5,8 @@
   [cljs.test :refer-macros [deftest is]]))
 
 (def elements
- [[h/html "html"]
+ [; singletons should be tested elsewhere
+  ; [h/html "html"]
   ; Calling h/body from phantomjs triggers an error.
   ; https://github.com/hoplon/hoplon/issues/197
   ; [h/body "body"]
@@ -122,9 +123,22 @@
 
 (deftest ??elements
  (doseq [[f s] elements]
-  (let [el (f)]
-   (is (goog.dom/isElement el))
-   (is (.webkitMatchesSelector el s) (str "Element did not match selector: " s)))))
+  (let [hoplon-el (f)
+        native-el (.createElement js/document s)]
+   (is (goog.dom/isElement hoplon-el))
+   (is (goog.dom/isElement native-el))
+
+   (is (.webkitMatchesSelector hoplon-el s) (str "Element did not match selector: " s))
+   (is (.webkitMatchesSelector native-el s) (str "Element did not match selector: " s))
+
+   (is (not (hoplon.core/native? hoplon-el)))
+   (is (hoplon.core/native? native-el))
+
+   (is (not (hoplon.core/native-node? hoplon-el)))
+   (is (hoplon.core/native-node? native-el))
+
+   (is (hoplon.core/managed? hoplon-el))
+   (is (not (hoplon.core/managed? native-el))))))
 
 (deftest ??element-creation
  ; we want to handle at least as many children as the arity of invoke!

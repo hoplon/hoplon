@@ -138,13 +138,20 @@
                         :else   (with-let [kids kids]
                                   (.call insertBefore this x k))))))))
 
+(defn- ensure-hoplon!
+ "Flags that an element is managed by Hoplon. Used primarily in prototype
+ overrides for DOM manipulation fns."
+ [this]
+ (set! (.-hoplon this) true))
+
 (defn- ensure-kids!
   [this]
   (with-let [this this]
-    (when-not (.-hoplonKids this)
-      (let [kids (atom (child-vec this))]
-        (set! (.-hoplonKids this) kids)
-        (do-watch kids (partial merge-kids this))))))
+   (ensure-hoplon! this)
+   (when-not (.-hoplonKids this)
+     (let [kids (atom (child-vec this))]
+       (set! (.-hoplonKids this) kids)
+       (do-watch kids (partial merge-kids this))))))
 
 (defn- remove-all-kids!
   [this]
@@ -155,20 +162,24 @@
   "Returns true if elem is a native element. Native elements' children
   are not managed by Hoplon."
   [elem]
-  (and (instance? js/Element elem)
-       (-> elem .-hoplonKids nil?)))
+  (and
+   (instance? js/Element elem)
+   (not (-> elem .-hoplon))))
 
 (defn- native-node?
  [node]
  (and
   (instance? js/Node node)
-  (-> node .-hoplonKids nil?)))
+  (not (-> node .-hoplon))))
 
 (defn- managed?
   "Returns true if elem is a managed element. Managed elements have
   their children managed by Hoplon."
   [elem]
-  (not (native? elem)))
+  (and
+   (instance? js/Element elem)
+   (-> elem .-hoplon)))
+
 
 (defn- managed-append-child
   "Appends `child` to `parent` for the case of `parent` being a
@@ -187,7 +198,7 @@
   (set! (.-appendChild this)
         (fn [child]
          (this-as this
-          (if (native-node? child)
+          (if (and (native-node? this) (native-node? child))
            ; ensure native functionality for non-hoplon nodes.
            (.call appendChild this child)
            (do
@@ -217,7 +228,7 @@
   (set! (.-removeChild this)
         (fn [x]
          (this-as this
-          (if (native-node? x)
+          (if (and (native-node? this) (native-node? x))
            ; ensure native functionality for non-hoplon nodes.
            (.call removeChild this x)
            (with-let [x x]
@@ -488,16 +499,18 @@
   [elem]
   (fn [& args]
     (let [[attrs kids] (parse-args args)]
-      (add-attributes! elem attrs)
-      (when (not (:static attrs))
-        (remove-all-kids! elem)
-        (add-children! elem kids)))))
+     (ensure-hoplon! elem)
+     (add-attributes! elem attrs)
+     (when (not (:static attrs))
+       (remove-all-kids! elem)
+       (add-children! elem kids)))))
 
 (defn- mkelem [tag]
   (fn [& args]
     (let [[attr kids] (parse-args args)
           elem (.createElement js/document tag)]
-      (elem attr kids))))
+     (ensure-hoplon! elem)
+     (elem attr kids))))
 
 (defn html [& args]
   "Updates the document's `html` element in place."
