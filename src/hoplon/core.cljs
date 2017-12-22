@@ -142,7 +142,8 @@
  "Flags that an element is managed by Hoplon. Used primarily in prototype
  overrides for DOM manipulation fns."
  [this]
- (set! (.-hoplon this) true))
+ (with-let [this this]
+  (set! (.-hoplon this) true)))
 
 (defn- ensure-kids!
   [this]
@@ -499,13 +500,13 @@
 (defn- mksingleton
   [elem]
   (fn [& args]
+   (with-let [elem elem]
     (let [[attrs kids] (parse-args args)]
      (ensure-hoplon! elem)
      (add-attributes! elem attrs)
      (when (not (:static attrs))
        (remove-all-kids! elem)
-       (add-children! elem kids))
-     elem)))
+       (add-children! elem kids))))))
 
 (defn- mkelem [tag]
   (fn [& args]
@@ -515,13 +516,15 @@
      (elem attr kids))))
 
 (defn html [& args]
-  "Updates the document's `html` element in place."
-  (-> (.-documentElement js/document)
-      (add-attributes! (first (parse-args args)))))
+ "Updates the document's `html` element in place."
+ (with-let [el (.-documentElement js/document)]
+  (-> el
+   ensure-hoplon!
+   (add-attributes! (first (parse-args args))))))
 
 (def head
-  "Updates and returns the document's `head` element in place."
-  (mksingleton (.-head js/document)))
+ "Updates and returns the document's `head` element in place."
+ (mksingleton (.-head js/document)))
 
 (def body
  "Updates and returns the document's `body` element in place. Creates `body`

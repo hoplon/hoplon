@@ -7,7 +7,8 @@
 (deftest ??singletons
  ; initially both head and body are unmanaged
  (doseq [[e s] [[(.-head js/document) "head"]
-                [(.-body js/document) "body"]]]
+                [(.-body js/document) "body"]
+                [(.-documentElement js/document) "html"]]]
   (is (goog.dom/isElement e))
   (is (.webkitMatchesSelector e s))
   (is (hoplon.core/native? e))
@@ -16,7 +17,8 @@
 
  ; calling hoplon singleton fns will start managing the relevant el
  (doseq [[e s] [[(h/head) "head"]
-                [(h/body) "body"]]]
+                [(h/body) "body"]
+                [(h/html) "html"]]]
   (is (goog.dom/isElement e))
   (is (.webkitMatchesSelector e s))
   (is (not (hoplon.core/native? e)))
@@ -25,7 +27,8 @@
 
  ; the els will still be considered managed even if referenced directly
  (doseq [[e s] [[(.-head js/document) "head"]
-                [(.-body js/document) "body"]]]
+                [(.-body js/document) "body"]
+                [(.-documentElement js/document) "html"]]]
   (is (goog.dom/isElement e))
   (is (.webkitMatchesSelector e s))
   (is (not (hoplon.core/native? e)))
