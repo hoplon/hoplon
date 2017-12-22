@@ -188,6 +188,7 @@
         (fn [child]
          (this-as this
           (if (native-node? child)
+           ; ensure native functionality for non-hoplon nodes.
            (.call appendChild this child)
            (do
             (when (.-parentNode child)
@@ -217,6 +218,7 @@
         (fn [x]
          (this-as this
           (if (native-node? x)
+           ; ensure native functionality for non-hoplon nodes.
            (.call removeChild this x)
            (with-let [x x]
              (ensure-kids! this)
@@ -227,21 +229,9 @@
   (set! (.-insertBefore this)
         (fn [x y]
          (this-as this
-          (.log js/console x y)
-          (prn
-           "ib*"
-           (native-node? x)
-           (when x (.-hoplonKids x))
-           (when x (instance? js/Node x))
-           (native-node? y)
-           (when y (.-hoplonKids y))
-           (when y (instance? js/Node y)))
-
           (if (and (native-node? x) (native-node? y))
-           ; fallback to native functionality for non-hoplon elements.
-           (do
-            (prn "ib")
-            (.call insertBefore this x y))
+           ; ensure native functionality for non-hoplon nodes.
+           (.call insertBefore this x y)
            (with-let [x x]
              (ensure-kids! this)
              (cond
@@ -254,6 +244,7 @@
         (fn [x y]
          (this-as this
           (if (and (native-node? x) (native-node? y))
+           ; ensure native functionality for non-hoplon nodes.
            (.call replaceChild this x y)
            (with-let [y y]
              (ensure-kids! this)
@@ -265,6 +256,7 @@
         (fn [k v]
          (this-as this
           (if (native-node? this)
+           ; ensure native functionality for non-hoplon nodes.
            (.call setAttribute this k v)
            (with-let [_ js/undefined]
              (let [kk   (keyword k)
