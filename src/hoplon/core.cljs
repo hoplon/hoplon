@@ -158,6 +158,12 @@
   (and (instance? js/Element elem)
        (-> elem .-hoplonKids nil?)))
 
+(defn- native-node?
+ [node]
+ (and
+  (instance? js/Node node)
+  (-> node .-hoplonKids nil?)))
+
 (defn- managed?
   "Returns true if elem is a managed element. Managed elements have
   their children managed by Hoplon."
@@ -180,7 +186,10 @@
   [this kidfn]
   (set! (.-appendChild this)
         (fn [child]
-          (this-as this
+         (this-as this
+          (if (native-node? child)
+           (.call appendChild this child)
+           (do
             (when (.-parentNode child)
               (.removeChild (.-parentNode child) child))
             (cond
@@ -200,49 +209,70 @@
                                                        :child     child
                                                        :native?   (native? child)
                                                        :managed? (managed? child)
-                                                       :this      this})))))))
+                                                       :this      this})))))))))
 
 (defn- set-removeChild!
   [this kidfn]
   (set! (.-removeChild this)
         (fn [x]
-          (this-as this
-            (with-let [x x]
-              (ensure-kids! this)
-              (swap! (kidfn this) #(into [] (remove (partial = x) %))))))))
+         (this-as this
+          (if (native-node? x)
+           (.call removeChild this x)
+           (with-let [x x]
+             (ensure-kids! this)
+             (swap! (kidfn this) #(into [] (remove (partial = x) %)))))))))
 
 (defn- set-insertBefore!
   [this kidfn]
   (set! (.-insertBefore this)
         (fn [x y]
-          (this-as this
-            (with-let [x x]
-              (ensure-kids! this)
-              (cond
-                (not y)     (swap! (kidfn this) conj x)
-                (not= x y)  (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %)))))))))
+         (this-as this
+          (.log js/console x y)
+          (prn
+           "ib*"
+           (native-node? x)
+           (when x (.-hoplonKids x))
+           (when x (instance? js/Node x))
+           (native-node? y)
+           (when y (.-hoplonKids y))
+           (when y (instance? js/Node y)))
+
+          (if (and (native-node? x) (native-node? y))
+           ; fallback to native functionality for non-hoplon elements.
+           (do
+            (prn "ib")
+            (.call insertBefore this x y))
+           (with-let [x x]
+             (ensure-kids! this)
+             (cond
+               (not y)     (swap! (kidfn this) conj x)
+               (not= x y)  (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))))))
 
 (defn- set-replaceChild!
   [this kidfn]
   (set! (.-replaceChild this)
         (fn [x y]
-          (this-as this
-            (with-let [y y]
-              (ensure-kids! this)
-              (swap! (kidfn this) #(mapv (fn [z] (if (= z y) x z)) %)))))))
+         (this-as this
+          (if (and (native-node? x) (native-node? y))
+           (.call replaceChild this x y)
+           (with-let [y y]
+             (ensure-kids! this)
+             (swap! (kidfn this) #(mapv (fn [z] (if (= z y) x z)) %))))))))
 
 (defn- set-setAttribute!
   [this attrfn]
   (set! (.-setAttribute this)
         (fn [k v]
-          (this-as this
-            (with-let [_ js/undefined]
-              (let [kk   (keyword k)
-                    attr (attrfn this)
-                    has? (and attr (contains? @attr kk))]
-                (if has?
-                  (swap! attr assoc kk v)
-                  (.call setAttribute this k v))))))))
+         (this-as this
+          (if (native-node? this)
+           (.call setAttribute this k v)
+           (with-let [_ js/undefined]
+             (let [kk   (keyword k)
+                   attr (attrfn this)
+                   has? (and attr (contains? @attr kk))]
+               (if has?
+                 (swap! attr assoc kk v)
+                 (.call setAttribute this k v)))))))))
 
 (set-appendChild!  (.-prototype js/Element) #(.-hoplonKids %))
 (set-removeChild!  (.-prototype js/Element) #(.-hoplonKids %))
