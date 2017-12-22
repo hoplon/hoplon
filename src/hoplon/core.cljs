@@ -242,7 +242,7 @@
   (set! (.-insertBefore this)
         (fn [x y]
          (this-as this
-          (if (and (native-node? x) (native-node? y))
+          (if (and (native-node? this) (native-node? x) (native-node? y))
            ; ensure native functionality for non-hoplon nodes.
            (.call insertBefore this x y)
            (with-let [x x]
@@ -256,7 +256,7 @@
   (set! (.-replaceChild this)
         (fn [x y]
          (this-as this
-          (if (and (native-node? x) (native-node? y))
+          (if (and (native-node? this) (native-node? x) (native-node? y))
            ; ensure native functionality for non-hoplon nodes.
            (.call replaceChild this x y)
            (with-let [y y]
