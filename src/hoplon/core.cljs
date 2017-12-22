@@ -531,7 +531,7 @@
  if not exists."
  (mksingleton
   (do
-   ; https://github.com/hoplon/hoplon/issues/197
+   ; the body is not always set on the document (e.g. phantomjs tests)
    (when-not (.-body js/document)
     ; https://developer.mozilla.org/en-US/docs/Web/API/Document/body
     (set!
