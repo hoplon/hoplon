@@ -516,7 +516,7 @@
      (elem attr kids))))
 
 (defn html [& args]
- "Updates the document's `html` element in place."
+ "Updates and returns the document's `html` element in place."
  (with-let [el (.-documentElement js/document)]
   (-> el
    ensure-hoplon!
