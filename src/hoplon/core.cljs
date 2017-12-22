@@ -168,6 +168,8 @@
 
 (defn- native-node?
  [node]
+ "Returns true if node is any native node. Same as native? but allows for nodes
+ that are not elements."
  (and
   (instance? js/Node node)
   (not (-> node .-hoplon))))
