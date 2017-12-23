@@ -189,6 +189,9 @@
   [parent child kidfn]
   {:pre [(or (managed? parent) (cell? child))]}
   (with-let [child child]
+    (when (.-parentNode child)
+     (.removeChild (.-parentNode child) child))
+
     (ensure-kids! parent)
     (let [kids (kidfn parent)
           i    (count @kids)]
@@ -230,59 +233,36 @@
   (set! (.-appendChild this)
         (fn [child]
          (this-as this
-          (if (and (native-node? this) (native-node? child))
-           ; ensure native functionality for non-hoplon nodes.
-           (.call appendChild this child)
-           (do
-            (when (.-parentNode child)
-              (.removeChild (.-parentNode child) child))
-            (cond
-              ; Use the browser-native function for speed in the case where no
-              ; children are cells.
-              (and (native? this) (not (cell? child)))
-              (.call appendChild this child)
-
-              ; if the parent is managed, or the child is a cell, then we must
-              ; manage the append ourselves.
-              (or (managed? this) (cell? child))
-              (managed-append-child this child kidfn)
-
-              :else
-              (throw (ex-info "Unexpected child type" {:reason    ::unexpected-child-type
-                                                       :child     child
-                                                       :native?   (native? child)
-                                                       :managed? (managed? child)
-                                                       :this      this})))))))))
+          (if (or (managed? this) (cell? child))
+           (managed-append-child this child kidfn)
+           (.call appendChild this child))))))
 
 (defn- set-removeChild!
   [this kidfn]
   (set! (.-removeChild this)
-        (fn [x]
+        (fn [child]
          (this-as this
-          (if (and (native-node? this) (native-node? x))
-           ; ensure native functionality for non-hoplon nodes.
-           (.call removeChild this x)
-           (managed-remove-child this x kidfn))))))
+          (if (or (managed? this) (cell? child))
+           (managed-remove-child this child kidfn)
+           (.call removeChild this child))))))
 
 (defn- set-insertBefore!
   [this kidfn]
   (set! (.-insertBefore this)
         (fn [x y]
          (this-as this
-          (if (and (native-node? this) (native-node? x) (native-node? y))
-           ; ensure native functionality for non-hoplon nodes.
-           (.call insertBefore this x y)
-           (managed-insert-before this x y kidfn))))))
+          (if (or (managed? this) (cell? x) (cell? y))
+           (managed-insert-before this x y kidfn)
+           (.call insertBefore this x y))))))
 
 (defn- set-replaceChild!
   [this kidfn]
   (set! (.-replaceChild this)
         (fn [x y]
          (this-as this
-          (if (and (native-node? this) (native-node? x) (native-node? y))
-           ; ensure native functionality for non-hoplon nodes.
-           (.call replaceChild this x y)
-           (managed-replace-child this x y kidfn))))))
+          (if (or (managed? this) (cell? x) (cell? y))
+           (managed-replace-child this x y kidfn)
+           (.call replaceChild this x y))))))
 
 (defn- set-setAttribute!
   [this attrfn]
