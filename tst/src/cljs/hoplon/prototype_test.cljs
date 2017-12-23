@@ -20,6 +20,8 @@
                           (h/$text "foo")]]]
   (is (= child (.appendChild parent child)))
   (is (= parent (.-parentNode child)))
+  (is (= [child] (array-seq (.-childNodes parent))))
+
   (doseq [n [child parent]]
    (when (instance? js/Element n)
     (h/native? n))
@@ -28,6 +30,8 @@
 
   (is (= child (.removeChild parent child)))
   (is (nil? (.-parentNode child)))
+  (is (nil? (array-seq (.-childNodes parent))))
+
   (doseq [n [child parent]]
    (when (instance? js/Element n)
     (h/native? n))
@@ -51,6 +55,7 @@
 
   (is (= child (.removeChild parent child)))
   (is (nil? (.-parentNode child)))
+  (is (nil? (array-seq (.-childNodes parent))))
 
   (is (h/native? parent))
   (is (h/native-node? parent))
@@ -78,6 +83,13 @@
 
    (is (= child (.appendChild parent child)))
    (is (= "foo" (.-textContent parent)))
+   (if (string? @child)
+    (is
+     (= [@child]
+      (map
+       #(.-nodeValue %)
+       (array-seq (.-childNodes parent)))))
+    (is (= [@child] (array-seq (.-childNodes parent)))))
 
    ; parent becomes managed
    (is (not (h/native? parent)))
@@ -91,6 +103,7 @@
    ; https://github.com/hoplon/hoplon/issues/206
    (is (= @child (.removeChild parent @child)))
    (is (= "" (.-textContent parent)))
+   (is (nil? (array-seq (.-childNodes parent))))
 
    ; parent is still managed
    (is (not (h/native? parent)))
@@ -106,6 +119,7 @@
         child (.createElement js/document "div")]
    (is (= child (.appendChild parent child)))
    (is (= parent (.-parentNode child)))
+   (is (= [child] (array-seq (.-childNodes parent))))
 
    (is (not (h/native? parent)))
    (is (not (h/native-node? parent)))
@@ -117,6 +131,7 @@
 
    (is (= child (.removeChild parent child)))
    (is (nil? (.-parentNode child)))
+   (is (nil? (array-seq (.-childNodes parent))))
 
    (is (not (h/native? parent)))
    (is (not (h/native-node? parent)))
@@ -130,6 +145,7 @@
         child (h/div)]
    (is (= child (.appendChild parent child)))
    (is (= parent (.-parentNode child)))
+   (is (= [child] (array-seq (.-childNodes parent))))
 
    (is (not (h/native? parent)))
    (is (not (h/native-node? parent)))
@@ -141,6 +157,7 @@
 
    (is (= child (.removeChild parent child)))
    (is (nil? (.-parentNode child)))
+   (is (nil? (array-seq (.-childNodes parent))))
 
    (is (not (h/native? parent)))
    (is (not (h/native-node? parent)))
@@ -154,6 +171,7 @@
         child (j/cell (h/div))]
    (is (= child (.appendChild parent child)))
    (is (= parent (.-parentNode @child)))
+   (is (= [@child] (array-seq (.-childNodes parent))))
 
    (is (not (h/native? parent)))
    (is (not (h/native-node? parent)))
@@ -168,6 +186,7 @@
    ; https://github.com/hoplon/hoplon/issues/206
    (is (= @child (.removeChild parent @child)))
    (is (nil? (.-parentNode parent)))
+   (is (nil? (array-seq (.-childNodes parent))))
 
    (is (not (h/native? parent)))
    (is (not (h/native-node? parent)))
@@ -220,4 +239,52 @@
    (when (instance? js/Element n)
     (h/native? n))
    (is (h/native-node? n))
-   (is (not (h/managed? n))))))
+   (is (not (h/managed? n)))))
+
+ ; if the parent is managed then the insert will be managed by hoplon
+ (doseq [[parent x y] [[(h/div)
+                        (h/div)
+                        (h/div)]
+                       [(h/div)
+                        (.createElement js/document "div")
+                        (.createElement js/document "div")]
+                       [(h/div)
+                        (h/div)
+                        (.createElement js/document "div")]]]
+  (is (= y (.appendChild parent y)))
+  (is (= parent (.-parentNode y)))
+
+  (is (= x (.insertBefore parent x y)))
+  (is (= parent (.-parentNode x)))
+
+  (is (= [x y] (array-seq (.-childNodes parent))))
+
+  (is (h/managed? parent))
+  (is (not (h/native? parent)))
+  (is (not (h/native-node? parent)))))
+
+ ; insertBefore is broken for cells
+ ; https://github.com/hoplon/hoplon/issues/207
+ ; (let [parent (h/div)
+ ;       x (j/cell "foo")
+ ;       y (j/cell "bar")]
+ ;  (is (= y (.appendChild parent y)))
+ ;  (is (= x (.insertBefore parent x y)))
+ ;
+ ;  (is (= "foobar" (.-textContent parent))))
+ ;
+ ; (let [parent (h/div)
+ ;       x (j/cell "foo")
+ ;       y (h/div "bar")]
+ ;  (is (= y (.appendChild parent y)))
+ ;  (is (= x (.insertBefore parent x y)))
+ ;
+ ;  (is (= "foobar" (.-textContent parent))))
+ ;
+ ; (let [parent (h/div)
+ ;       x (h/div "foo")
+ ;       y (j/cell "bar")]
+ ;  (is (= y (.appendChild parent y)))
+ ;  (is (= x (.insertBefore parent x y)))
+ ;
+ ;  (is (= "foobar" (.-textContent parent)))))
