@@ -4,6 +4,17 @@
   [hoplon.core :as h]
   [cljs.test :refer-macros [deftest is]]))
 
+(deftest ??not-elements
+ ; individual non-element nodes are never managed by hoplon
+ (doseq [n [(h/$text "foo")
+            (h/$comment "foo")
+            (h/<!-- "foo")
+            (h/<!-- "foo" h/-->)]]
+  (is (not (goog.dom/isElement n)))
+  (is (not (h/native? n)))
+  (is (h/native-node? n))
+  (is (not (h/managed? n)))))
+
 (deftest ??singletons
  ; initially both head and body are unmanaged
  (doseq [[e s] [[(.-head js/document) "head"]
@@ -11,9 +22,9 @@
                 [(.-documentElement js/document) "html"]]]
   (is (goog.dom/isElement e))
   (is (.webkitMatchesSelector e s))
-  (is (hoplon.core/native? e))
-  (is (hoplon.core/native-node? e))
-  (is (not (hoplon.core/managed? e))))
+  (is (h/native? e))
+  (is (h/native-node? e))
+  (is (not (h/managed? e))))
 
  ; calling hoplon singleton fns will start managing the relevant el
  (doseq [[e s] [[(h/head) "head"]
@@ -21,9 +32,9 @@
                 [(h/html) "html"]]]
   (is (goog.dom/isElement e))
   (is (.webkitMatchesSelector e s))
-  (is (not (hoplon.core/native? e)))
-  (is (not (hoplon.core/native-node? e)))
-  (is (hoplon.core/managed? e)))
+  (is (not (h/native? e)))
+  (is (not (h/native-node? e)))
+  (is (h/managed? e)))
 
  ; the els will still be considered managed even if referenced directly
  (doseq [[e s] [[(.-head js/document) "head"]
@@ -31,9 +42,9 @@
                 [(.-documentElement js/document) "html"]]]
   (is (goog.dom/isElement e))
   (is (.webkitMatchesSelector e s))
-  (is (not (hoplon.core/native? e)))
-  (is (not (hoplon.core/native-node? e)))
-  (is (hoplon.core/managed? e))))
+  (is (not (h/native? e)))
+  (is (not (h/native-node? e)))
+  (is (h/managed? e))))
 
 (def elements
  [
