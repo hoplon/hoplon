@@ -6,14 +6,17 @@
 
 (deftest ??not-elements
  ; individual non-element nodes are never managed by hoplon
- (doseq [n [(h/$text "foo")
-            (h/$comment "foo")
-            (h/<!-- "foo")
-            (h/<!-- "foo" h/-->)]]
-  (is (not (goog.dom/isElement n)))
-  (is (not (h/native? n)))
-  (is (h/native-node? n))
-  (is (not (h/managed? n)))))
+ (let [s "foo"]
+  (doseq [n [(h/$text s)
+             (.createTextNode js/document s)
+             (h/$comment s)
+             (.createComment js/document s)
+             (h/<!-- s)
+             (h/<!-- s h/-->)]]
+   (is (not (goog.dom/isElement n)))
+   (is (not (h/native? n)))
+   (is (h/native-node? n))
+   (is (not (h/managed? n))))))
 
 (deftest ??singletons
  ; initially both head and body are unmanaged
