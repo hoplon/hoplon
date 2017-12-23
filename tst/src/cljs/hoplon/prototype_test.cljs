@@ -4,7 +4,7 @@
   [javelin.core :as j]
   [cljs.test :refer-macros [deftest is]]))
 
-(deftest ??appendChild
+(deftest ??append-remove--all-native
  ; if all involved nodes are native, there should be no hoplon management
  (doseq [[parent child] [[(.createElement js/document "div")
                           (.createElement js/document "div")]
@@ -24,8 +24,17 @@
    (when (instance? js/Element n)
     (h/native? n))
    (is (h/native-node? n))
-   (is (not (h/managed? n)))))
+   (is (not (h/managed? n))))
 
+  (.removeChild parent child)
+  (is (nil? (.-parentNode child)))
+  (doseq [n [child parent]]
+   (when (instance? js/Element n)
+    (h/native? n))
+   (is (h/native-node? n))
+   (is (not (h/managed? n))))))
+
+(deftest ??appendChild
  ; if the parent is native, but the child is managed but not a cell then the
  ; parent continues to be native and child continues as managed
  (doseq [[parent child] [[(.createElement js/document "div")
