@@ -1,15 +1,16 @@
 (set-env!
-  :source-paths   #{"src" "tst/src"}
-  :dependencies (template [[adzerk/boot-cljs                      "1.7.48-3" :scope "test"]
+  :source-paths   #{"src"}
+  :dependencies (template [[adzerk/boot-cljs                      "2.1.2"    :scope "test"]
                            [adzerk/bootlaces                      "0.1.13"   :scope "test"]
-                           [adzerk/boot-reload                    "0.4.11"   :scope "test"]
-                           [adzerk/boot-test                      "1.1.2"    :scope "test"]
+                           [adzerk/boot-reload                    "0.5.1"    :scope "test"]
+                           [adzerk/boot-test                      "1.2.0"    :scope "test"]
+                           [boot-codox                            "0.10.3"   :scope "test"]
                            [lein-doo                              "0.1.7"    :scope "test"]
-                           [crisptrutski/boot-cljs-test           "0.3.0"    :scope "test"]
-                           [boot-codox                            "0.10.1"   :scope "test"]
+                           [crisptrutski/boot-cljs-test           "0.3.3"    :scope "test"]
                            [org.clojure/clojure                   ~(clojure-version)]
-                           [org.clojure/clojurescript             "1.7.122"]
-                           [cljsjs/jquery                         "1.9.1-0"]
+                           [org.clojure/clojurescript             "1.9.946"]
+                           [org.clojure/test.check                "0.9.0"]
+                           [cljsjs/jquery                         "3.2.1-0"]
                            [hoplon/javelin                        "3.9.0"]]))
 
 (require
@@ -21,21 +22,24 @@
   '[codox.boot                :refer [codox]]
   '[crisptrutski.boot-cljs-test :refer [test-cljs]])
 
-(def +version+ "7.0.3")
+(def +version+ "7.1.0")
 
 (bootlaces! +version+)
 
 (deftask develop []
   (comp (watch) (target) (speak) (build-jar)))
 
+(def test-cljs-options {:process-shim false})
+
 (replace-task!
  [t test-cljs]
  (fn [& xs]
-  (set-env! :source-paths #{"src" "tst/src/cljs"})
-  (apply t xs)))
+  (set-env! :source-paths #{"tst/src/cljs"})
+  (apply t :cljs-opts test-cljs-options xs)))
 
 (deftask develop-tests []
-  (comp (watch) (speak) (test-cljs)))
+ (set-env! :source-paths #{"tst/src/cljs"})
+ (comp (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
 
 (task-options!
   pom    {:project     'hoplon
