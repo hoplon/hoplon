@@ -190,6 +190,8 @@
   [parent child kidfn]
   {:pre [(or (managed? parent) (cell? child))]}
   (with-let [child child]
+    ; cruft?
+    ; https://github.com/hoplon/hoplon/issues/208
     (when (.-parentNode child)
      (.removeChild (.-parentNode child) child))
 

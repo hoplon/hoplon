@@ -4,6 +4,31 @@
   [javelin.core :as j]
   [cljs.test :refer-macros [deftest is]]))
 
+(deftest ??appendChild--internal-remove
+ ; native behaviour when appending child to new parent
+ (let [parent-1 (.createElement js/document "div")
+       parent-2 (.createElement js/document "div")
+       child (.createElement js/document "div")]
+  (.appendChild parent-1 child)
+  (is (= parent-1 (.-parentNode child)))
+
+  (.appendChild parent-2 child)
+  (is (= parent-2 (.-parentNode child)))
+  (is (nil? (array-seq (.-childNodes parent-1))))
+  (is (= [child] (array-seq (.-childNodes parent-2)))))
+
+ ; managed append child internally removes children with existing parents
+ (let [parent-1 (h/div)
+       parent-2 (h/div)
+       child (h/div)]
+  (.appendChild parent-1 child)
+  (is (= parent-1 (.-parentNode child)))
+
+  (.appendChild parent-2 child)
+  (is (= parent-2 (.-parentNode child)))
+  (is (nil? (array-seq (.-childNodes parent-1))))
+  (is (= [child] (array-seq (.-childNodes parent-2))))))
+
 (deftest ??append-remove
  ; if all involved nodes are native, there should be no hoplon management
  (doseq [[parent child] [[(.createElement js/document "div")
@@ -361,7 +386,7 @@
  ;       y (h/div "bar")]
  ;  (is (= y (.appendChild parent y)))
  ;  (is (= y (.replaceChild parent x y)))
- ; 
+ ;
  ;  (is (= "foo" (.-textContent parent))))
  ;
  ; (let [parent (h/div)
