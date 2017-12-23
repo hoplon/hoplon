@@ -288,3 +288,38 @@
  ;  (is (= x (.insertBefore parent x y)))
  ;
  ;  (is (= "foobar" (.-textContent parent)))))
+
+(deftest ??replaceChild
+ ; if all involved nodes are native, there should be no hoplon management
+ (doseq [[parent x y] [[(.createElement js/document "div")
+                        (.createElement js/document "div")
+                        (.createElement js/document "div")]
+                       [(.createElement js/document "body")
+                        (.createTextNode js/document "foo")
+                        (.createTextNode js/document "bar")]
+                       [(.createElement js/document "body")
+                        (.createElement js/document "div")
+                        (.createTextNode js/document "foo")]
+                       [(.createElement js/document "head")
+                        (.createComment js/document "foo")
+                        (.createComment js/document "foo")]
+                       [(.createElement js/document "head")
+                        (.createElement js/document "div")
+                        (.createElement js/document "div")]
+                       [(.createElement js/document "body")
+                        (h/$text "foo")
+                        (h/$text "foo")]]]
+  (is (= y (.appendChild parent y)))
+  (is (= parent (.-parentNode y)))
+
+  (is (= y (.replaceChild parent x y)))
+  (is (= parent (.-parentNode x)))
+  (is (nil? (.-parentNode y)))
+
+  (is (= [x] (array-seq (.-childNodes parent))))
+
+  (doseq [n [parent x y]]
+   (when (instance? js/Element n)
+    (h/native? n))
+   (is (h/native-node? n))
+   (is (not (h/managed? n))))))
