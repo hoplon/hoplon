@@ -204,9 +204,13 @@
  or `child` being a cell"
  [parent child kidfn]
  {:pre [(or (managed? parent) (cell? child))]}
- (with-let [child child])
+ (with-let [child child]
   (ensure-kids! parent)
-  (swap! (kidfn parent) #(into [] (remove (partial = child) %))))
+  (let [kids (kidfn parent)
+        before-count (count @kids)]
+   (swap! kids #(into [] (remove (partial = child) %)))
+   (when-not (= (count @kids) (dec before-count))
+    (throw (js/Error. "Attempted to remove a node that is not a child of parent"))))))
 
 (defn- managed-insert-before
  "Inserts `x` before `y` in `parent` for the case of `parent` being a managed

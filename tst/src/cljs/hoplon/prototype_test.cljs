@@ -18,7 +18,7 @@
                           (.createElement js/document "div")]
                          [(.createElement js/document "body")
                           (h/$text "foo")]]]
-  (.appendChild parent child)
+  (is (= child (.appendChild parent child)))
   (is (= parent (.-parentNode child)))
   (doseq [n [child parent]]
    (when (instance? js/Element n)
@@ -26,7 +26,7 @@
    (is (h/native-node? n))
    (is (not (h/managed? n))))
 
-  (.removeChild parent child)
+  (is (= child (.removeChild parent child)))
   (is (nil? (.-parentNode child)))
   (doseq [n [child parent]]
    (when (instance? js/Element n)
@@ -39,7 +39,7 @@
  ; parent continues to be native and child continues as managed
  (doseq [[parent child] [[(.createElement js/document "div")
                           (h/div)]]]
-  (.appendChild parent child)
+  (is (= child (.appendChild parent child)))
   (is (= parent (.-parentNode child)))
   (is (h/native? parent))
   (is (h/native-node? parent))
@@ -65,7 +65,7 @@
    ; child initially a cell
    (is (j/cell? child))
 
-   (.appendChild parent child)
+   (is (= child (.appendChild parent child)))
    (is (= "foo" (.-textContent parent)))
 
    ; parent becomes managed
@@ -80,7 +80,7 @@
   ; as they were after appending.
   (let [parent (h/div)
         child (.createElement js/document "div")]
-   (.appendChild parent child)
+   (is (= child (.appendChild parent child)))
    (is (= parent (.-parentNode child)))
 
    (is (not (h/native? parent)))
@@ -93,7 +93,7 @@
 
   (let [parent (h/div)
         child (h/div)]
-   (.appendChild parent child)
+   (is (= child (.appendChild parent child)))
    (is (= parent (.-parentNode child)))
 
    (is (not (h/native? parent)))
@@ -106,7 +106,7 @@
 
   (let [parent (h/div)
         child (j/cell (h/div))]
-   (.appendChild parent child)
+   (is (= child (.appendChild parent child)))
    (is (= parent (.-parentNode @child)))
 
    (is (not (h/native? parent)))
@@ -117,3 +117,13 @@
    (is (not (h/native-node? child)))
    (is (not (h/managed? child)))
    (is (j/cell? child)))))
+
+(deftest ??removeChild--non-child-error
+ ; removing a non-child is an error
+ (doseq [[a b] [[(.createElement js/document "div")
+                 (.createElement js/document "div")]
+                [(h/div)
+                 (h/div)]
+                [(h/div)
+                 (j/cell (h/div))]]]
+  (is (thrown? js/Error (.removeChild a b)))))
