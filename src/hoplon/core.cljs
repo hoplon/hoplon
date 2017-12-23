@@ -216,6 +216,15 @@
    (not y)     (swap! (kidfn parent) conj x)
    (not= x y)  (swap! (kidfn parent) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))
 
+(defn- managed-replace-child
+ "Replaces `y` with `x` in `parent` for the case of `parent` being a managed
+ element or `x` or `y` being a cell"
+ [parent x y kidfn]
+ {:pre [(or (managed? parent) (cell? x) (cell? y))]}
+ (with-let [y y]
+  (ensure-kids! parent)
+  (swap! (kidfn parent) #(mapv (fn [z] (if (= z y) x z)) %))))
+
 (defn- set-appendChild!
   [this kidfn]
   (set! (.-appendChild this)
@@ -273,9 +282,7 @@
           (if (and (native-node? this) (native-node? x) (native-node? y))
            ; ensure native functionality for non-hoplon nodes.
            (.call replaceChild this x y)
-           (with-let [y y]
-             (ensure-kids! this)
-             (swap! (kidfn this) #(mapv (fn [z] (if (= z y) x z)) %))))))))
+           (managed-replace-child this x y kidfn))))))
 
 (defn- set-setAttribute!
   [this attrfn]
