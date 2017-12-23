@@ -275,14 +275,14 @@
   [this attrfn]
   (set! (.-setAttribute this)
         (fn [k v]
-         (this-as this
-           (with-let [_ js/undefined]
-             (let [kk   (keyword k)
-                   attr (attrfn this)
-                   has? (and attr (contains? @attr kk))]
-               (if has?
-                 (swap! attr assoc kk v)
-                 (.call setAttribute this k v))))))))
+          (this-as this
+            (with-let [_ js/undefined]
+              (let [kk   (keyword k)
+                    attr (attrfn this)
+                    has? (and attr (contains? @attr kk))]
+                (if has?
+                  (swap! attr assoc kk v)
+                  (.call setAttribute this k v))))))))
 
 (set-appendChild!  (.-prototype js/Element) #(.-hoplonKids %))
 (set-removeChild!  (.-prototype js/Element) #(.-hoplonKids %))
