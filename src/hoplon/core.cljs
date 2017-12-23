@@ -205,6 +205,17 @@
   (ensure-kids! parent)
   (swap! (kidfn parent) #(into [] (remove (partial = child) %))))
 
+(defn- managed-insert-before
+ "Inserts `x` before `y` in `parent` for the case of `parent` being a managed
+ element or `x` or `y` being a cell"
+ [parent x y kidfn]
+ {:pre [(or (managed? parent) (cell? x) (cell? y))]}
+ (with-let [x x]
+  (ensure-kids! parent)
+  (cond
+   (not y)     (swap! (kidfn parent) conj x)
+   (not= x y)  (swap! (kidfn parent) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))
+
 (defn- set-appendChild!
   [this kidfn]
   (set! (.-appendChild this)
@@ -252,11 +263,7 @@
           (if (and (native-node? this) (native-node? x) (native-node? y))
            ; ensure native functionality for non-hoplon nodes.
            (.call insertBefore this x y)
-           (with-let [x x]
-             (ensure-kids! this)
-             (cond
-               (not y)     (swap! (kidfn this) conj x)
-               (not= x y)  (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))))))
+           (managed-insert-before this x y kidfn))))))
 
 (defn- set-replaceChild!
   [this kidfn]
