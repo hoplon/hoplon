@@ -177,7 +177,7 @@
    (is (not (h/native-node? child)))
    (is (not (h/managed? child)))
    (is (j/cell? child)))))
-   
+
 (deftest ??removeChild--non-child-error
  ; removing a non-child is an error
  (doseq [[a b] [[(.createElement js/document "div")
@@ -187,3 +187,37 @@
                 [(h/div)
                  (j/cell (h/div))]]]
   (is (thrown? js/Error (.removeChild a b)))))
+
+(deftest ??insertBefore
+ ; if all involved nodes are native, there should be no hoplon management
+ (doseq [[parent x y] [[(.createElement js/document "div")
+                        (.createElement js/document "div")
+                        (.createElement js/document "div")]
+                       [(.createElement js/document "body")
+                        (.createTextNode js/document "foo")
+                        (.createTextNode js/document "bar")]
+                       [(.createElement js/document "body")
+                        (.createElement js/document "div")
+                        (.createTextNode js/document "foo")]
+                       [(.createElement js/document "head")
+                        (.createComment js/document "foo")
+                        (.createComment js/document "foo")]
+                       [(.createElement js/document "head")
+                        (.createElement js/document "div")
+                        (.createElement js/document "div")]
+                       [(.createElement js/document "body")
+                        (h/$text "foo")
+                        (h/$text "foo")]]]
+  (is (= y (.appendChild parent y)))
+  (is (= parent (.-parentNode y)))
+
+  (is (= x (.insertBefore parent x y)))
+  (is (= parent (.-parentNode x)))
+
+  (is (= [x y] (array-seq (.-childNodes parent))))
+
+  (doseq [n [parent x y]]
+   (when (instance? js/Element n)
+    (h/native? n))
+   (is (h/native-node? n))
+   (is (not (h/managed? n))))))
