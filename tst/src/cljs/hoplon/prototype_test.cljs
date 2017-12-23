@@ -322,4 +322,26 @@
    (when (instance? js/Element n)
     (h/native? n))
    (is (h/native-node? n))
-   (is (not (h/managed? n))))))
+   (is (not (h/managed? n)))))
+
+ ; if the parent is managed then the replacement will be managed by hoplon
+ (doseq [[parent x y] [[(h/div)
+                        (h/div)
+                        (h/div)]
+                       [(h/div)
+                        (.createElement js/document "div")
+                        (.createElement js/document "div")]
+                       [(h/div)
+                        (h/div)
+                        (.createElement js/document "div")]]]
+  (is (= y (.appendChild parent y)))
+  (is (= parent (.-parentNode y)))
+
+  (is (= y (.replaceChild parent x y)))
+  (is (= parent (.-parentNode x)))
+
+  (is (= [x] (array-seq (.-childNodes parent))))
+
+  (is (h/managed? parent))
+  (is (not (h/native? parent)))
+  (is (not (h/native-node? parent)))))
