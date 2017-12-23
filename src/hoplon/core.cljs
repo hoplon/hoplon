@@ -207,15 +207,14 @@
             (when (.-parentNode child)
               (.removeChild (.-parentNode child) child))
             (cond
-              ;; Use the browser-native function for speed in the case
-              ;; where no children are cells.
+              ; Use the browser-native function for speed in the case where no
+              ; children are cells.
               (and (native? this) (not (cell? child)))
               (.call appendChild this child)
 
-              (and (native? this) (cell? child))
-              (managed-append-child this child kidfn)
-
-              (managed? this)
+              ; if the parent is managed, or the child is a cell, then we must
+              ; manage the append ourselves.
+              (or (managed? this) (cell? child))
               (managed-append-child this child kidfn)
 
               :else
