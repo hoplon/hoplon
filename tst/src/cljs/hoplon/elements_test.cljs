@@ -4,12 +4,53 @@
   [hoplon.core :as h]
   [cljs.test :refer-macros [deftest is]]))
 
+(deftest ??not-elements
+ ; individual non-element nodes are never managed by hoplon
+ (let [s "foo"]
+  (doseq [n [(h/$text s)
+             (.createTextNode js/document s)
+             (h/$comment s)
+             (.createComment js/document s)
+             (h/<!-- s)
+             (h/<!-- s h/-->)]]
+   (is (not (goog.dom/isElement n)))
+   (is (not (h/native? n)))
+   (is (h/native-node? n))
+   (is (not (h/managed? n))))))
+
+(deftest ??singletons
+ ; initially both head and body are unmanaged
+ (doseq [[e s] [[(.-head js/document) "head"]
+                [(.-body js/document) "body"]
+                [(.-documentElement js/document) "html"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (h/native? e))
+  (is (h/native-node? e))
+  (is (not (h/managed? e))))
+
+ ; calling hoplon singleton fns will start managing the relevant el
+ (doseq [[e s] [[(h/head) "head"]
+                [(h/body) "body"]
+                [(h/html) "html"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (not (h/native? e)))
+  (is (not (h/native-node? e)))
+  (is (h/managed? e)))
+
+ ; the els will still be considered managed even if referenced directly
+ (doseq [[e s] [[(.-head js/document) "head"]
+                [(.-body js/document) "body"]
+                [(.-documentElement js/document) "html"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (not (h/native? e)))
+  (is (not (h/native-node? e)))
+  (is (h/managed? e))))
+
 (def elements
- [[h/html "html"]
-  ; Calling h/body from phantomjs triggers an error.
-  ; https://github.com/hoplon/hoplon/issues/197
-  ; [h/body "body"]
-  [h/head "head"]
+ [
   [h/a "a"]
   [h/abbr "abbr"]
   [h/address "address"]
@@ -122,9 +163,22 @@
 
 (deftest ??elements
  (doseq [[f s] elements]
-  (let [el (f)]
-   (is (goog.dom/isElement el))
-   (is (.webkitMatchesSelector el s) (str "Element did not match selector: " s)))))
+  (let [hoplon-el (f)
+        native-el (.createElement js/document s)]
+   (is (goog.dom/isElement hoplon-el))
+   (is (goog.dom/isElement native-el))
+
+   (is (.webkitMatchesSelector hoplon-el s) (str "Element did not match selector: " s))
+   (is (.webkitMatchesSelector native-el s) (str "Element did not match selector: " s))
+
+   (is (not (hoplon.core/native? hoplon-el)))
+   (is (hoplon.core/native? native-el))
+
+   (is (not (hoplon.core/native-node? hoplon-el)))
+   (is (hoplon.core/native-node? native-el))
+
+   (is (hoplon.core/managed? hoplon-el))
+   (is (not (hoplon.core/managed? native-el))))))
 
 (deftest ??element-creation
  ; we want to handle at least as many children as the arity of invoke!

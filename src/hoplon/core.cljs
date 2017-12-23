@@ -138,13 +138,21 @@
                         :else   (with-let [kids kids]
                                   (.call insertBefore this x k))))))))
 
+(defn- ensure-hoplon!
+ "Flags that an element is managed by Hoplon. Used primarily in prototype
+ overrides for DOM manipulation fns."
+ [this]
+ (with-let [this this]
+  (set! (.-hoplon this) true)))
+
 (defn- ensure-kids!
   [this]
   (with-let [this this]
-    (when-not (.-hoplonKids this)
-      (let [kids (atom (child-vec this))]
-        (set! (.-hoplonKids this) kids)
-        (do-watch kids (partial merge-kids this))))))
+   (ensure-hoplon! this)
+   (when-not (.-hoplonKids this)
+     (let [kids (atom (child-vec this))]
+       (set! (.-hoplonKids this) kids)
+       (do-watch kids (partial merge-kids this))))))
 
 (defn- remove-all-kids!
   [this]
@@ -155,20 +163,38 @@
   "Returns true if elem is a native element. Native elements' children
   are not managed by Hoplon."
   [elem]
-  (and (instance? js/Element elem)
-       (-> elem .-hoplonKids nil?)))
+  (and
+   (instance? js/Element elem)
+   (not (-> elem .-hoplon))))
+
+(defn- native-node?
+ [node]
+ "Returns true if node is any native node. Same as native? but allows for nodes
+ that are not elements."
+ (and
+  (instance? js/Node node)
+  (not (-> node .-hoplon))))
 
 (defn- managed?
   "Returns true if elem is a managed element. Managed elements have
-  their children managed by Hoplon."
+  their children managed by Hoplon. Hoplon nodes that are not elements are not
+  managed as they cannot have children anyway."
   [elem]
-  (not (native? elem)))
+  (and
+   (instance? js/Element elem)
+   (-> elem .-hoplon)))
 
 (defn- managed-append-child
-  "Appends `child` to `parent` for the case of `parent` being a
-  managed element."
+  "Appends `child` to `parent` for the case of `parent` being a managed element
+  or `child` being a cell."
   [parent child kidfn]
+  {:pre [(or (managed? parent) (cell? child))]}
   (with-let [child child]
+    ; cruft?
+    ; https://github.com/hoplon/hoplon/issues/208
+    (when (.-parentNode child)
+     (.removeChild (.-parentNode child) child))
+
     (ensure-kids! parent)
     (let [kids (kidfn parent)
           i    (count @kids)]
@@ -176,60 +202,74 @@
         (do-watch child #(swap! kids assoc i %2))
         (swap! kids assoc i child)))))
 
+(defn- managed-remove-child
+ "Removes `child` from `parent` for the case of `parent` being a managed element
+ or `child` being a cell"
+ [parent child kidfn]
+ {:pre [(or (managed? parent) (cell? child))]}
+ (with-let [child child]
+  (ensure-kids! parent)
+  (let [kids (kidfn parent)
+        before-count (count @kids)]
+   (swap! kids #(into [] (remove (partial = child) %)))
+   (when-not (= (count @kids) (dec before-count))
+    (throw (js/Error. "Attempted to remove a node that is not a child of parent"))))))
+
+(defn- managed-insert-before
+ "Inserts `x` before `y` in `parent` for the case of `parent` being a managed
+ element or `x` or `y` being a cell"
+ [parent x y kidfn]
+ {:pre [(or (managed? parent) (cell? x) (cell? y))]}
+ (with-let [x x]
+  (ensure-kids! parent)
+  (cond
+   (not y)     (swap! (kidfn parent) conj x)
+   (not= x y)  (swap! (kidfn parent) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))
+
+(defn- managed-replace-child
+ "Replaces `y` with `x` in `parent` for the case of `parent` being a managed
+ element or `x` or `y` being a cell"
+ [parent x y kidfn]
+ {:pre [(or (managed? parent) (cell? x) (cell? y))]}
+ (with-let [y y]
+  (ensure-kids! parent)
+  (swap! (kidfn parent) #(mapv (fn [z] (if (= z y) x z)) %))))
+
 (defn- set-appendChild!
   [this kidfn]
   (set! (.-appendChild this)
         (fn [child]
-          (this-as this
-            (when (.-parentNode child)
-              (.removeChild (.-parentNode child) child))
-            (cond
-              ;; Use the browser-native function for speed in the case
-              ;; where no children are cells.
-              (and (native? this) (not (cell? child)))
-              (.call appendChild this child)
-
-              (and (native? this) (cell? child))
-              (managed-append-child this child kidfn)
-
-              (managed? this)
-              (managed-append-child this child kidfn)
-
-              :else
-              (throw (ex-info "Unexpected child type" {:reason    ::unexpected-child-type
-                                                       :child     child
-                                                       :native?   (native? child)
-                                                       :managed? (managed? child)
-                                                       :this      this})))))))
+         (this-as this
+          (if (or (managed? this) (cell? child))
+           (managed-append-child this child kidfn)
+           (.call appendChild this child))))))
 
 (defn- set-removeChild!
   [this kidfn]
   (set! (.-removeChild this)
-        (fn [x]
-          (this-as this
-            (with-let [x x]
-              (ensure-kids! this)
-              (swap! (kidfn this) #(into [] (remove (partial = x) %))))))))
+        (fn [child]
+         (this-as this
+          (if (or (managed? this) (cell? child))
+           (managed-remove-child this child kidfn)
+           (.call removeChild this child))))))
 
 (defn- set-insertBefore!
   [this kidfn]
   (set! (.-insertBefore this)
         (fn [x y]
-          (this-as this
-            (with-let [x x]
-              (ensure-kids! this)
-              (cond
-                (not y)     (swap! (kidfn this) conj x)
-                (not= x y)  (swap! (kidfn this) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %)))))))))
+         (this-as this
+          (if (or (managed? this) (cell? x) (cell? y))
+           (managed-insert-before this x y kidfn)
+           (.call insertBefore this x y))))))
 
 (defn- set-replaceChild!
   [this kidfn]
   (set! (.-replaceChild this)
         (fn [x y]
-          (this-as this
-            (with-let [y y]
-              (ensure-kids! this)
-              (swap! (kidfn this) #(mapv (fn [z] (if (= z y) x z)) %)))))))
+         (this-as this
+          (if (or (managed? this) (cell? x) (cell? y))
+           (managed-replace-child this x y kidfn)
+           (.call replaceChild this x y))))))
 
 (defn- set-setAttribute!
   [this attrfn]
@@ -465,30 +505,44 @@
 (defn- mksingleton
   [elem]
   (fn [& args]
+   (with-let [elem elem]
     (let [[attrs kids] (parse-args args)]
-      (add-attributes! elem attrs)
-      (when (not (:static attrs))
-        (remove-all-kids! elem)
-        (add-children! elem kids)))))
+     (ensure-hoplon! elem)
+     (add-attributes! elem attrs)
+     (when (not (:static attrs))
+       (remove-all-kids! elem)
+       (add-children! elem kids))))))
 
 (defn- mkelem [tag]
   (fn [& args]
     (let [[attr kids] (parse-args args)
           elem (.createElement js/document tag)]
-      (elem attr kids))))
+     (ensure-hoplon! elem)
+     (elem attr kids))))
 
 (defn html [& args]
-  "Updates the document's `html` element in place."
-  (-> (.-documentElement js/document)
-      (add-attributes! (first (parse-args args)))))
+ "Updates and returns the document's `html` element in place."
+ (with-let [el (.-documentElement js/document)]
+  (-> el
+   ensure-hoplon!
+   (add-attributes! (first (parse-args args))))))
 
 (def head
-  "Updates the document's `head` element in place."
-  (mksingleton (.-head js/document)))
+ "Updates and returns the document's `head` element in place."
+ (mksingleton (.-head js/document)))
 
 (def body
-  "Updates the document's `body` element in place."
-  (mksingleton (.-body js/document)))
+ "Updates and returns the document's `body` element in place. Creates `body`
+ if not exists."
+ (mksingleton
+  (do
+   ; the body is not always set on the document (e.g. phantomjs tests)
+   (when-not (.-body js/document)
+    ; https://developer.mozilla.org/en-US/docs/Web/API/Document/body
+    (set!
+     (.-body js/document)
+     (.createElement js/document "body")))
+   (.-body js/document))))
 
 (def a              (mkelem "a"))
 (def abbr           (mkelem "abbr"))
