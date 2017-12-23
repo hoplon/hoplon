@@ -1,6 +1,7 @@
 (ns hoplon.prototype-test
  (:require
   [hoplon.core :as h]
+  [javelin.core :as j]
   [cljs.test :refer-macros [deftest is]]))
 
 (deftest ??appendChild
@@ -26,7 +27,7 @@
    (is (not (h/managed? n)))))
 
  ; if the parent is native, but the child is managed but not a cell then the
- ; parent continues to be native and child continues as managed.
+ ; parent continues to be native and child continues as managed
  (doseq [[parent child] [[(.createElement js/document "div")
                           (h/div)]]]
   (.appendChild parent child)
@@ -37,4 +38,29 @@
 
   (is (not (h/native? child)))
   (is (not (h/native-node? child)))
-  (is (h/managed? child))))
+  (is (h/managed? child))
+
+  ; if the parent is native but the child is a cell then the parent becomes
+  ; managed and the child remains as a cell
+  (doseq [[parent child] [[(.createElement js/document "div")
+                           (j/cell "foo")]
+                          [(.createElement js/document "div")
+                           (j/cell= "foo")]]]
+   ; parent is initially native
+   (is (h/native? parent))
+   (is (h/native-node? parent))
+   (is (not (h/managed? parent)))
+
+   ; child initially a cell
+   (is (j/cell? child))
+
+   (.appendChild parent child)
+   (is (= "foo" (.-textContent parent)))
+
+   ; parent becomes managed
+   (is (not (h/native? parent)))
+   (is (not (h/native-node? parent)))
+   (is (h/managed? parent))
+
+   ; child is still cell
+   (is (j/cell? child)))))
