@@ -177,7 +177,8 @@
 
 (defn- managed?
   "Returns true if elem is a managed element. Managed elements have
-  their children managed by Hoplon."
+  their children managed by Hoplon. Hoplon nodes that are not elements are not
+  managed as they cannot have children anyway."
   [elem]
   (and
    (instance? js/Element elem)
