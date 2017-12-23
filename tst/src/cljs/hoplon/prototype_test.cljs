@@ -45,7 +45,9 @@
   (doseq [[parent child] [[(.createElement js/document "div")
                            (j/cell "foo")]
                           [(.createElement js/document "div")
-                           (j/cell= "foo")]]]
+                           (j/cell= "foo")]
+                          [(.createElement js/document "div")
+                           (j/cell= (h/div "foo"))]]]
    ; parent is initially native
    (is (h/native? parent))
    (is (h/native-node? parent))
@@ -63,4 +65,46 @@
    (is (h/managed? parent))
 
    ; child is still cell
+   (is (j/cell? child)))
+
+  ; if the parent is managed and the child is anything then both will continue
+  ; as they were after appending.
+  (let [parent (h/div)
+        child (.createElement js/document "div")]
+   (.appendChild parent child)
+   (is (= parent (.-parentNode child)))
+
+   (is (not (h/native? parent)))
+   (is (not (h/native-node? parent)))
+   (is (h/managed? parent))
+
+   (is (h/native? child))
+   (is (h/native-node? child))
+   (is (not (h/managed? child))))
+
+  (let [parent (h/div)
+        child (h/div)]
+   (.appendChild parent child)
+   (is (= parent (.-parentNode child)))
+
+   (is (not (h/native? parent)))
+   (is (not (h/native-node? parent)))
+   (is (h/managed? parent))
+
+   (is (not (h/native? child)))
+   (is (not (h/native-node? child)))
+   (is (h/managed? child)))
+
+  (let [parent (h/div)
+        child (j/cell (h/div))]
+   (.appendChild parent child)
+   (is (= parent (.-parentNode @child)))
+
+   (is (not (h/native? parent)))
+   (is (not (h/native-node? parent)))
+   (is (h/managed? parent))
+
+   (is (not (h/native? child)))
+   (is (not (h/native-node? child)))
+   (is (not (h/managed? child)))
    (is (j/cell? child)))))
