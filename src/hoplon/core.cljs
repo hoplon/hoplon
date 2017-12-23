@@ -184,9 +184,10 @@
    (-> elem .-hoplon)))
 
 (defn- managed-append-child
-  "Appends `child` to `parent` for the case of `parent` being a
-  managed element."
+  "Appends `child` to `parent` for the case of `parent` being a managed element
+  or `child` being a cell."
   [parent child kidfn]
+  {:pre [(or (managed? parent) (cell? child))]}
   (with-let [child child]
     (ensure-kids! parent)
     (let [kids (kidfn parent)
@@ -194,6 +195,15 @@
       (if (cell? child)
         (do-watch child #(swap! kids assoc i %2))
         (swap! kids assoc i child)))))
+
+(defn- managed-remove-child
+ "Removes `child` from `parent` for the case of `parent` being a managed element
+ or `child` being a cell"
+ [parent child kidfn]
+ {:pre [(or (managed? parent) (cell? child))]}
+ (with-let [child child])
+  (ensure-kids! parent)
+  (swap! (kidfn parent) #(into [] (remove (partial = child) %))))
 
 (defn- set-appendChild!
   [this kidfn]
@@ -232,9 +242,7 @@
           (if (and (native-node? this) (native-node? x))
            ; ensure native functionality for non-hoplon nodes.
            (.call removeChild this x)
-           (with-let [x x]
-             (ensure-kids! this)
-             (swap! (kidfn this) #(into [] (remove (partial = x) %)))))))))
+           (managed-remove-child this x kidfn))))))
 
 (defn- set-insertBefore!
   [this kidfn]
