@@ -345,3 +345,29 @@
   (is (h/managed? parent))
   (is (not (h/native? parent)))
   (is (not (h/native-node? parent)))))
+
+ ; replaceChild is broken for cells
+ ; https://github.com/hoplon/hoplon/issues/207
+ ; (let [parent (h/div)
+ ;       x (j/cell "foo")
+ ;       y (j/cell "bar")]
+ ;  (is (= y (.appendChild parent y)))
+ ;  (is (= y (.replaceChild parent x y)))
+ ;
+ ;  (is (= "foo" (.-textContent parent))))
+ ;
+ ; (let [parent (h/div)
+ ;       x (j/cell "foo")
+ ;       y (h/div "bar")]
+ ;  (is (= y (.appendChild parent y)))
+ ;  (is (= y (.replaceChild parent x y)))
+ ; 
+ ;  (is (= "foo" (.-textContent parent))))
+ ;
+ ; (let [parent (h/div)
+ ;       x (h/div "foo")
+ ;       y (j/cell "bar")]
+ ;  (is (= y (.appendChild parent y)))
+ ;  (is (= y (.replaceChild parent x y)))
+ ;
+ ;  (is (= "foo" (.-textContent parent)))))
