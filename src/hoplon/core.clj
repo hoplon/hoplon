@@ -16,16 +16,6 @@
             [javelin.core    :as j]
             [hoplon.spec]))
 
-(create-ns 'js)
-
-(try (let [env  @(do (require 'boot.pod) (resolve 'boot.pod/env))
-           fail @(do (require 'boot.util) (resolve 'boot.util/fail))]
-       (when-let [dep (some-> (->> env (:dependencies) (group-by first))
-                              (get 'hoplon/boot-hoplon) (first) (pr-str))]
-         (fail "The boot-hoplon dependency has been incorporated into hoplon and is no longer needed.\n")
-         (fail "Please remove %s from your :dependencies.\n" dep)))
-     (catch Throwable _))
-
 ;;-- helpers ----------------------------------------------------------------;;
 
 (defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
