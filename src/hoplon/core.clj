@@ -113,13 +113,6 @@
 
 ;; Defining Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmacro def-values
-  "Destructuring def, similar to scheme's define-values."
-  ([bindings values]
-   (do-def nil bindings values))
-  ([docstring bindings values]
-   (do-def docstring bindings values)))
-
 (defmacro elem
   "Create an anonymous custom element."
   [bind & body]
