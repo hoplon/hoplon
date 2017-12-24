@@ -17,14 +17,6 @@
 
 ;;-- helpers ----------------------------------------------------------------;;
 
-(defn parse-e [[tag & [head & tail :as args]]]
-  (let [kw1? (comp keyword? first)
-        mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
-        drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
-    (cond (map?     head) [tag head tail]
-          (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
-          :else           [tag nil args])))
-
 (defn- ^{:from 'org.clojure/core.incubator} silent-read
   "Attempts to clojure.core/read a single form from the provided String, returning
   a vector containing the read form and a String containing the unread remainder

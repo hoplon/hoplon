@@ -7,6 +7,14 @@
         (System/setProperty "hoplon.cacheKey" u)
         u)))
 
+(defn parse-e [[tag & [head & tail :as args]]]
+  (let [kw1? (comp keyword? first)
+        mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
+        drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
+    (cond (map?     head) [tag head tail]
+          (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
+          :else           [tag nil args])))
+
 (defn bust-cache
   [path]
   (let [[f & more] (reverse (string/split path #"/"))
