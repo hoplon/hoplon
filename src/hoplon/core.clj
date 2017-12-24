@@ -102,18 +102,6 @@
 ;; Caching DOM Manipulation Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom nil))))
 
-(defmacro loop-tpl
-  "Template. Works identically to `for-tpl`, only expects a `:bindings`
-  attribute to accomodate the HTML HLisp representation:
-
-    (loop-tpl :bindings [x xs] ...)"
-  [& args]
-  (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
-    `(loop-tpl* ~items
-       (fn [item#] (j/cell-let [~bindings item#] ~body)))))
-
-(spec/fdef loop-tpl :args :hoplon.spec/loop-tpl :ret any?)
-
 (defmacro for-tpl
   "Template. Accepts a cell-binding and returns a cell containing a sequence of
   elements:
