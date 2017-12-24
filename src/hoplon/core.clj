@@ -21,19 +21,6 @@
 (defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
 (defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
 
-(defn add-doc [docstring pair]
-  (if (string? docstring) (list (first pair) docstring (last pair)) pair))
-
-(defn do-def [docstring bindings values]
-  (->> (macroexpand `(let [~bindings ~values]))
-       (second)
-       (walk/postwalk-replace
-         {'clojure.lang.PersistentHashMap/create '(partial apply hash-map)})
-       (partition 2)
-       (map (partial add-doc docstring))
-       (map #(cons 'def %))
-       (list* 'do)))
-
 (defn parse-e [[tag & [head & tail :as args]]]
   (let [kw1? (comp keyword? first)
         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
