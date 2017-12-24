@@ -50,18 +50,6 @@
      (f init @ref)
      (add-watch ref k (fn [_ _ old new] (f old new))))))
 
-(defn bust-cache
-  "Public helper.
-  Experimental."
-  [path]
-  (let [[f & more] (reverse (split path #"/"))
-        [f1 f2]    (split f #"\." 2)]
-    (->> [(str f1 "." (cache-key)) f2]
-         (join ".")
-         (conj more)
-         (reverse)
-         (join "/"))))
-
 (defn normalize-class
   "Public helper.
   Class normalization for attribute providers."
