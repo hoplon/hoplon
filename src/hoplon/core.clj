@@ -111,7 +111,7 @@
          vals
          (filter keyword?))))
 
-;;-- defining macros --------------------------------------------------------;;
+;; Defining Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro def-values
   "Destructuring def, similar to scheme's define-values."
@@ -158,7 +158,7 @@
   [name & forms]
   `(defmethod hoplon.core/do! ~name ~@forms))
 
-(spec/fdef defelem :args :hoplon.spec/defelem :ret any?)
+(spec/fdef defattr :args :hoplon.spec/defattr :ret any?)
 
 ;;-- caching dom manipulation macros ----------------------------------------;;
 
