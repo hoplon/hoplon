@@ -50,15 +50,6 @@
   (let [parts (remove #(= "" %) (terpol8* s))]
     (if (every? string? parts) s `(str ~@parts))))
 
-(defn- map-bind-keys
-  [form]
-  (when (map? form)
-    (->> form
-         :keys
-         (map (juxt identity #(keyword (name %))))
-         (into (dissoc form :keys))
-         vals
-         (filter keyword?))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Defining Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

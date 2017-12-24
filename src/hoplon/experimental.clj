@@ -14,6 +14,16 @@
     (cond (map?     head) [tag head tail]
           (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
           :else           [tag nil args])))
+          
+(defn- map-bind-keys
+  [form]
+  (when (map? form)
+    (->> form
+         :keys
+         (map (juxt identity #(keyword (name %))))
+         (into (dissoc form :keys))
+         vals
+         (filter keyword?))))
 
 (defn bust-cache
   [path]
