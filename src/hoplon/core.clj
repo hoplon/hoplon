@@ -7,7 +7,6 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:refer-clojure :exclude [subs name])
   (:import [java.util UUID])
   (:require [clojure.walk    :as walk]
             [clojure.java.io :as io]
@@ -17,9 +16,6 @@
             [hoplon.spec]))
 
 ;;-- helpers ----------------------------------------------------------------;;
-
-(defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
-(defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
 
 (defn parse-e [[tag & [head & tail :as args]]]
   (let [kw1? (comp keyword? first)
