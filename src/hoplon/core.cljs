@@ -19,7 +19,7 @@
     [hoplon.spec])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+    [hoplon.core    :refer [with-timeout with-dom]]))
 
 (declare do! on! $text add-children!)
 
