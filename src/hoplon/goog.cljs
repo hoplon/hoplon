@@ -10,7 +10,7 @@
             [hoplon.spec :as spec])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+    [hoplon.core    :refer [with-timeout with-dom]]))
 
 ;; Google Closure Library Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod do! :value ;; only for elements with a 'type' attribute (inputs).
