@@ -24,9 +24,9 @@
 (spec/def ::attr-args
   (spec/and vector?
     (spec/cat
-      :elem simple-symbol?
-      :attr simple-symbol?
-      :value ::forms)))
+      :elem  simple-symbol?
+      :attr  simple-symbol?
+      :value simple-symbol?)))
 
 (spec/def ::defattr
   (spec/cat :name (spec/or :keyword keyword? :symbol simple-symbol?) :args ::attr-args :forms (spec/* ::forms)))
