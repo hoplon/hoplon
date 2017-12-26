@@ -21,7 +21,32 @@
     [javelin.core   :refer [with-let cell= prop-cell]]
     [hoplon.core    :refer [with-timeout with-dom]]))
 
-(declare do! on! $text add-children!)
+(declare do! on! $text add-children! attribute?)
+
+;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- child-vec
+  [this]
+  (let [x (.-childNodes this)
+        l (.-length x)]
+    (loop [i 0 ret (transient [])]
+      (or (and (= i l) (persistent! ret))
+          (recur (inc i) (conj! ret (.item x i)))))))
+
+(defn- vflatten
+ ([tree]
+   (persistent! (vflatten tree (transient []))))
+  ([tree ret]
+   (let [l (count tree)]
+     (loop [i 0]
+        (if (= i l)
+          ret
+          (let [x (nth tree i)]
+            (if-not (sequential? x)
+              (conj! ret x)
+              (vflatten x ret))
+            (recur (inc i))))))))
+
 
 (enable-console-print!)
 
@@ -88,30 +113,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn- child-vec
-  [this]
-  (let [x (.-childNodes this)
-        l (.-length x)]
-    (loop [i 0 ret (transient [])]
-      (or (and (= i l) (persistent! ret))
-          (recur (inc i) (conj! ret (.item x i)))))))
-
-(defn- vflatten
- ([tree]
-   (persistent! (vflatten tree (transient []))))
-  ([tree ret]
-   (let [l (count tree)]
-     (loop [i 0]
-        (if (= i l)
-          ret
-          (let [x (nth tree i)]
-            (if-not (sequential? x)
-              (conj! ret x)
-              (vflatten x ret))
-            (recur (inc i))))))))
-
 ;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defprotocol IHoplonNode
   (-node [this]))
@@ -127,6 +128,37 @@
 (defn- ->node
   [x]
   (if (satisfies? IHoplonNode x) (-node x) x))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defprotocol IHoplonAttribute
+  (-attr! [this elem value]))
+
+(defn attribute? [this]
+  (satisfies? IHoplonAttribute this))
+
+(defn -do! [elem this value]
+  (do! elem this value))
+
+(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
+
+(defn -on! [elem this value]
+  (on! elem this value))
+
+(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
+
+(extend-protocol IHoplonAttribute
+  Keyword
+  (-attr! [this elem value]
+    (cond (cell? value) (do-watch value #(-do! elem this %2))
+          (fn? value)   (-on! elem this value)
+          :else         (-do! elem this value))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn spec! []
+  (spect/instrument `-do!)
+  (spect/instrument `-on!))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -341,36 +373,6 @@
   (-insert-before! this new existing))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defprotocol IHoplonAttribute
-  (-attr! [this elem value]))
-
-(defn attribute? [this]
-  (satisfies? IHoplonAttribute this))
-
-(defn -do! [elem this value]
-  (do! elem this value))
-
-(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
-
-(defn -on! [elem this value]
-  (on! elem this value))
-
-(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
-
-(extend-protocol IHoplonAttribute
-  Keyword
-  (-attr! [this elem value]
-    (cond (cell? value) (do-watch value #(-do! elem this %2))
-          (fn? value)   (-on! elem this value)
-          :else         (-do! elem this value))))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn spec! []
-  (spect/instrument `-do!)
-  (spect/instrument `-on!))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
