@@ -70,6 +70,22 @@
                  (with-timeout 20 (doit))
                  (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
                      (obj/set this "_hoplonWhenDom" nil))))))))))
+
+(defn parse-args
+  "Parses a sequence of element arguments into attributes and children."
+  [args]
+  (loop [attr (transient {})
+         kids (transient [])
+         [arg & args] args]
+    (if-not (or arg args)
+      [(persistent! attr) (persistent! kids)]
+      (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+            (set? arg)       (recur (reduce #(assoc! %1 %2 true) attr arg) kids args)
+            (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
+            (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
+            (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
+            :else            (recur attr (conj! kids arg) args)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -357,20 +373,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn parse-args
-  [args]
-  (loop [attr (transient {})
-         kids (transient [])
-         [arg & args] args]
-    (if-not (or arg args)
-      [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
-            (set? arg)       (recur (reduce #(assoc! %1 %2 true) attr arg) kids args)
-            (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
-            (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
-            (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
-            :else            (recur attr (conj! kids arg) args)))))
 
 (defn- add-attributes!
   [this attr]
