@@ -30,12 +30,6 @@
   the prerender task)?"
   (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
 
-(def ^:no-doc static-elements
-  "This is an internal implementation detail, exposed for the convenience of
-  the hoplon.core/static macro. Experimental."
-  (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
-      (reduce {} (.querySelector js/document "[static-id]"))))
-
 ;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn do-watch
