@@ -50,6 +50,26 @@
     (if (map? kvs)
       kvs
       (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
+
+(defn timeout
+  "Executes a fuction after a delay, if no delay is passed, 0 is used as a default."
+  ([f] (timeout f 0))
+  ([f t] (.setTimeout js/window f t)))
+
+(defn when-dom
+  "Executes a function once an element has been attached to the DOM."
+  [this f]
+  (if-not (instance? js/Element this)
+    (with-timeout 0 (f))
+    (if-let [v (obj/get this "_hoplonWhenDom")]
+      (.push v f)
+      (do (obj/set this "_hoplonWhenDom" (array f))
+          (with-timeout 0
+            ((fn doit []
+               (if-not (.contains (.-documentElement js/document) this)
+                 (with-timeout 20 (doit))
+                 (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
+                     (obj/set this "_hoplonWhenDom" nil))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -268,7 +288,6 @@
 (set-replaceChild! (.-prototype js/Element) #(.-hoplonKids %))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defprotocol IHoplonElement
   (-set-attributes! [this kvs])
   (-set-styles!     [this kvs])
@@ -304,6 +323,7 @@
 (defn insert-before!
   [this new existing]
   (-insert-before! this new existing))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defprotocol IHoplonAttribute
@@ -335,27 +355,6 @@
   (spect/instrument `-do!)
   (spect/instrument `-on!))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn timeout
-  "Executes a fuction after a delay, if no delay is passed, 0 is used as a default."
-  ([f] (timeout f 0))
-  ([f t] (.setTimeout js/window f t)))
-
-(defn when-dom
-  [this f]
-  (if-not (instance? js/Element this)
-    (with-timeout 0 (f))
-    (if-let [v (obj/get this "_hoplonWhenDom")]
-      (.push v f)
-      (do (obj/set this "_hoplonWhenDom" (array f))
-          (with-timeout 0
-            ((fn doit []
-               (if-not (.contains (.-documentElement js/document) this)
-                 (with-timeout 20 (doit))
-                 (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
-                     (obj/set this "_hoplonWhenDom" nil))))))))))
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
