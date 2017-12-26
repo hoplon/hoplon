@@ -328,8 +328,8 @@
 (defn attribute? [this]
   (satisfies? IHoplonAttribute this))
 
-(extend-type Keyword
-  IHoplonAttribute
+(extend-protocol IHoplonAttribute
+  Keyword
   (-attr! [this elem value]
     (cond (cell? value) (do-watch value #(-do! elem this %2))
           (fn? value)   (-on! elem this value)
