@@ -205,10 +205,10 @@
   [& body]
   `(add-initfn! (fn [] ~@body)))
 
-(defmacro with-page-load
-  "Evaluates the body when the page is reloaded OR when live-reload reloads."
-  [& body]
-  `(defonce page-load# (on-page-load (fn [] ~@body))))
+;(defmacro with-page-load
+;  "Evaluates the body when the page is reloaded OR when live-reload reloads."
+;  [& body]
+;  `(defonce page-load# (on-page-load (fn [] ~@body))))
 
 ;(defmacro text
 ;  "Creates a DOM Text node and binds its text content to a formula created via

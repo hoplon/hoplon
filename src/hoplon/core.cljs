@@ -655,19 +655,18 @@
 
 
 (defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
-(defn page-load    []  (.dispatchEvent js/document "page-load"))
-(defn on-page-load [f] (.addEventListener js/document "page-load" f))
+;(defn page-load    []  (.dispatchEvent js/document "page-load"))
+;(defn on-page-load [f] (.addEventListener js/document "page-load" f))
 
-(add-initfn!
-  (fn []
-    (. (.-body js/document)
-       (addEventListener "submit"
-           #(let [e (.-target %)]
-              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
-                (.preventDefault %)))))))
+;(add-initfn!
+;  (fn []
+;    (. (.-body js/document)
+;       (addEventListener "submit"
+;           #(let [e (.-target %)]
+;              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
+;                (.preventDefault %)))))))
 
-;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Hpolon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmulti do!
   (fn [elem key val]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
