@@ -21,10 +21,11 @@
     [javelin.core   :refer [with-let cell= prop-cell]]
     [hoplon.core    :refer [with-timeout with-dom]]))
 
-(declare do! on! $text add-children! attribute?)
+;; Console Printing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(enable-console-print!)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Internal Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- child-vec
   [this]
   (let [x (.-childNodes this)
@@ -46,16 +47,16 @@
               (conj! ret x)
               (vflatten x ret))
             (recur (inc i))))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-(enable-console-print!)
+;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(declare do! on! $text add-children! attribute?)
 
 (def prerendering?
   "Is the application running in a prerendering container (eg. PhantomJS via
   the prerender task)?"
   (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
 
-;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn do-watch
   "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
   f is a function of two arguments: the previous and next values. If init is
@@ -110,7 +111,6 @@
             (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
             (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
