@@ -710,9 +710,10 @@
   (when-dom elem #(.addEventListener elem (name event) callback)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Template Macro Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
-  works like a fill vector. The template tpl is a function of one argument: the
+  works like a fill vector. The template `tpl` is a function of one argument: the
   formula cell containing the ith item in items. The tpl function is called
   once (and only once) for each index in items. When the items collection
   shrinks the DOM element created by the template is not destroyed--it is only
