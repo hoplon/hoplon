@@ -140,12 +140,12 @@
 (defn attribute? [this]
   (satisfies? IHoplonAttribute this))
 
-(defn -do! [elem this value]
+(defn- -do! [elem this value]
   (do! elem this value))
 
 (spec/fdef -do! :args :hoplon.spec/do! :ret any?)
 
-(defn -on! [elem this value]
+(defn- -on! [elem this value]
   (on! elem this value))
 
 (spec/fdef -on! :args :hoplon.spec/on! :ret any?)
