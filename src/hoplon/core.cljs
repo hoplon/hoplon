@@ -30,11 +30,9 @@
   the prerender task)?"
   (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
 
-;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn do-watch
-  "Public helper.
-  Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
+  "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
   f is a function of two arguments: the previous and next values. If init is
   not provided the default (nil) will be used."
   ([ref f]
@@ -45,14 +43,14 @@
      (add-watch ref k (fn [_ _ old new] (f old new))))))
 
 (defn normalize-class
-  "Public helper.
-  Class normalization for attribute providers. Converts from strings and
+  "Class normalization for attribute providers. Converts from strings and
   sequences to hashmaps."
   [kvs]
   (let [->map #(zipmap % (repeat true))]
     (if (map? kvs)
       kvs
       (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
