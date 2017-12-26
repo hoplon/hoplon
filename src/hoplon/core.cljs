@@ -46,7 +46,8 @@
 
 (defn normalize-class
   "Public helper.
-  Class normalization for attribute providers."
+  Class normalization for attribute providers. Converts from strings and
+  sequences to hashmaps."
   [kvs]
   (let [->map #(zipmap % (repeat true))]
     (if (map? kvs)
