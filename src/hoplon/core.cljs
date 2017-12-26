@@ -739,11 +739,4 @@
                     (let [e (peek @current)]
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
-
-(defn route-cell
-  "Defines a cell whose value is the URI fragment."
-  [& [default]]
-  (let [c (cell (.. js/window -location -hash))]
-    (with-let [_ (cell= (or (and (seq c) c) default))]
-      (-> js/window
-          (.addEventListener "hashchange" #(reset! c (.. js/window -location -hash)))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
