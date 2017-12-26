@@ -117,6 +117,9 @@
 (defprotocol IHoplonNode
   (-node [this]))
 
+(defn node? [this]
+  (satisfies? IHoplonNode this))
+
 (extend-protocol IHoplonNode
   string
   (-node [this]
@@ -127,7 +130,7 @@
 
 (defn- ->node
   [x]
-  (if (satisfies? IHoplonNode x) (-node x) x))
+  (if (node? x) (-node x) x))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -153,6 +156,10 @@
     (cond (cell? value) (do-watch value #(-do! elem this %2))
           (fn? value)   (-on! elem this value)
           :else         (-do! elem this value))))
+
+(defn- add-attributes!
+  [this attr]
+  (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -375,10 +382,6 @@
 
 
 ;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn- add-attributes!
-  [this attr]
-  (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
 
 (defn- add-children!
   [this [child-cell & _ :as kids]]
