@@ -306,27 +306,22 @@
   [this new existing]
   (-insert-before! this new existing))
 
-;;;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn -do! [elem this value]
-  (do! elem this value))
-
-(defn -on! [elem this value]
-  (on! elem this value))
-
-(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
-
-(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
-
-(defn spec! []
-  (spect/instrument `-do!)
-  (spect/instrument `-on!))
-
+;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defprotocol IHoplonAttribute
   (-attr! [this elem value]))
 
 (defn attribute? [this]
   (satisfies? IHoplonAttribute this))
+
+(defn -do! [elem this value]
+  (do! elem this value))
+
+(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
+
+(defn -on! [elem this value]
+  (on! elem this value))
+
+(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
 
 (extend-protocol IHoplonAttribute
   Keyword
@@ -334,7 +329,13 @@
     (cond (cell? value) (do-watch value #(-do! elem this %2))
           (fn? value)   (-on! elem this value)
           :else         (-do! elem this value))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn spec! []
+  (spect/instrument `-do!)
+  (spect/instrument `-on!))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
