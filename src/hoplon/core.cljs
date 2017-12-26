@@ -77,8 +77,7 @@
               (vflatten x ret))
             (recur (inc i))))))))
 
-;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defprotocol IHoplonNode
   (-node [this]))
 
@@ -93,9 +92,9 @@
 (defn- ->node
   [x]
   (if (satisfies? IHoplonNode x) (-node x) x))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Hoplon Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def ^:private removeChild  (.. js/Element -prototype -removeChild))
 (def ^:private appendChild  (.. js/Element -prototype -appendChild))
 (def ^:private insertBefore (.. js/Element -prototype -insertBefore))
