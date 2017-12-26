@@ -1,6 +1,6 @@
 (ns hoplon.binding
   (:refer-clojure :exclude [binding bound-fn])
-  (:require [clojure.core :as clj]
+  (:require [clojure.core  :as clj]
             [cljs.analyzer :as a]))
 
 (defmacro binding

@@ -1,7 +1,6 @@
 (ns hoplon.svg
   (:refer-clojure :exclude [symbol filter mask set use])
-  (:require
-    [hoplon.core :refer [parse-args do!]]))
+  (:require [hoplon.core :refer [parse-args do!]]))
 
 (defmethod do! :xlink/*
   [elem kw val]

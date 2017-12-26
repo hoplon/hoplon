@@ -1,13 +1,13 @@
 (ns hoplon.goog
-  (:require [goog.dom :as dom]
+  (:require [goog.dom           :as dom]
             [goog.dom.classlist :as domcl]
-            [goog.dom.forms :as domf]
-            [goog.events :as events]
-            [goog.fx.dom :as fxdom]
-            [goog.style :as style]
-            [goog.object :as obj]
-            [hoplon.core :refer [on! do! normalize-class]]
-            [hoplon.spec :as spec])
+            [goog.dom.forms     :as domf]
+            [goog.events        :as events]
+            [goog.fx.dom        :as fxdom]
+            [goog.style         :as style]
+            [goog.object        :as obj]
+            [hoplon.core        :refer [on! do! normalize-class]]
+            [hoplon.spec        :as spec])
   (:require-macros [hoplon.core :refer [with-timeout]]))
 
 ;; Google Closure Library Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

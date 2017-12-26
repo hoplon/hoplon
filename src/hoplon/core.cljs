@@ -7,19 +7,17 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:require
-    [goog.Uri]
-    [goog.object    :as obj]
-    [clojure.set    :refer [difference intersection]]
-    [javelin.core   :refer [cell? cell lift destroy-cell!]]
-    [cljs.reader    :refer [read-string]]
-    [clojure.string :refer [split join blank?]]
-    [cljs.spec.alpha :as spec]
-    [cljs.spec.test.alpha :as spect]
-    [hoplon.spec])
-  (:require-macros
-    [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [with-timeout with-dom]]))
+  (:require [goog.Uri]
+            [goog.object          :as obj]
+            [clojure.set          :refer [difference intersection]]
+            [javelin.core         :refer [cell? cell lift destroy-cell!]]
+            [cljs.reader          :refer [read-string]]
+            [clojure.string       :refer [split join blank?]]
+            [cljs.spec.alpha      :as spec]
+            [cljs.spec.test.alpha :as spect]
+            [hoplon.spec])
+  (:require-macros [javelin.core :refer [with-let cell= prop-cell]]
+                   [hoplon.core  :refer [with-timeout with-dom]]))
 
 ;; Console Printing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (enable-console-print!)
