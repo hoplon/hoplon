@@ -505,6 +505,7 @@
      (ensure-hoplon! elem)
      (elem attr kids))))
 
+;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn html [& args]
  "Updates and returns the document's `html` element in place."
  (with-let [el (.-documentElement js/document)]
@@ -650,6 +651,8 @@
 
 (def <!--           $comment)
 (def -->            ::-->)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
 (defn page-load    []  (.dispatchEvent js/document "page-load"))
