@@ -109,7 +109,7 @@
     (for-tpl [x xs] (span x))
   "
   [[bindings items] body]
-  `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
+  `(for-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
 
 (spec/fdef for-tpl :args :hoplon.spec/for-tpl :ret any?)
 
