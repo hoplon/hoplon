@@ -82,7 +82,7 @@
 (defprotocol IHoplonNode
   (-node [this]))
 
-(extend-prototype IHoplonNode
+(extend-protocol IHoplonNode
   string
   (-node [this]
     ($text this))
