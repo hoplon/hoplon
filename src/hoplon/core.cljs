@@ -694,7 +694,9 @@
 (defmethod do! :attr
   [elem _ kvs]
   (set-attributes! elem kvs))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Hpolon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmulti on!
   (fn [elem key val]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
@@ -706,6 +708,7 @@
 (defmethod on! :html/*
   [elem event callback]
   (when-dom elem #(.addEventListener elem (name event) callback)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
