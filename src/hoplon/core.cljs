@@ -79,22 +79,20 @@
 
 ;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol INode
-  (node [this]))
+(defprotocol IHoplonNode
+  (-node [this]))
 
-(extend-type string
-  INode
-  (node [this]
-    ($text this)))
-
-(extend-type number
-  INode
-  (node [this]
+(extend-prototype IHoplonNode
+  string
+  (-node [this]
+    ($text this))
+  number
+  (-node [this]
     ($text (str this))))
 
 (defn- ->node
   [x]
-  (if (satisfies? INode x) (node x) x))
+  (if (satisfies? IHoplonNode x) (-node x) x))
 
 ;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
