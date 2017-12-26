@@ -1,4 +1,5 @@
 (ns hoplon.experimental
+  (:import [java.util UUID])
   (:require [clojure.string  :as string]))
 
 (defmacro cache-key []
@@ -14,7 +15,7 @@
     (cond (map?     head) [tag head tail]
           (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
           :else           [tag nil args])))
-          
+
 (defn- map-bind-keys
   [form]
   (when (map? form)

@@ -7,10 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:import [java.util UUID])
-  (:require [clojure.walk    :as walk]
-            [clojure.java.io :as io]
-            [clojure.string  :as string]
+  (:require [clojure.string  :as string]
             [clojure.spec.alpha :as spec]
             [javelin.core    :as j]
             [hoplon.spec]))
