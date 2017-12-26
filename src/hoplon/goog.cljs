@@ -13,7 +13,7 @@
     [hoplon.core    :refer [with-timeout with-dom]]))
 
 ;; Google Closure Library Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmethod do! :value ;; only for elements with a 'type' attribute (inputs).
+(defmethod do! :value
   [elem _ v]
   (domf/setValue elem v))
 
@@ -118,3 +118,4 @@
   [elem event callback]
   (let [event (obj/get events/EventType (name event))]
     (when-dom elem #(events/listen elem event callback))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
