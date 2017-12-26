@@ -8,9 +8,7 @@
             [goog.object :as obj]
             [hoplon.core :refer [on! do! normalize-class]]
             [hoplon.spec :as spec])
-  (:require-macros
-    [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [with-timeout with-dom]]))
+  (:require-macros [hoplon.core :refer [with-timeout]]))
 
 ;; Google Closure Library Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod do! :value
@@ -113,7 +111,9 @@
 (defmethod spec/do! :scroll-to
   [_]
   (spec/attr :hoplon.spec/boolean))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Google Closure Library Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod on! :hoplon.core/default
   [elem event callback]
   (let [event (obj/get events/EventType (name event))]
