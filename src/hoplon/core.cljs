@@ -152,7 +152,7 @@
  that are not elements."
  (and
   (instance? js/Node node)
-  (not (-> ->node .-hoplon))))
+  (not (-> node .-hoplon))))
 
 (defn- managed?
   "Returns true if elem is a managed element. Managed elements have
