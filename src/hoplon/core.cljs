@@ -679,6 +679,10 @@
   [elem key val]
   (set-styles! elem val))
 
+(defmethod do! :css
+  [elem _ kvs]
+  (set-styles! elem kvs))
+
 (defmethod do! :html/*
   [elem key val]
   (set-attributes! elem val))
@@ -690,10 +694,6 @@
 (defmethod do! :attr
   [elem _ kvs]
   (set-attributes! elem kvs))
-
-(defmethod do! :css
-  [elem _ kvs]
-  (set-styles! elem kvs))
 
 (defmulti on!
   (fn [elem key val]
