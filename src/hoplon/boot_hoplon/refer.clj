@@ -179,6 +179,4 @@
          '(ns foo.bar
             (:require [javelin.core :refer :all]
                       [hoplon.core :refer [p h1 h3 h2]])))
-       (clojure.pprint/pprint))
-
-  )
+       (clojure.pprint/pprint)))
