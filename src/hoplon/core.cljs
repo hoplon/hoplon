@@ -395,10 +395,11 @@
       (add-attributes! attr)
       (add-children! kids))))
 
-(defn- lookup!
+(defn lookup!
   ([this k]
-    (cond (attribute? k) (.getAttribute this (name k))
-      :else (obj/get (.-children this) k)))
+    (if (attribute? k)
+      (.getAttribute this (name k))
+      (obj/get (.-children this) k)))
   ([this k not-found]
     (or (lookup! this k) not-found)))
 
