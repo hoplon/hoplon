@@ -159,9 +159,10 @@
 
 (defmethod do! :fade-toggle
   [elem _ v]
-  (if v
-    (.fadeIn (.hide (js/jQuery elem)) "fast")
-    (.fadeOut (js/jQuery elem) "fast")))
+  (when-dom elem
+    #(if v
+       (.fadeIn (.hide (js/jQuery elem)) "fast")
+       (.fadeOut (js/jQuery elem) "fast"))))
 
 (defmethod spec/do! :fade-toggle
   [_]
