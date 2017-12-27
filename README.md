@@ -2,7 +2,7 @@
   <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
 
-# Hoplon [![build status][14]][15] ![epicycles][11] #
+# Hoplon [![build status][14]][15] [![clojars][8]][9] [![road map][11]][16]
 
 [](dependency)
 ```clojure
@@ -65,7 +65,7 @@ Install [Boot](http://boot-clj.com) and then generate a starter project with:
 Hoplon has been thoroughly tested on desktop and mobile devices against the
 following browsers:
 
-![IEdge](https://img.shields.io/badge/IEdge-8%2B-blue.svg) ![Firefox](https://img.shields.io/badge/Firefox-14%2B-orange.svg) ![Safari](https://img.shields.io/badge/Safari-5%2B-blue.svg)
+![IEdge](https://img.shields.io/badge/IEdge-10%2B-blue.svg) ![Firefox](https://img.shields.io/badge/Firefox-14%2B-orange.svg) ![Safari](https://img.shields.io/badge/Safari-5%2B-blue.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-26%2B-yellow.svg) ![Opera](https://img.shields.io/badge/Opera-11%2B-red.svg)
 ![Android](https://img.shields.io/badge/Android-4%2B-green.svg)
 
@@ -113,11 +113,12 @@ this license. You must not remove this notice, or any other, from this software.
 [5]: https://github.com/hoplon/hoplon-demos
 [6]: Design.md
 [7]: http://hoplon.io/
-[8]: https://clojars.org/hoplon/hoplon/latest-version.svg?bustcache=2
-[9]: http://hoplon.github.io/hoplon/
+[8]: https://img.shields.io/clojars/v/hoplon.svg
+[9]: https://clojars.org/hoplon
 [10]: http://en.wikipedia.org/wiki/Deferent_and_epicycle
-[11]: http://img.shields.io/badge/epicycles-0-green.svg?cache=1
+[11]: https://img.shields.io/badge/road%20map-7.2-lightgrey.svg
 [12]: https://badge.waffle.io/hoplon/hoplon.png?label=ready&title=Ready
 [13]: https://waffle.io/hoplon/hoplon
 [14]: https://travis-ci.org/hoplon/hoplon.svg?branch=master
 [15]: https://travis-ci.org/hoplon/hoplon
+[16]: https://github.com/hoplon/hoplon/milestones?direction=desc&sort=completeness&state=open
