@@ -395,14 +395,6 @@
       (add-attributes! attr)
       (add-children! kids))))
 
-(defn lookup!
-  ([this k]
-    (if (attribute? k)
-      (.getAttribute this (name k))
-      (obj/get (.-children this) k)))
-  ([this k not-found]
-    (or (lookup! this k) not-found)))
-
 (extend-type js/Element
   IPrintWithWriter
   (-pr-writer
@@ -457,9 +449,11 @@
   ILookup
   (-lookup
     ([this k]
-      (lookup! this k))
+      (if (attribute? k)
+        (.getAttribute this (name k))
+        (obj/get (.-children this) k)))
     ([this k not-found]
-      (lookup! this k not-found)))
+      (or (-lookup this k) not-found)))
   IHoplonElement
   (-set-attributes!
     ([this kvs]
