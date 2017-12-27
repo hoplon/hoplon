@@ -154,10 +154,6 @@
     (cond (cell? value) (do-watch value #(-do! elem this %2))
           (fn? value)   (-on! elem this value)
           :else         (-do! elem this value))))
-
-(defn- add-attributes!
-  [this attr]
-  (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -376,10 +372,10 @@
 (defn insert-before!
   [this new existing]
   (-insert-before! this new existing))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn- add-attributes!
+  [this attr]
+  (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
 
 (defn- add-children!
   [this [child-cell & _ :as kids]]
@@ -449,11 +445,12 @@
   ILookup
   (-lookup
     ([this k]
-      (if (attribute? k)
-        (.getAttribute this (name k))
-        (obj/get (.-children this) k)))
+      (-lookup this k nil))
     ([this k not-found]
-      (or (-lookup this k) not-found)))
+      (cond
+        (attribute? k) (.getAttribute this (name k))
+        (node? k)      (obj/get (.-children this) k)
+        :else not-found)))
   IHoplonElement
   (-set-attributes!
     ([this kvs]
@@ -479,7 +476,9 @@
   (-insert-before!
     ([this new existing]
      (.insertBefore this new existing))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; HTML Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- mksingleton
   [elem]
   (fn [& args]
@@ -497,6 +496,7 @@
           elem (.createElement js/document tag)]
      (ensure-hoplon! elem)
      (elem attr kids))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn html [& args]
