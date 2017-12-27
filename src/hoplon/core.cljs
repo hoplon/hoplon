@@ -398,7 +398,7 @@
 (defn- lookup!
   ([this k]
     (cond (attribute? k) (.getAttribute this (name k))
-      :else (goog.object/get (.-children this) k)))
+      :else (obj/get (.-children this) k)))
   ([this k not-found]
     (or (lookup! this k) not-found)))
 
