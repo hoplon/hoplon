@@ -664,7 +664,7 @@
 ;              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
 ;                (.preventDefault %)))))))
 
-;; Hpolon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hoplon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmulti do!
   (fn [elem key val]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
@@ -694,7 +694,7 @@
   (set-attributes! elem kvs))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Hpolon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmulti on!
   (fn [elem key val]
     (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
