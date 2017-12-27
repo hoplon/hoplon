@@ -12,5 +12,4 @@
 
   (is (= (get el :baz) "foo"))
 
-  (is (= (get el :bar "bar") "bar"))
-  ))
+  (is (= (get el :bar "bar") "bar"))))

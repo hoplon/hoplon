@@ -445,12 +445,11 @@
   ILookup
   (-lookup
     ([this k]
-      (-lookup this k nil))
+      (if (attribute? k)
+        (.getAttribute this (name k))
+        (obj/get (.-children this) k)))
     ([this k not-found]
-      (cond
-        (attribute? k) (.getAttribute this (name k))
-        (node? k)      (obj/get (.-children this) k)
-        :else not-found)))
+      (or (-lookup this k) not-found)))
   IHoplonElement
   (-set-attributes!
     ([this kvs]
@@ -486,7 +485,7 @@
     (let [[attrs kids] (parse-args args)]
      (ensure-hoplon! elem)
      (add-attributes! elem attrs)
-     (when (not (:static attrs))
+     (when-not (:static attrs)
        (remove-all-kids! elem)
        (add-children! elem kids))))))
 
