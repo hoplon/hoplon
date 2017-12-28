@@ -13,7 +13,7 @@ the following libraries as dependencies to complete the stack:
   state. Hoplon tightly integrates with Javelin to reactively bind DOM
   elements to the underlying Javelin cell graph.
 * [Castra][2]: a full-featured RPC library for Clojure and
-  ClojureScript, providing the serverside environment.
+  ClojureScript, providing the serverside environment. (optional)
 
 ### Quickstart
 
