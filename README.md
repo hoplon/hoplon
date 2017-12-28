@@ -2,13 +2,7 @@
   <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
 
-# Hoplon [![build status][14]][15] [![clojars][8]][9] [![road map][11]][16]
-
-[](dependency)
-```clojure
-[hoplon "7.1.0"] ;; latest release
-```
-[](/dependency)
+# Hoplon [![clojars][8]][9]  [![build status][14]][15]  [![road map][11]][16]
 
 Hoplon is a set of tools and libraries for making web applications.
 
