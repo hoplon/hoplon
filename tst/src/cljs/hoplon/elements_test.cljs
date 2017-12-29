@@ -2,6 +2,7 @@
  (:require
   goog.dom
   [hoplon.core :as h]
+  [javelin.core :as j]
   [cljs.test :refer-macros [deftest is]]))
 
 (deftest ??not-elements
@@ -179,6 +180,14 @@
 
    (is (hoplon.core/managed? hoplon-el))
    (is (not (hoplon.core/managed? native-el))))))
+
+(deftest ??element-text
+  (let [t  (j/cell "World!")
+        txt (h/text "Hello ~{t}")]
+    (is (= (.-nodeValue txt) "Hello World!"))
+
+    (reset! t "Hoplon!")
+    (is (= (.-nodeValue txt) "Hello Hoplon!"))))
 
 (deftest ??element-creation
  ; we want to handle at least as many children as the arity of invoke!
