@@ -62,7 +62,7 @@
 (defn- -elem! [elem this value]
   (elem! elem this value))
 
-;; TODO: spec -elem!
+(spec/fdef -elem! :args :hoplon.spec/elem! :ret any?)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -181,6 +181,7 @@
 
 ;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn spec! []
+  (spect/instrument `-elem!)
   (spect/instrument `-do!)
   (spect/instrument `-on!))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
