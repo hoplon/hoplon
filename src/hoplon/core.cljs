@@ -48,6 +48,21 @@
             (conj! ret x)
             (vflatten x ret))
           (recur (inc i))))))))
+
+(defn- -do! [elem this value]
+  (do! elem this value))
+
+(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
+
+(defn- -on! [elem this value]
+  (on! elem this value))
+
+(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
+
+(defn- -elem! [elem this value]
+  (elem! elem this value))
+
+;; TODO: spec -elem!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -154,22 +169,10 @@
 (defn attribute? [this]
   (satisfies? IHoplonAttribute this))
 
-(defn- -do! [elem this value]
-  (do! elem this value))
-
-(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
-
-(defn- -on! [elem this value]
-  (on! elem this value))
-
-(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
-
 (extend-protocol IHoplonAttribute
   Keyword
   (-attribute! [this elem value]
-    (cond (cell? value) (do-watch value #(-do! elem this %2))
-          (fn? value)   (-on! elem this value)
-          :else         (-do! elem this value))))
+    (-elem! elem this value)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -674,22 +677,26 @@
 ;              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
 ;                (.preventDefault %)))))))
 
+;; Hoplon elem! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti elem! dispatcher :default ::default)
+
+(defmethod elem! ::default
+  [elem key value]
+  (cond (cell? value) (do-watch value #(-do! elem key %2))
+        (fn? value)   (-on! elem key value)
+        :else         (-do! elem key value)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Hoplon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti do!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+(defmulti do! dispatcher :default ::default)
 
 (defmethod do! ::default
   [elem key val]
   (do! elem :attr {key val}))
 
-(defmethod do! :css/*
-  [elem key val]
-  (set-styles! elem val))
-
-(defmethod do! :css
+(defmethod do! :attr
   [elem _ kvs]
-  (set-styles! elem kvs))
+  (set-attributes! elem kvs))
 
 (defmethod do! :html/*
   [elem key val]
@@ -699,15 +706,17 @@
   [elem key val]
   (set-attributes! elem val))
 
-(defmethod do! :attr
+(defmethod do! :css
   [elem _ kvs]
-  (set-attributes! elem kvs))
+  (set-styles! elem kvs))
+
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem val))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti on!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+(defmulti on! dispatcher :default ::default)
 
 (defmethod on! ::default
   [elem event callback]
