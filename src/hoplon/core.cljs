@@ -133,7 +133,7 @@
 
 ;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defprotocol IHoplonAttribute
-  (-attr! [this elem value]))
+  (-attribute! [this elem value]))
 
 (defn attribute? [this]
   (satisfies? IHoplonAttribute this))
@@ -150,7 +150,7 @@
 
 (extend-protocol IHoplonAttribute
   Keyword
-  (-attr! [this elem value]
+  (-attribute! [this elem value]
     (cond (cell? value) (do-watch value #(-do! elem this %2))
           (fn? value)   (-on! elem this value)
           :else         (-do! elem this value))))
@@ -375,7 +375,7 @@
 
 (defn- add-attributes!
   [this attr]
-  (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
+  (reduce-kv #(do (-attribute! %2 %1 %3) %1) this attr))
 
 (defn- add-children!
   [this [child-cell & _ :as kids]]
