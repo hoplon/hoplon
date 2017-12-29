@@ -38,17 +38,16 @@
 
 (defn- vflatten
  ([tree]
-   (persistent! (vflatten tree (transient []))))
-  ([tree ret]
-   (let [l (count tree)]
-     (loop [i 0]
-        (if (= i l)
-          ret
-          (let [x (nth tree i)]
-            (if-not (sequential? x)
-              (conj! ret x)
-              (vflatten x ret))
-            (recur (inc i))))))))
+  (persistent! (vflatten tree (transient []))))
+ ([tree ret]
+  (let [l (count tree)]
+    (loop [i 0]
+      (if (= i l) ret
+        (let [x (nth tree i)]
+          (if-not (sequential? x)
+            (conj! ret x)
+            (vflatten x ret))
+          (recur (inc i))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
