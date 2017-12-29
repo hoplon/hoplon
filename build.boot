@@ -38,7 +38,7 @@
 
 (deftask develop-tests []
  (set-env! :source-paths #{"tst/src/cljs"})
- (comp (watch) (speak) (test-cljs :js-env :chrome-headless :cljs-opts test-cljs-options)))
+ (comp (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
 
 (task-options!
   pom    {:project     'hoplon
