@@ -111,6 +111,10 @@
                  (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
                      (obj/set this "_hoplonWhenDom" nil))))))))))
 
+(defn add-initfn!
+  "Executes a function once the window load event is fired."
+  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
+
 (defn parse-args
   "Parses a sequence of element arguments into attributes and children."
   [args]
@@ -663,19 +667,6 @@
 (def <!--           $comment)
 (def -->            ::-->)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
-;(defn page-load    []  (.dispatchEvent js/document "page-load"))
-;(defn on-page-load [f] (.addEventListener js/document "page-load" f))
-
-;(add-initfn!
-;  (fn []
-;    (. (.-body js/document)
-;       (addEventListener "submit"
-;           #(let [e (.-target %)]
-;              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
-;                (.preventDefault %)))))))
 
 ;; Hoplon elem! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmulti elem! dispatcher :default ::default)
