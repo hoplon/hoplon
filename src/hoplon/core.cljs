@@ -110,6 +110,21 @@
             (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
             (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
+
+(defn dispatcher
+  "A multi-method dispatch function.
+
+   Will dispatch against three arguments:
+
+     * `elem` - the target DOM Element containing the attribute
+     * `key` - the attribute keyword or symbol
+     * `value` - the attribute value
+
+   The dispatcher will attempt to dispatch agains the key namespace or key.
+
+   ex. when key is `:namespace/key` will dispatch on `:namespace/*` otherwise `key`"
+  [elem key value]
+  (if-let [n (namespace key)] (keyword n "*") key))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
