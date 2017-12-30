@@ -12,46 +12,40 @@
             [javelin.core       :as j]
             [hoplon.spec]))
 
-;; Macro Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hoplon Interpolation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(defn- ^{:from 'org.clojure/core.incubator} silent-read
-;  "Attempts to clojure.core/read a single form from the provided String, returning
-;  a vector containing the read form and a String containing the unread remainder
-;  of the provided String. Returns nil if no valid form can be read from the
-;  head of the String."
-;  [s]
-;  (try
-;    (let [r (-> s java.io.StringReader. java.io.PushbackReader.)]
-;      [(read r) (slurp r)]
-;    (catch Exception e))) ; this indicates an invalid form -- the head of s is just string data
-;
-;(defn- ^{:from 'org.clojure/core.incubator} terpol8*
-;  "Yields a seq of Strings and read forms."
-;  ([s atom?]
-;   (lazy-seq
-;     (if-let [[form rest] (silent-read (subs s (if atom? 2 1)))]
-;       (cons form (terpol8* (if atom? (subs rest 1) rest)))
-;       (cons (subs s 0 2) (terpol8* (subs s 2))))
-;  ([^String s]
-;   (if-let [start (->> ["~{" "~("]
-;                       (map #(.indexOf s ^String %))
-;                       (remove #(== -1 %))
-;                       sort
-;                       first]
-;     (lazy-seq (cons
-;                 (subs s 0 start)
-;                 (terpol8* (subs s start) (= \{ (.charAt s (inc start))))]
-;     [s]))
-;
-;(defn terpol8 [s]
-;  (let [parts (remove #(= "" %) (terpol8* s))]
-;    (if (every? string? parts) s `(str ~@parts))))
-;
-;(defmacro fmt [^String string]
-;  (let [-re #"#\{(.*?)\}"
-;        fstr (clojure.string/replace string -re "%s")
-;        fargs (map #(read-string (second %)) (re-seq -re string))
-;    `(format ~fstr ~@fargs)))
+(defn- ^{:from 'org.clojure/core.incubator} silent-read
+  "Attempts to clojure.core/read a single form from the provided String, returning
+  a vector containing the read form and a String containing the unread remainder
+  of the provided String. Returns nil if no valid form can be read from the
+  head of the String."
+  [s]
+  (try
+    (let [r (-> s java.io.StringReader. java.io.PushbackReader.)]
+      [(read r) (slurp r)])
+    (catch Exception e))) ; this indicates an invalid form -- the head of s is just string data
+
+(defn- ^{:from 'org.clojure/core.incubator} terpol8*
+  "Yields a seq of Strings and read forms."
+  ([s atom?]
+   (lazy-seq
+     (if-let [[form rest] (silent-read (subs s (if atom? 2 1)))]
+       (cons form (terpol8* (if atom? (subs rest 1) rest)))
+       (cons (subs s 0 2) (terpol8* (subs s 2))))))
+  ([^String s]
+   (if-let [start (->> ["~{" "~("]
+                       (map #(.indexOf s ^String %))
+                       (remove #(== -1 %))
+                       sort
+                       first)]
+     (lazy-seq (cons
+                 (subs s 0 start)
+                 (terpol8* (subs s start) (= \{ (.charAt s (inc start))))))
+     [s])))
+
+(defn terpol8 [s]
+  (let [parts (remove #(= "" %) (terpol8* s))]
+    (if (every? string? parts) s `(str ~@parts))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Defining Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -202,18 +196,13 @@
   [& body]
   `(add-initfn! (fn [] ~@body)))
 
-;(defmacro with-page-load
-;  "Evaluates the body when the page is reloaded OR when live-reload reloads."
-;  [& body]
-;  `(defonce page-load# (on-page-load (fn [] ~@body))))
-
-;(defmacro text
-;  "Creates a DOM Text node and binds its text content to a formula created via
-;  string interpolation, so the Text node updates with the formula."
-;  [form]
-;  (let [i (if-not (string? form) form (terpol8 form))]
-;    (if (string? i)
-;      `(.createTextNode js/document ~i)
-;      `(j/with-let [t# (.createTextNode js/document "")]
-;         (j/cell= (set! (.-nodeValue t#) ~i))))
+(defmacro text
+  "Creates a DOM Text node and binds its text content to a formula created via
+  string interpolation, so the Text node updates with the formula."
+  [form]
+  (let [i (if-not (string? form) form (terpol8 form))]
+    (if (string? i)
+      `(.createTextNode js/document ~i)
+      `(j/with-let [t# (.createTextNode js/document "")]
+         (j/cell= (set! (.-nodeValue t#) ~i))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
