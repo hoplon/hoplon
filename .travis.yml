@@ -1,6 +1,8 @@
 language: clojure
 jdk:
   - oraclejdk8
+matrix:
+  fast_finish: true
 addons:
   chrome: stable
   firefox: latest
