@@ -17,6 +17,6 @@ cache:
   directories:
   - $HOME/.m2
 before_script:
-  - npm install karma karma-$JS_ENV-launcher
+  - npm install -g karma karma-$JS_ENV-launcher
 script:
   - ./boot test-cljs -x -j ${JS_ENV%js}
