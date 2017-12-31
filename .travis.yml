@@ -1,22 +1,11 @@
 language: clojure
 jdk:
   - oraclejdk8
-matrix:
-  fast_finish: true
-addons:
-  chrome: stable
-  firefox: latest
-env:
-  - JS_ENV=phantomjs
-  - JS_ENV=chrome
-  - JS_ENV=firefox MOZ_HEADLESS=1
 install:
   - curl -s https://api.github.com/repos/boot-clj/boot/releases |grep 'download_url.*boot\.sh' |head -1 |sed 's/^.*[:] /wget -O boot /' |bash
   - chmod 755 boot
 cache:
   directories:
   - $HOME/.m2
-before_script:
-  - npm install -g karma karma-$JS_ENV-launcher karma-cljs-test
 script:
-  - ./boot test-cljs -x -j ${JS_ENV%js}
+  - ./boot test-cljs -x
