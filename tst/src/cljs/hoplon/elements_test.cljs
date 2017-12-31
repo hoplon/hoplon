@@ -182,12 +182,16 @@
    (is (not (hoplon.core/managed? native-el))))))
 
 (deftest ??element-text
-  (let [t  (j/cell "World!")
-        txt (h/text "Hello ~{t}")]
-    (is (= (.-nodeValue txt) "Hello World!"))
+  (let [t    (j/cell "World!")
+        ivar (h/text "Hello ~{t}")
+        ifn  (h/text "Hello ~(identity t)")]
+    (is (= (.-nodeValue ivar) "Hello World!"))
+    (is (= (.-nodeValue ifn) "Hello World!"))
 
     (reset! t "Hoplon!")
-    (is (= (.-nodeValue txt) "Hello Hoplon!"))))
+
+    (is (= (.-nodeValue ivar) "Hello Hoplon!"))
+    (is (= (.-nodeValue ifn) "Hello Hoplon!"))))
 
 (deftest ??element-creation
  ; we want to handle at least as many children as the arity of invoke!
