@@ -1,12 +1,12 @@
 (set-env!
   :source-paths   #{"src"}
   :dependencies (template [[adzerk/boot-cljs                      "2.1.4"    :scope "test"]
-                           [adzerk/bootlaces                      "0.1.13"   :scope "test"]
                            [adzerk/boot-reload                    "0.5.1"    :scope "test"]
                            [adzerk/boot-test                      "1.2.0"    :scope "test"]
                            [boot-codox                            "0.10.3"   :scope "test"]
                            [lein-doo                              "0.1.8"    :scope "test"]
                            [crisptrutski/boot-cljs-test           "0.3.4"    :scope "test"]
+                           [degree9/boot-semver                   "1.7.0"    :scope "test"]
                            [org.clojure/clojure                   ~(clojure-version)]
                            [org.clojure/clojurescript             "1.9.946"]
                            [org.clojure/test.check                "0.9.0"]
@@ -14,19 +14,17 @@
                            [hoplon/javelin                        "3.9.0"]]))
 
 (require
-  '[adzerk.bootlaces          :refer :all]
   '[adzerk.boot-reload        :refer [reload]]
   '[adzerk.boot-cljs          :refer [cljs]]
   '[adzerk.boot-test          :refer [test]]
   '[codox.boot                :refer [codox]]
-  '[crisptrutski.boot-cljs-test :refer [test-cljs]])
-
-(def +version+ "7.1.0")
-
-(bootlaces! +version+)
+  '[crisptrutski.boot-cljs-test :refer [test-cljs]]
+  '[degree9.boot-semver       :refer :all])
 
 (deftask develop []
-  (comp (watch) (target) (speak) (build-jar)))
+  (comp
+    (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
+    (watch) (target) (build-jar) (speak)))
 
 (def test-cljs-options {:process-shim false})
 
@@ -38,11 +36,12 @@
 
 (deftask develop-tests []
  (set-env! :source-paths #{"tst/src/cljs"})
- (comp (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
+ (comp
+   (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
+   (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
 
 (task-options!
   pom    {:project     'hoplon
-          :version     +version+
           :description "Hoplon web development environment."
           :url         "https://github.com/hoplon/hoplon"
           :scm         {:url "https://github.com/hoplon/hoplon"}
@@ -50,7 +49,6 @@
   target {:dir #{"target"}}
   codox  {:description "Hoplon web development environment."
           :name "Hoplon"
-          :version +version+
           :language :clojurescript
           :source-uri "https://github.com/hoplon/hoplon/tree/{version}/{filepath}#L{line}"
           :filter-namespaces '[hoplon.core hoplon.storage-atom hoplon.svg hoplon.test]
