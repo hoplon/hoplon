@@ -17,7 +17,7 @@
    (is (not (goog.dom/isElement n)))
    (is (not (h/native? n)))
    (is (h/native-node? n))
-   (is (not (h/managed? n))))))
+   (is (not (h/element? n))))))
 
 (deftest ??singletons
  ; initially both head and body are unmanaged
@@ -28,7 +28,7 @@
   (is (.webkitMatchesSelector e s))
   (is (h/native? e))
   (is (h/native-node? e))
-  (is (not (h/managed? e))))
+  (is (not (h/element? e))))
 
  ; calling hoplon singleton fns will start managing the relevant el
  (doseq [[e s] [[(h/head) "head"]
@@ -38,7 +38,7 @@
   (is (.webkitMatchesSelector e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
-  (is (h/managed? e)))
+  (is (h/element? e)))
 
  ; the els will still be considered managed even if referenced directly
  (doseq [[e s] [[(.-head js/document) "head"]
@@ -48,7 +48,7 @@
   (is (.webkitMatchesSelector e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
-  (is (h/managed? e))))
+  (is (h/element? e))))
 
 (def elements
  [
@@ -178,8 +178,8 @@
    (is (not (hoplon.core/native-node? hoplon-el)))
    (is (hoplon.core/native-node? native-el))
 
-   (is (hoplon.core/managed? hoplon-el))
-   (is (not (hoplon.core/managed? native-el))))))
+   (is (hoplon.core/element? hoplon-el))
+   (is (not (hoplon.core/element? native-el))))))
 
 (deftest ??element-text
   (let [t    (j/cell "World!")
