@@ -2,7 +2,6 @@
   :source-paths   #{"src"}
   :dependencies (template [[adzerk/boot-cljs                      "2.1.4"    :scope "test"]
                            [adzerk/boot-reload                    "0.5.1"    :scope "test"]
-                           [adzerk/boot-test                      "1.2.0"    :scope "test"]
                            [boot-codox                            "0.10.3"   :scope "test"]
                            [lein-doo                              "0.1.8"    :scope "test"]
                            [crisptrutski/boot-cljs-test           "0.3.4"    :scope "test"]
@@ -13,32 +12,13 @@
                            [cljsjs/jquery                         "3.2.1-0"]
                            [hoplon/javelin                        "3.9.0"]]))
 
+;; External Tasks ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require
   '[adzerk.boot-reload        :refer [reload]]
   '[adzerk.boot-cljs          :refer [cljs]]
-  '[adzerk.boot-test          :refer [test]]
   '[codox.boot                :refer [codox]]
   '[crisptrutski.boot-cljs-test :refer [test-cljs]]
   '[degree9.boot-semver       :refer :all])
-
-(deftask develop []
-  (comp
-    (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
-    (watch) (target) (build-jar) (speak)))
-
-(def test-cljs-options {:process-shim false})
-
-(replace-task!
- [t test-cljs]
- (fn [& xs]
-  (set-env! :source-paths #{"tst/src/cljs"})
-  (apply t :cljs-opts test-cljs-options xs)))
-
-(deftask develop-tests []
- (set-env! :source-paths #{"tst/src/cljs"})
- (comp
-   (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
-   (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
 
 (task-options!
   pom    {:project     'hoplon
@@ -54,3 +34,25 @@
           :filter-namespaces '[hoplon.core hoplon.storage-atom hoplon.svg hoplon.test]
           :source-paths   #{"src"}
           :metadata {:doc "FIXME: write docs"}})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Project Tasks ;;;;;;;;;;;;;;;;::;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(replace-task!
+ [t test-cljs]
+ (fn [& xs]
+  (merge-env! :source-paths #{"tst/src/cljs"})
+  (apply t :cljs-opts test-cljs-options xs)))
+
+(deftask develop []
+  (comp
+    (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
+    (watch) (target) (build-jar) (speak)))
+
+(def test-cljs-options {:process-shim false})
+
+(deftask develop-tests []
+ (merge-env! :source-paths #{"tst/src/cljs"})
+ (comp
+   (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
+   (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
