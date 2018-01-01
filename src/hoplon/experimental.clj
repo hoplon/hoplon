@@ -1,12 +1,5 @@
 (ns hoplon.experimental
-  (:import [java.util UUID])
   (:require [clojure.string  :as string]))
-
-(defmacro cache-key []
-  (or (System/getProperty "hoplon.cacheKey")
-      (let [u (.. (UUID/randomUUID) toString (replaceAll "-" ""))]
-        (System/setProperty "hoplon.cacheKey" u)
-        u)))
 
 (defn parse-e [[tag & [head & tail :as args]]]
   (let [kw1? (comp keyword? first)
@@ -25,16 +18,6 @@
          (into (dissoc form :keys))
          vals
          (filter keyword?))))
-
-(defn bust-cache
-  [path]
-  (let [[f & more] (reverse (string/split path #"/"))
-        [f1 f2]    (string/split f #"\." 2)]
-    (->> [(str f1 "." (cache-key)) f2]
-         (string/join ".")
-         (conj more)
-         (reverse)
-         (string/join "/"))))
 
 (defmacro definterval
   [sym timeout & body]
@@ -97,7 +80,6 @@
 (defmacro sexp
   "Experimental."
   [& args]
-  (->> (last (parse-e (cons '_ args)))
-       (mapcat #(if-not (string? %)
-                  [%]
-                  (read-string (str "(" % "\n)"))))))
+  (mapcat
+    #(if-not (string? %) [%] (read-string (str "(" % "\n)")))
+    (last (parse-e (cons '_ args)))))

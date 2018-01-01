@@ -197,15 +197,13 @@
  ; we want to handle at least as many children as the arity of invoke!
  (apply
   h/div
-  (conj (vec (take 20 (repeatedly h/div)))
+  (conj (vec (repeatedly 20 h/div))
    [(h/div)]))
 
  ; we want to handle an arbitrary number of children
  (apply
   h/div
-  (take
-   (+ 22 (rand-int 20))
-   (repeatedly h/div))))
+  (repeatedly (+ 22 (rand-int 20)) h/div)))
 
 (deftest ??element-attributes
  (let [el-fn (first (rand-nth elements))]

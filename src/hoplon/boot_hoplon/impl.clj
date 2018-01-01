@@ -10,20 +10,20 @@
 
 (defn prerender [engine output-dir render-js-path html-files]
   (let [win?      (#{"Windows_NT"} (System/getenv "OS"))
-        phantom?  (= 0 (:exit (sh/sh (if win? "where" "which") engine)))
+        phantom?  (zero? (:exit (sh/sh (if win? "where" "which") engine)))
         phantom!  #(let [{:keys [exit out err]} (sh/sh engine %1 %2)
-                         warn? (and (zero? exit) (not (empty? err)))]
+                         warn? (and (zero? exit) (seq err))]
                     (when warn? (println (string/trimr err)))
-                    (if (= 0 exit) out (throw (Exception. err))))
+                    (if (zero? exit) out (throw (Exception. err))))
         doing-it  (delay (util/info "Prerendering HTML files...\n"))
         not-found #(util/info "Skipping prerender: %s not found on path.\n" engine)]
-    (if (not phantom?)
+    (if-not phantom?
       (do (not-found) identity)
       (doseq [[out-path in-path] html-files]
         @doing-it
         (let [->frms #(-> % ts/parse-page ts/pedanticize)
-              forms1 (-> in-path slurp ->frms)
-              forms2 (-> (phantom! render-js-path in-path) ->frms)
+              forms1 (->frms in-path slurp)
+              forms2 (->frms (phantom! render-js-path in-path))
               [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
               [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
               script? (comp (partial = 'script) first)

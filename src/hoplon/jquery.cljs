@@ -14,7 +14,7 @@
      (doseq [[k v] kvs :let [k (name k)]]
        (if-not v
          (.removeAttr e k)
-         (.attr e k (if (= true v) k v))))))
+         (.attr e k (if (true? v) k v))))))
   ([this k v & kvs]
    (set-attributes! this (apply hash-map k v kvs))))
 

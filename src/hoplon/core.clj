@@ -143,8 +143,8 @@
   [& clauses]
   (assert (even? (count clauses)))
   (let [[conds tpls] (apply map vector (partition 2 clauses))
-        syms1        (take (count conds) (repeatedly gensym))
-        syms2        (take (count conds) (repeatedly gensym))]
+        syms1        (repeatedly (count conds) gensym)
+        syms2        (repeatedly (count conds) gensym)]
     `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
            tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
        ((j/formula tpl#) ~@conds))))
@@ -164,7 +164,7 @@
   [expr & clauses]
   (let [[cases tpls] (apply map vector (partition 2 clauses))
         default      (when (odd? (count clauses)) (last clauses))
-        syms         (take (inc (count cases)) (repeatedly gensym))]
+        syms         (repeatedly (inc (count cases)) gensym)]
     `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
            tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
        ((j/formula tpl#) ~expr))))

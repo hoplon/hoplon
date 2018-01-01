@@ -123,7 +123,7 @@
          [arg & args] args]
     (if-not (or arg args)
       [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+      (cond (map? arg)       (recur (reduce-kv assoc! attr arg) kids args)
             (set? arg)       (recur (reduce #(assoc! %1 %2 true) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
             (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
@@ -236,7 +236,7 @@
   [elem]
   (and
    (instance? js/Element elem)
-   (not (-> elem .-hoplon))))
+   (not (.-hoplon elem))))
 
 (defn- native-node?
  [node]
@@ -244,7 +244,7 @@
  that are not elements."
  (and
   (instance? js/Node node)
-  (not (-> node .-hoplon))))
+  (not (.-hoplon node))))
 
 (defn- managed?
   "Returns true if elem is a managed element. Managed elements have
@@ -253,7 +253,7 @@
   [elem]
   (and
    (instance? js/Element elem)
-   (-> elem .-hoplon)))
+   (.-hoplon elem)))
 
 (defn- managed-append-child
   "Appends `child` to `parent` for the case of `parent` being a managed element
@@ -282,7 +282,7 @@
   (ensure-kids! parent)
   (let [kids (kidfn parent)
         before-count (count @kids)]
-   (swap! kids #(into [] (remove (partial = child) %)))
+   (swap! kids #(vec (remove (partial = child) %)))
    (when-not (= (count @kids) (dec before-count))
     (throw (js/Error. "Attempted to remove a node that is not a child of parent"))))))
 
@@ -481,7 +481,7 @@
        (doseq [[k v] kvs :let [k (name k)]]
          (if-not v
            (.removeAttribute e k)
-           (.setAttribute e k (if (= true v) k v)))))))
+           (.setAttribute e k (if (true? v) k v)))))))
   (-set-styles!
     ([this kvs]
      (let [e this]

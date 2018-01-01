@@ -33,9 +33,11 @@ page.open(uri, function(status) {
 });")
 
 (def hoplon-pod
-  (delay (pod/make-pod (->> (-> "hoplon/boot_hoplon/pod_deps.edn"
-                                io/resource slurp read-string)
-                            (update-in pod/env [:dependencies] into)))))
+  (delay
+    (pod/make-pod
+      (update-in pod/env [:dependencies] into
+        (-> "hoplon/boot_hoplon/pod_deps.edn" io/resource slurp read-string)))))
+
 
 (boot/deftask prerender
   [e engine ENGINE str "PhantomJS-compatible engine to use."]

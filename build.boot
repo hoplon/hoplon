@@ -6,6 +6,9 @@
                            [lein-doo                              "0.1.8"    :scope "test"]
                            [crisptrutski/boot-cljs-test           "0.3.4"    :scope "test"]
                            [degree9/boot-semver                   "1.7.0"    :scope "test"]
+                           [clj-tagsoup                           "0.3.0"    :scope "test"]
+                           [org.clojure/data.xml                  "0.0.8"    :scope "test"]
+                           [tolitius/boot-check                   "0.1.6"    :scope "test"]
                            [org.clojure/clojure                   ~(clojure-version)]
                            [org.clojure/clojurescript             "1.9.946"]
                            [org.clojure/test.check                "0.9.0"]
@@ -18,7 +21,8 @@
   '[adzerk.boot-cljs          :refer [cljs]]
   '[codox.boot                :refer [codox]]
   '[crisptrutski.boot-cljs-test :refer [test-cljs]]
-  '[degree9.boot-semver       :refer :all])
+  '[degree9.boot-semver       :refer :all]
+  '[tolitius.boot-check       :as check])
 
 (task-options!
   pom    {:project     'hoplon
@@ -37,6 +41,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Project Tasks ;;;;;;;;;;;;;;;;::;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def test-cljs-options {:process-shim false})
+
 (replace-task!
  [t test-cljs]
  (fn [& xs]
@@ -48,11 +54,10 @@
     (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
     (watch) (target) (build-jar) (speak)))
 
-(def test-cljs-options {:process-shim false})
-
 (deftask develop-tests []
  (merge-env! :source-paths #{"tst/src/cljs"})
  (comp
    (version :develop true :minor 'inc :patch 'zero :pre-release 'snapshot)
-   (watch) (speak) (test-cljs :cljs-opts test-cljs-options)))
+   (watch)
+   (test-cljs :cljs-opts test-cljs-options) (speak)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

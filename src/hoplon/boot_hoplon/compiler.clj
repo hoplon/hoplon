@@ -17,10 +17,27 @@
     [hoplon.boot-hoplon.tagsoup :as tags]
     [hoplon.boot-hoplon.refer   :as refer])
   (:import
+    [java.util UUID]
     [clojure.lang LineNumberingPushbackReader]
     [java.io PushbackReader BufferedReader StringReader]))
 
 (def ^:dynamic *printer* prn)
+
+(defmacro cache-key []
+  (or (System/getProperty "hoplon.cacheKey")
+      (let [u (.. (UUID/randomUUID) toString (replaceAll "-" ""))]
+        (System/setProperty "hoplon.cacheKey" u)
+        u)))
+
+(defn bust-cache
+  [path]
+  (let [[f & more] (reverse (string/split path #"/"))
+        [f1 f2]    (string/split f #"\." 2)]
+    (->> [(str f1 "." (cache-key)) f2]
+         (string/join ".")
+         (conj more)
+         (reverse)
+         (string/join "/"))))
 
 (defn munge-page-name [x]
   (-> (str "_" (name x)) (string/replace #"\." "_DOT_") munge))
@@ -34,7 +51,7 @@
   (when x
     (with-open [r (LineNumberingPushbackReader. (StringReader. x))]
       [(read r false nil)
-       (apply str (concat (repeat (dec (.getLineNumber r)) "\n") [(slurp r)]))])))
+       (string/join (concat (repeat (dec (.getLineNumber r)) "\n") [(slurp r)]))])))
 
 (defn up-parents [path name]
   (let [[f & dirs] (string/split path #"/")]
@@ -107,7 +124,7 @@
                page-ns     (munge-page page)
                cljsstr     (let [[h _ & t] (make-nsdecl nsdecl opts)]
                              (forms-str (list* h page-ns t) body))
-               js-out      (if-not bust-cache outpath (hl/bust-cache outpath))
+               js-out      (if-not bust-cache outpath (bust-cache outpath))
                js-uri      (-> js-out (string/split #"/") last (str ".js"))
                htmlstr     (html-str js-uri)
                ednstr      (pr-str {:require  [(symbol page-ns)]})]
@@ -128,7 +145,7 @@
                 html-cls  (->> clauses (filter gen-html?) first)
                 html-path (or html-path (second html-cls))]
             (when html-path
-              (let [outpath   (if-not bust-cache html-path (hl/bust-cache html-path))
+              (let [outpath   (if-not bust-cache html-path (bust-cache html-path))
                     js-uri    (-> outpath (string/split #"/") last (str ".js"))
                     edn-path  (str outpath ".cljs.edn")]
                 (say-it outpath)

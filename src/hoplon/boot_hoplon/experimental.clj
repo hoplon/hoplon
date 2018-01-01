@@ -17,9 +17,11 @@
             [hoplon.boot-hoplon.refer :as refer]))
 
 (def hoplon-pod
-  (delay (pod/make-pod (->> (-> "hoplon/boot_hoplon/pod_deps.edn"
-                                io/resource slurp read-string)
-                            (update-in pod/env [:dependencies] into)))))
+  (delay
+    (pod/make-pod
+      (update-in pod/env [:dependencies] into
+        (-> "hoplon/boot_hoplon/pod_deps.edn" io/resource slurp read-string)))))
+
 
 (defn bust-cache
   [path]
