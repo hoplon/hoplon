@@ -291,7 +291,9 @@
        (with-let [child child]
         (let [kids (-hoplon-kids this)
               before-count (count @kids)]
-         (swap! kids #(vec (remove (partial = child) %)))
+         (if (cell? child)
+           (swap! kids #(vec (remove (partial = @child) %)))
+           (swap! kids #(vec (remove (partial = child) %))))
          (when-not (= (count @kids) (dec before-count))
           (throw (js/Error. "Attempted to remove a node that is not a child of parent.")))))))
     (-replace-child!
