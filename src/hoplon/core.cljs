@@ -622,11 +622,11 @@
 
 (defmethod on! ::default
   [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+  (.addEventListener elem (name event) callback))
 
 (defmethod on! :html/*
   [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+  (.addEventListener elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Template Macro Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
