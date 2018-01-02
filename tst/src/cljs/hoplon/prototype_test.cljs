@@ -127,7 +127,7 @@
 
    ; removing cells is broken, must deref
    ; https://github.com/hoplon/hoplon/issues/206
-   (is (= @child (h/remove-child! parent @child)))
+   (is (= child (h/remove-child! parent child)))
    (is (= "" (.-textContent parent)))
    (is (nil? (array-seq (.-childNodes parent))))
 
@@ -210,7 +210,7 @@
 
    ; removing cells is broken, must deref
    ; https://github.com/hoplon/hoplon/issues/206
-   (is (= @child (h/remove-child! parent @child)))
+   (is (= child (h/remove-child! parent child)))
    (is (nil? (.-parentNode parent)))
    (is (nil? (array-seq (.-childNodes parent))))
 
