@@ -419,7 +419,6 @@
  (with-let [elem elem]
   (let [[attrs kids] (parse-args args)
         elem (->hoplon elem)]
-   (prn kids (:static attrs))
    (add-attributes! elem attrs)
    (when-not (:static attrs)
     (merge-kids elem nil nil)

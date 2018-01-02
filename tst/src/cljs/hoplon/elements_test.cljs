@@ -50,14 +50,18 @@
   (is (not (h/native-node? e)))
   (is (h/element? e))))
 
-(deftest ??singelton--update
+(deftest ??singleton--update
  (is (not (.webkitMatchesSelector (h/head) "[data-foo]")))
  (let [el (h/script)]
   (h/head #{:data-foo} el)
   (is (.webkitMatchesSelector (h/head) "[data-foo]"))
-  (prn (.-outerHTML (h/head)))
-  (prn (.-outerHTML el))
-  (is (goog.dom/contains (h/head) el))))
+  (is (goog.dom/contains (h/head) el)))
+
+ (is (not (.webkitMatchesSelector (h/body) "[data-foo]")))
+ (let [el (h/div)]
+  (h/body #{:data-foo} el)
+  (is (.webkitMatchesSelector (h/body) "[data-foo]"))
+  (is (goog.dom/contains (h/body) el))))
 
 (def elements
  [
