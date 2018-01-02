@@ -124,7 +124,7 @@
                page-ns     (munge-page page)
                cljsstr     (let [[h _ & t] (make-nsdecl nsdecl opts)]
                              (forms-str (list* h page-ns t) body))
-               js-out      (if-not bust-cache outpath (bust-cache outpath))
+               js-out      (if-not bust-cache outpath (hoplon.boot-hoplon.compiler/bust-cache outpath))
                js-uri      (-> js-out (string/split #"/") last (str ".js"))
                htmlstr     (html-str js-uri)
                ednstr      (pr-str {:require  [(symbol page-ns)]})]
@@ -145,7 +145,7 @@
                 html-cls  (->> clauses (filter gen-html?) first)
                 html-path (or html-path (second html-cls))]
             (when html-path
-              (let [outpath   (if-not bust-cache html-path (bust-cache html-path))
+              (let [outpath   (if-not bust-cache html-path (hoplon.boot-hoplon.compiler/bust-cache html-path))
                     js-uri    (-> outpath (string/split #"/") last (str ".js"))
                     edn-path  (str outpath ".cljs.edn")]
                 (say-it outpath)
