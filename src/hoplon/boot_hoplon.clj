@@ -39,7 +39,8 @@ page.open(uri, function(status) {
         (-> "hoplon/boot_hoplon/pod_deps.edn" io/resource slurp read-string)))))
 
 
-(boot/deftask prerender
+(boot/deftask ^{:deprecated "7.2.0"} prerender
+  "DEPRECATED. Prerender Hoplon pages."
   [e engine ENGINE str "PhantomJS-compatible engine to use."]
   (let [engine       (or engine "phantomjs")
         pod          (future @hoplon-pod)
