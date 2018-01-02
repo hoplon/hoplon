@@ -22,7 +22,7 @@
       (doseq [[out-path in-path] html-files]
         @doing-it
         (let [->frms #(-> % ts/parse-page ts/pedanticize)
-              forms1 (->frms in-path slurp)
+              forms1 (->frms (slurp in-path))
               forms2 (->frms (phantom! render-js-path in-path))
               [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
               [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
