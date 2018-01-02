@@ -1,5 +1,5 @@
 (set-env!
-  :source-paths   #{"src"}
+  :resource-paths   #{"src"}
   :dependencies (template [[adzerk/boot-cljs                      "2.1.4"    :scope "test"]
                            [adzerk/boot-reload                    "0.5.1"    :scope "test"]
                            [boot-codox                            "0.10.3"   :scope "test"]
