@@ -26,8 +26,8 @@
 (defn bust-cache
   [path]
   (pod/with-eval-in @hoplon-pod
-    (require 'hoplon.core)
-    (hoplon.core/bust-cache ~path)))
+    (require 'hoplon.boot-hoplon.compiler)
+    (hoplon.boot-hoplon.compiler/bust-cache ~path)))
 
 (defn- by-path
   [paths tmpfiles]
