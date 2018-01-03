@@ -420,8 +420,8 @@
    (with-let [elem (->hoplon elem)]
     (let [[attrs kids] (parse-args args)]
      (when-not (:static attrs)
-       (add-attributes! elem attrs)
        (merge-kids elem nil nil)
+       (add-attributes! elem attrs)
        (add-children! elem kids))))))
 
 (defn- mkelem [tag]
