@@ -14,6 +14,7 @@
   - renamed `-attr!` to `-attribute!`
   - `dispatcher` now used by all multi-methods [9561df6](https://github.com/hoplon/hoplon/pull/216/commits/9561df6ebfdf55e95d196862ed0af7360a0d8840)
   - Improved runtime specs
+  - Removed `when-dom` for `on!` events
 
 #### Added
   - `dispatcher` helper function [ba36c95](https://github.com/hoplon/hoplon/pull/216/commits/ba36c95a724f03afc75b2ceb29bda5c313803286)
