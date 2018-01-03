@@ -626,7 +626,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Template Macro Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn for-tpl*
+(defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
   works like a fill vector. The template `tpl` is a function of one argument: the
   formula cell containing the ith item in items. The tpl function is called

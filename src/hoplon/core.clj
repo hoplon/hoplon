@@ -92,6 +92,19 @@
 ;; Caching DOM Manipulation Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom nil))))
 
+(defmacro loop-tpl
+  "Template. Works identically to `for-tpl`, only expects a `:bindings`
+  attribute to accomodate the HTML HLisp representation:
+
+    (loop-tpl :bindings [x xs] ...)
+  "
+  [& args]
+  (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
+    `(loop-tpl* ~items
+        (fn [item#] (j/cell-let [~bindings item#] ~body)))))
+
+(spec/fdef loop-tpl :args :hoplon.spec/loop-tpl :ret any?)
+
 (defmacro for-tpl
   "Template. Accepts a cell-binding and returns a cell containing a sequence of
   elements:
@@ -99,7 +112,7 @@
     (for-tpl [x xs] (span x))
   "
   [[bindings items] body]
-  `(for-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
+  `(loop-tpl* ~items (fn [item#] (j/cell-let [~bindings item#] ~body))))
 
 (spec/fdef for-tpl :args :hoplon.spec/for-tpl :ret any?)
 
@@ -124,7 +137,6 @@
   the predicate:
 
     (when-tpl predicate (span \"Value\"))
-
   "
   [predicate & body]
   `(if-tpl ~predicate (do ~@body)))

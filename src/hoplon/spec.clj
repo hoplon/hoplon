@@ -37,6 +37,9 @@
 (spec/def ::binding-cell
   (spec/tuple :clojure.core.specs.alpha/binding-form ::forms))
 
+(spec/def ::loop-tpl
+  (spec/cat :bindings-kw ::bindings-kw :bindings ::binding-cell :forms ::forms))
+  
 (spec/def ::for-tpl
   (spec/cat :bindings ::binding-cell :forms ::forms))
 
