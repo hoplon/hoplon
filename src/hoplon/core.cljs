@@ -414,22 +414,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn- mksingleton
-  [elem]
+(defn- mksingleton [elem]
+  "Retrieves the DOM element `elem` from js/document and updates in-place.
+  Creates the element if missing."
   (fn [& args]
-   (with-let [elem (->hoplon elem)]
-    (let [[attrs kids] (parse-args args)]
-     (when-not (:static attrs)
-       (merge-kids elem nil nil)
-       (add-attributes! elem attrs)
-       (add-children! elem kids))))))
+   (let [oelem (obj/get js/document elem)]
+     (when-not oelem
+       (obj/set js/document elem
+         (.createElement js/document elem)))
+     (with-let [helem (->hoplon oelem)]
+       (let [[attrs kids] (parse-args args)]
+         (when-not (:static attrs)
+           (merge-kids helem nil nil)
+           (add-attributes! helem attrs)
+           (add-children! helem kids)))))))
 
 (defn- mkelem [tag]
+  "Creates a DOM element of `tag` type and upgrades it to a Hoplon Element."
   (fn [& args]
     (let [[attr kids] (parse-args args)
           elem (.createElement js/document tag)
           hl (->hoplon elem)]
-     (hl attr kids))))
+      (hl attr kids))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -440,20 +446,11 @@
 
 (def head
  "Updates and returns the document's `head` element in place."
- (mksingleton (.-head js/document)))
+ (mksingleton "head"))
 
 (def body
- "Updates and returns the document's `body` element in place. Creates `body`
- if not exists."
- (mksingleton
-  (do
-   ; the body is not always set on the document (e.g. phantomjs tests)
-   (when-not (.-body js/document)
-    ; https://developer.mozilla.org/en-US/docs/Web/API/Document/body
-    (set!
-     (.-body js/document)
-     (.createElement js/document "body")))
-   (.-body js/document))))
+ "Updates and returns the document's `body` element in place."
+ (mksingleton "body"))
 
 (def a              (mkelem "a"))
 (def abbr           (mkelem "abbr"))
