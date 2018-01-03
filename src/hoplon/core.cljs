@@ -413,18 +413,7 @@
      (invoke! this a b c d e f g h i j k l m n o p q r s t rest))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; HTML Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn- mksingleton
-  [elem]
-  (fn [& args]
-   (with-let [elem elem]
-    (let [[attrs kids] (parse-args args)
-          elem (->hoplon elem)]
-     (add-attributes! elem attrs)
-     (when-not (:static attrs)
-       (merge-kids elem nil nil)
-       (add-children! elem kids))))))
-
+;; HTML Constructor ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- mkelem [tag]
   (fn [& args]
     (let [[attr kids] (parse-args args)
@@ -434,27 +423,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn html [& args]
+(defn html
  "Updates and returns the document's `html` element in place."
+ [& args]
  (with-let [el (.-documentElement js/document)]
   (add-attributes! (->hoplon el) (first (parse-args args)))))
 
-(def head
+(defn head
  "Updates and returns the document's `head` element in place."
- (mksingleton (.-head js/document)))
+ [& args]
+ (apply (.-head js/document) args))
 
-(def body
+(defn body
  "Updates and returns the document's `body` element in place. Creates `body`
  if not exists."
- (mksingleton
-  (do
-   ; the body is not always set on the document (e.g. phantomjs tests)
-   (when-not (.-body js/document)
-    ; https://developer.mozilla.org/en-US/docs/Web/API/Document/body
-    (set!
-     (.-body js/document)
-     (.createElement js/document "body")))
-   (.-body js/document))))
+ [& args]
+ ; the body is not always set on the document (e.g. phantomjs tests)
+ (when-not (.-body js/document)
+  ; https://developer.mozilla.org/en-US/docs/Web/API/Document/body
+  (set!
+   (.-body js/document)
+   (.createElement js/document "body")))
+ (apply (.-body js/document) args))
 
 (def a              (mkelem "a"))
 (def abbr           (mkelem "abbr"))
