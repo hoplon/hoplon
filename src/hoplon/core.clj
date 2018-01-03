@@ -92,6 +92,14 @@
 ;; Caching DOM Manipulation Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom nil))))
 
+(defn- parse-e [[tag & [head & tail :as args]]]
+   (let [kw1? (comp keyword? first)
+         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
+         drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
+     (cond (map?     head) [tag head tail]
+          (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
+           :else           [tag nil args])))
+
 (defmacro loop-tpl
   "Template. Works identically to `for-tpl`, only expects a `:bindings`
   attribute to accomodate the HTML HLisp representation:
