@@ -10,7 +10,6 @@
   - Rename `INode` to `IHoplonNode` [da849e0](https://github.com/hoplon/hoplon/pull/216/commits/da849e01b3a954b1bd2fa7d82c050fe630317a70)
   - Reorganized `hoplon.core`
   - mark `-do!` and `-on!` as private
-  - renamed `loop-tpl*` to `for-tpl*`
   - renamed `-attr!` to `-attribute!`
   - `dispatcher` now used by all multi-methods [9561df6](https://github.com/hoplon/hoplon/pull/216/commits/9561df6ebfdf55e95d196862ed0af7360a0d8840)
   - Improved runtime specs
@@ -30,7 +29,6 @@
   - `do-def` [836cc95](https://github.com/hoplon/hoplon/pull/216/commits/836cc9540cc9b0222cd15ee50ab3b7057a0d6b17)
   - `subs` [27c984f](https://github.com/hoplon/hoplon/pull/216/commits/27c984f83eace8c6d1072350ab3cce73b0d025dc)
   - `name` [27c984f](https://github.com/hoplon/hoplon/pull/216/commits/27c984f83eace8c6d1072350ab3cce73b0d025dc)
-  - `loop-tpl` [ac7799b](https://github.com/hoplon/hoplon/pull/216/commits/ac7799b40bf58c076d759d750e4d864ffd5757b4)
   - `page-load` [778eb91](https://github.com/hoplon/hoplon/pull/216/commits/778eb9112bd3084b6f890a471bc4d1e0d3193ae9)
 
 #### Moved
