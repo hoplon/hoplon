@@ -417,11 +417,10 @@
 (defn- mksingleton
   [elem]
   (fn [& args]
-   (with-let [elem elem]
-    (let [[attrs kids] (parse-args args)
-          elem (->hoplon elem)]
-     (add-attributes! elem attrs)
+   (with-let [elem (->hoplon elem)]
+    (let [[attrs kids] (parse-args args)]
      (when-not (:static attrs)
+       (add-attributes! elem attrs)
        (merge-kids elem nil nil)
        (add-children! elem kids))))))
 
