@@ -34,7 +34,6 @@
 #### Moved
   - `bust-cache` [4f3638e](https://github.com/hoplon/hoplon/pull/216/commits/4f3638e61bd979983c35865e0840027385dd6233)
   - `cache-key` [4f3638e](https://github.com/hoplon/hoplon/pull/216/commits/4f3638e61bd979983c35865e0840027385dd6233)
-  - `parse-e` [7f7f4d1](https://github.com/hoplon/hoplon/pull/216/commits/7f7f4d1f9aa454d782fa41237025c6f18eae8d27)
   - `map-bind-keys` [bc02bf5](https://github.com/hoplon/hoplon/pull/216/commits/bc02bf55751a31aacf76c3b43c54ccecbef1159e)
   - `static-elements` [920dbc6](https://github.com/hoplon/hoplon/pull/216/commits/920dbc66d09ae7ef47c32f9477b8347ca7d76135)
   - `route-cell` [0a539f0](https://github.com/hoplon/hoplon/pull/216/commits/0a539f056187918cbd6237392c9495cb3d0f7179)
