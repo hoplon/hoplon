@@ -110,7 +110,7 @@ this license. You must not remove this notice, or any other, from this software.
 [8]: https://img.shields.io/clojars/v/hoplon.svg
 [9]: https://clojars.org/hoplon
 [10]: http://en.wikipedia.org/wiki/Deferent_and_epicycle
-[11]: https://img.shields.io/badge/road%20map-7.2-lightgrey.svg
+[11]: https://img.shields.io/badge/road%20map-7.3-lightgrey.svg
 [12]: https://badge.waffle.io/hoplon/hoplon.png?label=ready&title=Ready
 [13]: https://waffle.io/hoplon/hoplon
 [14]: https://travis-ci.org/hoplon/hoplon.svg?branch=master
