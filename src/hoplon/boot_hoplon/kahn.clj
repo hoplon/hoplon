@@ -28,11 +28,11 @@
    algorithm, where g is a map of nodes to sets of nodes. If g is
    cyclic, returns nil."
   ([g]
-     (sort (normalize g) [] (no-incoming g)))
+   (sort (normalize g) [] (no-incoming g)))
   ([g l s]
-     (if (empty? s)
-       (if (every? empty? (vals g)) l)
-       (let [[n s'] (choose s)
-             m (g n)
-             g' (reduce #(update-in % [n] disj %2) g m)]
-         (recur g' (conj l n) (union s' (intersection (no-incoming g') m)))))))
+   (if (empty? s)
+     (if (every? empty? (vals g)) l)
+     (let [[n s'] (choose s)
+           m (g n)
+           g' (reduce #(update-in % [n] disj %2) g m)]
+       (recur g' (conj l n) (union s' (intersection (no-incoming g') m)))))))

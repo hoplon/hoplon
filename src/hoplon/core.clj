@@ -7,67 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:refer-clojure :exclude [subs name])
-  (:import [java.util UUID])
-  (:require [clojure.walk    :as walk]
-            [clojure.java.io :as io]
-            [clojure.string  :as string]
+  (:require [clojure.string     :as string]
             [clojure.spec.alpha :as spec]
-            [javelin.core    :as j]
+            [javelin.core       :as j]
             [hoplon.spec]))
 
-(create-ns 'js)
-
-(try (let [env  @(do (require 'boot.pod) (resolve 'boot.pod/env))
-           fail @(do (require 'boot.util) (resolve 'boot.util/fail))]
-       (when-let [dep (some-> (->> env (:dependencies) (group-by first))
-                              (get 'hoplon/boot-hoplon) (first) (pr-str))]
-         (fail "The boot-hoplon dependency has been incorporated into hoplon and is no longer needed.\n")
-         (fail "Please remove %s from your :dependencies.\n" dep)))
-     (catch Throwable _))
-
-;;-- helpers ----------------------------------------------------------------;;
-
-(defn subs [& args] (try (apply clojure.core/subs args) (catch Throwable _)))
-(defn name [& args] (try (apply clojure.core/name args) (catch Throwable _)))
-
-(defmacro cache-key []
-  (or (System/getProperty "hoplon.cacheKey")
-      (let [u (.. (UUID/randomUUID) toString (replaceAll "-" ""))]
-        (System/setProperty "hoplon.cacheKey" u)
-        u)))
-
-(defn bust-cache
-  [path]
-  (let [[f & more] (reverse (string/split path #"/"))
-        [f1 f2]    (string/split f #"\." 2)]
-    (->> [(str f1 "." (cache-key)) f2]
-         (string/join ".")
-         (conj more)
-         (reverse)
-         (string/join "/"))))
-
-(defn add-doc [docstring pair]
-  (if (string? docstring) (list (first pair) docstring (last pair)) pair))
-
-(defn do-def [docstring bindings values]
-  (->> (macroexpand `(let [~bindings ~values]))
-       (second)
-       (walk/postwalk-replace
-         {'clojure.lang.PersistentHashMap/create '(partial apply hash-map)})
-       (partition 2)
-       (map (partial add-doc docstring))
-       (map #(cons 'def %))
-       (list* 'do)))
-
-(defn parse-e [[tag & [head & tail :as args]]]
-  (let [kw1? (comp keyword? first)
-        mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
-        drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
-    (cond (map?     head) [tag head tail]
-          (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
-          :else           [tag nil args])))
-
+;; Hoplon Interpolation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- ^{:from 'org.clojure/core.incubator} silent-read
   "Attempts to clojure.core/read a single form from the provided String, returning
   a vector containing the read form and a String containing the unread remainder
@@ -100,26 +45,9 @@
 (defn terpol8 [s]
   (let [parts (remove #(= "" %) (terpol8* s))]
     (if (every? string? parts) s `(str ~@parts))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- map-bind-keys
-  [form]
-  (when (map? form)
-    (->> form
-         :keys
-         (map (juxt identity #(keyword (name %))))
-         (into (dissoc form :keys))
-         vals
-         (filter keyword?))))
-
-;;-- defining macros --------------------------------------------------------;;
-
-(defmacro def-values
-  "Destructuring def, similar to scheme's define-values."
-  ([bindings values]
-   (do-def nil bindings values))
-  ([docstring bindings values]
-   (do-def docstring bindings values)))
-
+;; Defining Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro elem
   "Create an anonymous custom element."
   [bind & body]
@@ -158,21 +86,30 @@
   [name & forms]
   `(defmethod hoplon.core/do! ~name ~@forms))
 
-(spec/fdef defelem :args :hoplon.spec/defelem :ret any?)
+(spec/fdef defattr :args :hoplon.spec/defattr :ret any?)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;-- caching dom manipulation macros ----------------------------------------;;
-
+;; Caching DOM Manipulation Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro ^:private safe-deref [expr] `(deref (or ~expr (atom nil))))
+
+(defn- parse-e [[tag & [head & tail :as args]]]
+   (let [kw1? (comp keyword? first)
+         mkkw #(->> (partition 2 %) (take-while kw1?) (map vec))
+         drkw #(->> (partition 2 2 [] %) (drop-while kw1?) (mapcat identity))]
+     (cond (map?     head) [tag head tail]
+          (keyword? head) [tag (into {} (mkkw args)) (drkw args)]
+           :else           [tag nil args])))
 
 (defmacro loop-tpl
   "Template. Works identically to `for-tpl`, only expects a `:bindings`
   attribute to accomodate the HTML HLisp representation:
 
-    (loop-tpl :bindings [x xs] ...)"
+    (loop-tpl :bindings [x xs] ...)
+  "
   [& args]
   (let [[_ {[bindings items] :bindings} [body]] (parse-e (cons '_ args))]
     `(loop-tpl* ~items
-       (fn [item#] (j/cell-let [~bindings item#] ~body)))))
+        (fn [item#] (j/cell-let [~bindings item#] ~body)))))
 
 (spec/fdef loop-tpl :args :hoplon.spec/loop-tpl :ret any?)
 
@@ -208,7 +145,6 @@
   the predicate:
 
     (when-tpl predicate (span \"Value\"))
-
   "
   [predicate & body]
   `(if-tpl ~predicate (do ~@body)))
@@ -227,8 +163,8 @@
   [& clauses]
   (assert (even? (count clauses)))
   (let [[conds tpls] (apply map vector (partition 2 clauses))
-        syms1        (take (count conds) (repeatedly gensym))
-        syms2        (take (count conds) (repeatedly gensym))]
+        syms1        (repeatedly (count conds) gensym)
+        syms2        (repeatedly (count conds) gensym)]
     `(let [~@(interleave syms1 (map (fn [x] `(delay ~x)) tpls))
            tpl# (fn [~@syms2] (safe-deref (cond ~@(interleave syms2 syms1))))]
        ((j/formula tpl#) ~@conds))))
@@ -248,15 +184,15 @@
   [expr & clauses]
   (let [[cases tpls] (apply map vector (partition 2 clauses))
         default      (when (odd? (count clauses)) (last clauses))
-        syms         (take (inc (count cases)) (repeatedly gensym))]
+        syms         (repeatedly (inc (count cases)) gensym)]
     `(let [~@(interleave syms (map (fn [x] `(delay ~x)) (conj tpls default)))
            tpl# (fn [expr#] (safe-deref (case expr# ~@(interleave cases syms) ~(last syms))))]
        ((j/formula tpl#) ~expr))))
 
 (spec/fdef case-tpl :args :hoplon.spec/case-tpl :ret any?)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;-- various dom macros -----------------------------------------------------;;
-
+;; DOM Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro with-dom
   "Evaluates the body after elem has been inserted into the DOM."
   [elem & body]
@@ -279,11 +215,6 @@
   [& body]
   `(add-initfn! (fn [] ~@body)))
 
-(defmacro with-page-load
-  "Evaluates the body when the page is reloaded OR when live-reload reloads."
-  [& body]
-  `(defonce page-load# (on-page-load (fn [] ~@body))))
-
 (defmacro text
   "Creates a DOM Text node and binds its text content to a formula created via
   string interpolation, so the Text node updates with the formula."
@@ -293,71 +224,4 @@
       `(.createTextNode js/document ~i)
       `(j/with-let [t# (.createTextNode js/document "")]
          (j/cell= (set! (.-nodeValue t#) ~i))))))
-
-;;-- experimental -----------------------------------------------------------;;
-
-(defmacro definterval
-  [sym timeout & body]
-  `(def ~sym (do (when (~'exists? ~sym) (js/clearInterval ~sym))
-                 (js/setInterval #(do ~@body) ~timeout))))
-
-(defmacro elem+
-  "Experimental."
-  [[bind-attr bind-kids] & body]
-  (let [attr-keys (map-bind-keys bind-attr)]
-    `(fn [& args#]
-       (let [[attr# kids#] (parse-args args#)]
-         (-> (let [kids*# (j/cell [])
-                   attr*# (j/cell ~(zipmap attr-keys (repeat nil)))]
-               (j/cell-let [~bind-attr attr*#
-                            ~bind-kids (j/cell= (flatten kids*#))]
-                 (doto (do ~@body)
-                   (set-appendChild! (constantly kids*#))
-                   (set-removeChild! (constantly kids*#))
-                   (set-setAttribute! (constantly attr*#)))))
-             (apply attr# kids#))))))
-
-(defmacro defelem+
-  "Experimental.
-
-  Defines an extended element function.
-
-  An extended element function creates a DOM Element given two arguments:
-
-    * `attrs` - a number of key-value pairs for attributes and their values
-    * `kids` - a sequence of DOM Elements/Cells producing DOM Elements to be
-      appended/used inside
-
-  The returned DOM Element is itself a function which can accept more
-  attributes and child elements:
-
-    (defelem+ counter
-      [{:keys [state class]} kids]
-      (ul :class class, :click #(swap! state (fnil inc 0))
-        (loop-tpl :bingings [kid kids]
-          (li kid))
-
-  Differences to `defelem`:
-
-    - `kids` argument inside the `defelem+` is a Cell of DOM Elements
-      representing any DOM elements supplied during construction or
-      appended/removed at a later point in time.
-    - `attrs` argument must be destructured as it's also a Cell."
-  [name & forms]
-  (let [[_ name [_ [bind & body]]] (macroexpand-1 `(defn ~name ~@forms))]
-    `(def ~name (elem+ ~bind ~@body))))
-
-(defmacro static
-  "Experimental."
-  [elem]
-  `(let [id# ~(str (gensym "hl"))]
-     (or (static-elements id#)
-         (~elem :static-id id#))))
-
-(defmacro sexp
-  "Experimental."
-  [& args]
-  (->> (last (parse-e (cons '_ args)))
-       (mapcat #(if-not (string? %)
-                  [%]
-                  (read-string (str "(" % "\n)"))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,16 +1,7 @@
 (ns hoplon.spec
   (:require [cljs.spec.alpha :as spec]))
 
-;; Type Specs ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(spec/def ::boolean boolean?)
-
-(spec/def ::string string?)
-
-(spec/def ::map map?)
-
 ;; Attribute Specs ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (spec/def ::elem any?)
 
 (spec/def ::attr keyword?)
@@ -23,36 +14,36 @@
 
 (spec/def ::value
   (spec/or
-    :string ::string
-    :boolean ::boolean))
+    :string string?
+    :boolean boolean?))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Attribute Provider Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defn attr [vspec]
   (spec/cat :element ::elem :attribute ::attr :value vspec))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Attribute Provider Spec Multimethods ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn dispatcher [[elem key val]]
+  (if-let [n (namespace key)] (keyword n "*") key))
 
-(defmulti do!
-  (fn [[elem key val]]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+(defmulti elem! dispatcher :default ::default)
 
-(defmethod do! ::default
-  [_]
-  any?)
+(defmethod elem! ::default [_] any?)
 
-(defmulti on!
-  (fn [[elem key val]]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+(defmulti do! dispatcher :default ::default)
 
-(defmethod on! ::default
-  [_]
-  (attr fn?))
+(defmethod do! ::default [_] any?)
+
+(defmulti on! dispatcher :default ::default)
+
+(defmethod on! ::default [_] (attr fn?))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Attribute Provider Specs ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(spec/def ::elem! (spec/multi-spec elem! ::elem!))
 
 (spec/def ::do! (spec/multi-spec do! ::do!))
 
 (spec/def ::on! (spec/multi-spec on! ::on!))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

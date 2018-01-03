@@ -10,9 +10,9 @@
   (:refer-clojure :exclude [replace])
   (:require
     [pl.danieljanus.tagsoup :as ts]
-    [clojure.pprint         :as pp :refer [pprint]]
-    [clojure.string         :as cs :refer [blank? replace replace-first split join]]
-    [clojure.walk           :as cw :refer [postwalk]]))
+    [clojure.pprint         :refer [pprint]]
+    [clojure.string         :refer [blank? replace replace-first split join]]
+    [clojure.walk           :refer [postwalk]]))
 
 (def cljs-attr? #(and (string? %) (re-find #"^\s*\{\{.*\}\}\s*" %)))
 (def walk-attr  #(if-not (cljs-attr? %) % (-> % (replace #"^\s*\{\{\s*" "")

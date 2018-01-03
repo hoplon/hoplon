@@ -1,6 +1,6 @@
 (ns hoplon.binding
   (:refer-clojure :exclude [binding bound-fn])
-  (:require [clojure.core :as clj]
+  (:require [clojure.core  :as clj]
             [cljs.analyzer :as a]))
 
 (defmacro binding
@@ -8,10 +8,9 @@
   [bindings & body]
   (let [env           (assoc &env :ns (a/get-namespace a/*cljs-ns*))
         value-exprs   (take-nth 2 (rest bindings))
-        bind-syms     (->> (take-nth 2 bindings)
-                           (map #(:name (a/resolve-existing-var env %))))
+        bind-syms     (map #(:name (a/resolve-existing-var env %)) (take-nth 2 bindings))
         bind-syms'    (map (partial list 'quote) bind-syms)
-        set-syms      (take (count bind-syms) (repeatedly gensym))
+        set-syms      (repeatedly (count bind-syms) gensym)
         setfn         (fn [x y]
                         {:push! `(fn []
                                    (let [z# ~x]

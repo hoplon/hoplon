@@ -4,7 +4,7 @@
             [hoplon.spec :as spec])
   (:require-macros
     [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout]]))
+    [hoplon.core    :refer [with-timeout]]))
 
 ;; Helper Fn's ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -14,7 +14,7 @@
      (doseq [[k v] kvs :let [k (name k)]]
        (if-not v
          (.removeAttr e k)
-         (.attr e k (if (= true v) k v))))))
+         (.attr e k (if (true? v) k v))))))
   ([this k v & kvs]
    (set-attributes! this (apply hash-map k v kvs))))
 
@@ -159,9 +159,10 @@
 
 (defmethod do! :fade-toggle
   [elem _ v]
-  (if v
-    (.fadeIn (.hide (js/jQuery elem)) "fast")
-    (.fadeOut (js/jQuery elem) "fast")))
+  (when-dom elem
+    #(if v
+       (.fadeIn (.hide (js/jQuery elem)) "fast")
+       (.fadeOut (js/jQuery elem) "fast"))))
 
 (defmethod spec/do! :fade-toggle
   [_]

@@ -1,19 +1,17 @@
 (ns hoplon.goog
-  (:require [goog.dom :as dom]
+  (:require [goog.dom           :as dom]
             [goog.dom.classlist :as domcl]
-            [goog.dom.forms :as domf]
-            [goog.events :as events]
-            [goog.fx.dom :as fxdom]
-            [goog.style :as style]
-            [goog.object :as obj]
-            [hoplon.core :refer [on! do! normalize-class]]
-            [hoplon.spec :as spec])
-  (:require-macros
-    [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+            [goog.dom.forms     :as domf]
+            [goog.events        :as events]
+            [goog.fx.dom        :as fxdom]
+            [goog.style         :as style]
+            [goog.object        :as obj]
+            [hoplon.core        :refer [on! do! normalize-class]]
+            [hoplon.spec        :as spec])
+  (:require-macros [hoplon.core :refer [with-timeout]]))
 
 ;; Google Closure Library Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmethod do! :value ;; only for elements with a 'type' attribute (inputs).
+(defmethod do! :value
   [elem _ v]
   (domf/setValue elem v))
 
@@ -113,8 +111,11 @@
 (defmethod spec/do! :scroll-to
   [_]
   (spec/attr :hoplon.spec/boolean))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Google Closure Library Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod on! :hoplon.core/default
   [elem event callback]
   (let [event (obj/get events/EventType (name event))]
     (when-dom elem #(events/listen elem event callback))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

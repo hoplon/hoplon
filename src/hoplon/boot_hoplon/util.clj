@@ -14,5 +14,5 @@
     (map (juxt #(second (drop-while (partial not= :as) %)) first))
     (into {})))
 
-(defn get-ns [forms-str]
-  (->> forms-str clojure.core/read-string second munge-page))
+;(defn get-ns [forms-str]
+;  (->> forms-str clojure.core/read-string second munge-page))

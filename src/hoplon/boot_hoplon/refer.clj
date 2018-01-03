@@ -29,7 +29,7 @@
   (when x
     (with-open [r (LineNumberingPushbackReader. (StringReader. x))]
       [(read r false nil)
-       (apply str (concat (repeat (dec (.getLineNumber r)) "\n") [(slurp r)]))])))
+       (string/join (concat (repeat (dec (.getLineNumber r)) "\n") [(slurp r)]))])))
 
 (defn forms-str [ns-form body]
   (str (binding [*print-meta* true] (pr-str ns-form)) body))
@@ -54,8 +54,9 @@
           defs   (try (when-not (= ns *in-ns*)
                         (ana/with-state st
                           (do (analyze ns)
-                              (->> (ana/ns-publics ns)
-                                   (remove (some-fn protocol? type? macro?))))))
+                              (remove
+                                (some-fn protocol? type? macro?)
+                                (ana/ns-publics ns)))))
                       (catch Throwable _))]
       {:macros (public-names macros) :defs (public-names defs)})))
 
@@ -75,7 +76,7 @@
             `[~(symbol (str ns-sym "." ns-sym')) ~@args])]
     (if-not (and args (every? vector? args))
       [spec]
-      (vec (->> (map combine args) (mapcat expand-nested))))))
+      (vec (mapcat expand-nested (map combine args))))))
 
 (defn do-require [xs [ns & mods]]
   (let [{:keys [defs macros]} (get-publics ns)]
@@ -170,15 +171,5 @@
       (let [ns-form (list* 'ns ns-sym (filter valid-clause? clauses))
             outfile (doto (io/file outdir path) io/make-parents)
             ns-form (rewrite-ns-form ns-form)]
-        (->> (forms-str ns-form body) (spit outfile))
+        (spit outfile (forms-str ns-form body))
         (.setLastModified outfile modtime)))))
-
-(comment
-
-  (->> (rewrite-ns-form
-         '(ns foo.bar
-            (:require [javelin.core :refer :all]
-                      [hoplon.core :refer [p h1 h3 h2]])))
-       (clojure.pprint/pprint))
-
-  )

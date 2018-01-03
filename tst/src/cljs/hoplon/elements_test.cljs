@@ -2,6 +2,7 @@
  (:require
   goog.dom
   [hoplon.core :as h]
+  [javelin.core :as j]
   [cljs.test :refer-macros [deftest is]]))
 
 (deftest ??not-elements
@@ -16,7 +17,7 @@
    (is (not (goog.dom/isElement n)))
    (is (not (h/native? n)))
    (is (h/native-node? n))
-   (is (not (h/managed? n))))))
+   (is (not (h/element? n))))))
 
 (deftest ??singletons
  ; initially both head and body are unmanaged
@@ -27,7 +28,7 @@
   (is (.webkitMatchesSelector e s))
   (is (h/native? e))
   (is (h/native-node? e))
-  (is (not (h/managed? e))))
+  (is (not (h/element? e))))
 
  ; calling hoplon singleton fns will start managing the relevant el
  (doseq [[e s] [[(h/head) "head"]
@@ -37,7 +38,7 @@
   (is (.webkitMatchesSelector e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
-  (is (h/managed? e)))
+  (is (h/element? e)))
 
  ; the els will still be considered managed even if referenced directly
  (doseq [[e s] [[(.-head js/document) "head"]
@@ -47,7 +48,7 @@
   (is (.webkitMatchesSelector e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
-  (is (h/managed? e))))
+  (is (h/element? e))))
 
 (def elements
  [
@@ -177,22 +178,32 @@
    (is (not (hoplon.core/native-node? hoplon-el)))
    (is (hoplon.core/native-node? native-el))
 
-   (is (hoplon.core/managed? hoplon-el))
-   (is (not (hoplon.core/managed? native-el))))))
+   (is (hoplon.core/element? hoplon-el))
+   (is (not (hoplon.core/element? native-el))))))
+
+(deftest ??element-text
+  (let [t    (j/cell "World!")
+        ivar (h/text "Hello ~{t}")
+        ifn  (h/text "Hello ~(identity t)")]
+    (is (= (.-nodeValue ivar) "Hello World!"))
+    (is (= (.-nodeValue ifn) "Hello World!"))
+
+    (reset! t "Hoplon!")
+
+    (is (= (.-nodeValue ivar) "Hello Hoplon!"))
+    (is (= (.-nodeValue ifn) "Hello Hoplon!"))))
 
 (deftest ??element-creation
  ; we want to handle at least as many children as the arity of invoke!
  (apply
   h/div
-  (conj (vec (take 20 (repeatedly h/div)))
+  (conj (vec (repeatedly 20 h/div))
    [(h/div)]))
 
  ; we want to handle an arbitrary number of children
  (apply
   h/div
-  (take
-   (+ 22 (rand-int 20))
-   (repeatedly h/div))))
+  (repeatedly (+ 22 (rand-int 20)) h/div)))
 
 (deftest ??element-attributes
  (let [el-fn (first (rand-nth elements))]

@@ -22,10 +22,11 @@
   (spec/cat :name simple-symbol? :docstring (spec/? string?) :forms (spec/* ::forms)))
 
 (spec/def ::attr-args
-  (spec/cat
-    :elem simple-symbol?
-    :attr simple-symbol?
-    :value ::forms))
+  (spec/and vector?
+    (spec/cat
+      :elem  simple-symbol?
+      :attr  simple-symbol?
+      :value simple-symbol?)))
 
 (spec/def ::defattr
   (spec/cat :name (spec/or :keyword keyword? :symbol simple-symbol?) :args ::attr-args :forms (spec/* ::forms)))
@@ -38,7 +39,7 @@
 
 (spec/def ::loop-tpl
   (spec/cat :bindings-kw ::bindings-kw :bindings ::binding-cell :forms ::forms))
-
+  
 (spec/def ::for-tpl
   (spec/cat :bindings ::binding-cell :forms ::forms))
 

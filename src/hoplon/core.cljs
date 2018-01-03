@@ -7,72 +7,27 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:require
-    [goog.Uri]
-    [goog.object    :as obj]
-    [clojure.set    :refer [difference intersection]]
-    [javelin.core   :refer [cell? cell lift destroy-cell!]]
-    [cljs.reader    :refer [read-string]]
-    [clojure.string :refer [split join blank?]]
-    [cljs.spec.alpha :as spec]
-    [cljs.spec.test.alpha :as spect]
-    [hoplon.spec])
-  (:require-macros
-    [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [cache-key with-timeout with-dom]]))
+  (:require [goog.Uri]
+            [goog.object          :as obj]
+            [clojure.set          :refer [difference intersection]]
+            [javelin.core         :refer [cell? cell lift destroy-cell!]]
+            [cljs.reader          :refer [read-string]]
+            [clojure.string       :refer [split join blank?]]
+            [cljs.spec.alpha      :as spec]
+            [cljs.spec.test.alpha :as spect]
+            [hoplon.spec])
+  (:require-macros [javelin.core :refer [with-let cell= prop-cell]]
+                   [hoplon.core  :refer [with-timeout with-dom]]))
 
-(declare do! on! $text add-children!)
-
+;; Console Printing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (enable-console-print!)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def prerendering?
-  "Is the application running in a prerendering container (eg. PhantomJS via
-  the prerender task)?"
-  (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
+;; Declare Variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(declare elem! do! on! ->node $text add-children! attribute?)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:no-doc static-elements
-  "This is an internal implementation detail, exposed for the convenience of
-  the hoplon.core/static macro. Experimental."
-  (-> #(assoc %1 (.getAttribute %2 "static-id") %2)
-      (reduce {} (.querySelector js/document "[static-id]"))))
-
-;;;; public helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn do-watch
-  "Public helper.
-  Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
-  f is a function of two arguments: the previous and next values. If init is
-  not provided the default (nil) will be used."
-  ([ref f]
-   (do-watch ref nil f))
-  ([ref init f]
-   (with-let [k (gensym)]
-     (f init @ref)
-     (add-watch ref k (fn [_ _ old new] (f old new))))))
-
-(defn bust-cache
-  "Public helper.
-  Experimental."
-  [path]
-  (let [[f & more] (reverse (split path #"/"))
-        [f1 f2]    (split f #"\." 2)]
-    (->> [(str f1 "." (cache-key)) f2]
-         (join ".")
-         (conj more)
-         (reverse)
-         (join "/"))))
-
-(defn normalize-class
-  "Public helper.
-  Class normalization for attribute providers."
-  [kvs]
-  (let [->map #(zipmap % (repeat true))]
-    (if (map? kvs)
-      kvs
-      (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
-
-;;;; internal helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Internal Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- child-vec
   [this]
   (let [x (.-childNodes this)
@@ -83,44 +38,16 @@
 
 (defn- vflatten
  ([tree]
-   (persistent! (vflatten tree (transient []))))
-  ([tree ret]
-   (let [l (count tree)]
-     (loop [i 0]
-        (if (= i l)
-          ret
-          (let [x (nth tree i)]
-            (if-not (sequential? x)
-              (conj! ret x)
-              (vflatten x ret))
-            (recur (inc i))))))))
-
-;;;; custom nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol INode
-  (node [this]))
-
-(extend-type string
-  INode
-  (node [this]
-    ($text this)))
-
-(extend-type number
-  INode
-  (node [this]
-    ($text (str this))))
-
-(defn- ->node
-  [x]
-  (if (satisfies? INode x) (node x) x))
-
-;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def ^:private removeChild  (.. js/Element -prototype -removeChild))
-(def ^:private appendChild  (.. js/Element -prototype -appendChild))
-(def ^:private insertBefore (.. js/Element -prototype -insertBefore))
-(def ^:private replaceChild (.. js/Element -prototype -replaceChild))
-(def ^:private setAttribute (.. js/Element -prototype -setAttribute))
+  (persistent! (vflatten tree (transient []))))
+ ([tree ret]
+  (let [l (count tree)]
+    (loop [i 0]
+      (if (= i l) ret
+        (let [x (nth tree i)]
+          (if-not (sequential? x)
+            (conj! ret x)
+            (vflatten x ret))
+          (recur (inc i))))))))
 
 (defn- merge-kids
   [this _ new]
@@ -129,235 +56,58 @@
     (loop [[x & xs] new
            [k & ks :as kids] (child-vec this)]
       (when (or x k)
-        (recur xs (cond (= x k) ks
-                        (not k) (with-let [ks ks]
-                                  (.call appendChild this x))
-                        (not x) (with-let [ks ks]
-                                  (when-not (new? k)
-                                    (.call removeChild this k)))
-                        :else   (with-let [kids kids]
-                                  (.call insertBefore this x k))))))))
+        (recur xs
+          (cond
+            (= x k) ks
+            (not k) (with-let [ks ks]
+                      (.appendChild this x))
+            (not x) (with-let [ks ks]
+                      (when-not (new? k)
+                        (.removeChild this k)))
+            :else   (with-let [kids kids]
+                      (.insertBefore this x k))))))))
 
-(defn- ensure-hoplon!
- "Flags that an element is managed by Hoplon. Used primarily in prototype
- overrides for DOM manipulation fns."
- [this]
- (with-let [this this]
-  (set! (.-hoplon this) true)))
-
-(defn- ensure-kids!
-  [this]
-  (with-let [this this]
-   (ensure-hoplon! this)
-   (when-not (.-hoplonKids this)
-     (let [kids (atom (child-vec this))]
-       (set! (.-hoplonKids this) kids)
-       (do-watch kids (partial merge-kids this))))))
-
-(defn- remove-all-kids!
-  [this]
-  (set! (.-hoplonKids this) nil)
-  (merge-kids this nil nil))
-
-(defn- native?
-  "Returns true if elem is a native element. Native elements' children
-  are not managed by Hoplon."
-  [elem]
-  (and
-   (instance? js/Element elem)
-   (not (-> elem .-hoplon))))
-
-(defn- native-node?
- [node]
- "Returns true if node is any native node. Same as native? but allows for nodes
- that are not elements."
- (and
-  (instance? js/Node node)
-  (not (-> node .-hoplon))))
-
-(defn- managed?
-  "Returns true if elem is a managed element. Managed elements have
-  their children managed by Hoplon. Hoplon nodes that are not elements are not
-  managed as they cannot have children anyway."
-  [elem]
-  (and
-   (instance? js/Element elem)
-   (-> elem .-hoplon)))
-
-(defn- managed-append-child
-  "Appends `child` to `parent` for the case of `parent` being a managed element
-  or `child` being a cell."
-  [parent child kidfn]
-  {:pre [(or (managed? parent) (cell? child))]}
-  (with-let [child child]
-    ; cruft?
-    ; https://github.com/hoplon/hoplon/issues/208
-    (when (.-parentNode child)
-     (.removeChild (.-parentNode child) child))
-
-    (ensure-kids! parent)
-    (let [kids (kidfn parent)
-          i    (count @kids)]
-      (if (cell? child)
-        (do-watch child #(swap! kids assoc i %2))
-        (swap! kids assoc i child)))))
-
-(defn- managed-remove-child
- "Removes `child` from `parent` for the case of `parent` being a managed element
- or `child` being a cell"
- [parent child kidfn]
- {:pre [(or (managed? parent) (cell? child))]}
- (with-let [child child]
-  (ensure-kids! parent)
-  (let [kids (kidfn parent)
-        before-count (count @kids)]
-   (swap! kids #(into [] (remove (partial = child) %)))
-   (when-not (= (count @kids) (dec before-count))
-    (throw (js/Error. "Attempted to remove a node that is not a child of parent"))))))
-
-(defn- managed-insert-before
- "Inserts `x` before `y` in `parent` for the case of `parent` being a managed
- element or `x` or `y` being a cell"
- [parent x y kidfn]
- {:pre [(or (managed? parent) (cell? x) (cell? y))]}
- (with-let [x x]
-  (ensure-kids! parent)
-  (cond
-   (not y)     (swap! (kidfn parent) conj x)
-   (not= x y)  (swap! (kidfn parent) #(vec (mapcat (fn [z] (if (= z y) [x z] [z])) %))))))
-
-(defn- managed-replace-child
- "Replaces `y` with `x` in `parent` for the case of `parent` being a managed
- element or `x` or `y` being a cell"
- [parent x y kidfn]
- {:pre [(or (managed? parent) (cell? x) (cell? y))]}
- (with-let [y y]
-  (ensure-kids! parent)
-  (swap! (kidfn parent) #(mapv (fn [z] (if (= z y) x z)) %))))
-
-(defn- set-appendChild!
-  [this kidfn]
-  (set! (.-appendChild this)
-        (fn [child]
-         (this-as this
-          (if (or (managed? this) (cell? child))
-           (managed-append-child this child kidfn)
-           (.call appendChild this child))))))
-
-(defn- set-removeChild!
-  [this kidfn]
-  (set! (.-removeChild this)
-        (fn [child]
-         (this-as this
-          (if (or (managed? this) (cell? child))
-           (managed-remove-child this child kidfn)
-           (.call removeChild this child))))))
-
-(defn- set-insertBefore!
-  [this kidfn]
-  (set! (.-insertBefore this)
-        (fn [x y]
-         (this-as this
-          (if (or (managed? this) (cell? x) (cell? y))
-           (managed-insert-before this x y kidfn)
-           (.call insertBefore this x y))))))
-
-(defn- set-replaceChild!
-  [this kidfn]
-  (set! (.-replaceChild this)
-        (fn [x y]
-         (this-as this
-          (if (or (managed? this) (cell? x) (cell? y))
-           (managed-replace-child this x y kidfn)
-           (.call replaceChild this x y))))))
-
-(defn- set-setAttribute!
-  [this attrfn]
-  (set! (.-setAttribute this)
-        (fn [k v]
-          (this-as this
-            (with-let [_ js/undefined]
-              (let [kk   (keyword k)
-                    attr (attrfn this)
-                    has? (and attr (contains? @attr kk))]
-                (if has?
-                  (swap! attr assoc kk v)
-                  (.call setAttribute this k v))))))))
-
-(set-appendChild!  (.-prototype js/Element) #(.-hoplonKids %))
-(set-removeChild!  (.-prototype js/Element) #(.-hoplonKids %))
-(set-insertBefore! (.-prototype js/Element) #(.-hoplonKids %))
-(set-replaceChild! (.-prototype js/Element) #(.-hoplonKids %))
-
-;;;; custom elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol IHoplonElement
-  (-set-attributes! [this kvs])
-  (-set-styles!     [this kvs])
-  (-append-child!   [this child])
-  (-remove-child!   [this child])
-  (-replace-child!  [this new existing])
-  (-insert-before!  [this new existing]))
-
-(defn set-attributes!
-  ([this kvs]
-   (-set-attributes! this kvs))
-  ([this k v & kvs]
-   (set-attributes! this (apply hash-map k v kvs))))
-
-(defn set-styles!
-  ([this kvs]
-   (-set-styles! this kvs))
-  ([this k v & kvs]
-   (set-styles! this (apply hash-map k v kvs))))
-
-(defn append-child!
-  [this child]
-  (-append-child! this child))
-
-(defn remove-child!
-  [this child]
-  (-remove-child! this child))
-
-(defn replace-child!
-  [this new existing]
-  (-replace-child! this new existing))
-
-(defn insert-before!
-  [this new existing]
-  (-insert-before! this new existing))
-
-;;;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn -do! [elem this value]
+(defn- -do! [elem this value]
   (do! elem this value))
-
-(defn -on! [elem this value]
-  (on! elem this value))
 
 (spec/fdef -do! :args :hoplon.spec/do! :ret any?)
 
+(defn- -on! [elem this value]
+  (on! elem this value))
+
 (spec/fdef -on! :args :hoplon.spec/on! :ret any?)
 
-(defn spec! []
-  (spect/instrument `-do!)
-  (spect/instrument `-on!))
+(defn- -elem! [elem this value]
+  (elem! elem this value))
 
-(defprotocol IHoplonAttribute
-  (-attr! [this elem value]))
+(spec/fdef -elem! :args :hoplon.spec/elem! :ret any?)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn attribute? [this]
-  (satisfies? IHoplonAttribute this))
+;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def prerendering?
+  "Is the application running in a prerendering container (eg. PhantomJS via
+  the prerender task)?"
+  (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
 
-(extend-type Keyword
-  IHoplonAttribute
-  (-attr! [this elem value]
-    (cond (cell? value) (do-watch value #(-do! elem this %2))
-          (fn? value)   (-on! elem this value)
-          :else         (-do! elem this value))))
+(defn do-watch
+  "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
+  f is a function of two arguments: the previous and next values. If init is
+  not provided the default (nil) will be used."
+  ([ref f]
+   (do-watch ref nil f))
+  ([ref init f]
+   (with-let [k (gensym)]
+     (f init @ref)
+     (add-watch ref k (fn [_ _ old new] (f old new))))))
 
-
-;; helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn normalize-class
+  "Class normalization for attribute providers. Converts from strings and
+  sequences to hashmaps."
+  [kvs]
+  (let [->map #(zipmap % (repeat true))]
+    (if (map? kvs)
+      kvs
+      (->map (if (string? kvs) (.split kvs #"\s+") (seq kvs))))))
 
 (defn timeout
   "Executes a fuction after a delay, if no delay is passed, 0 is used as a default."
@@ -365,6 +115,7 @@
   ([f t] (.setTimeout js/window f t)))
 
 (defn when-dom
+  "Executes a function once an element has been attached to the DOM."
   [this f]
   (if-not (instance? js/Element this)
     (with-timeout 0 (f))
@@ -378,47 +129,237 @@
                  (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
                      (obj/set this "_hoplonWhenDom" nil))))))))))
 
-;; env ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn add-initfn!
+  "Executes a function once the window load event is fired."
+  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
 
 (defn parse-args
+  "Parses a sequence of element arguments into attributes and children."
   [args]
   (loop [attr (transient {})
          kids (transient [])
          [arg & args] args]
     (if-not (or arg args)
       [(persistent! attr) (persistent! kids)]
-      (cond (map? arg)       (recur (reduce-kv #(assoc! %1 %2 %3) attr arg) kids args)
+      (cond (map? arg)       (recur (reduce-kv assoc! attr arg) kids args)
             (set? arg)       (recur (reduce #(assoc! %1 %2 true) attr arg) kids args)
             (attribute? arg) (recur (assoc! attr arg (first args)) kids (rest args))
             (seq? arg)       (recur attr (reduce conj! kids (vflatten arg)) args)
             (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
+(defn dispatcher
+  "A multi-method dispatch function.
+
+   Will dispatch against three arguments:
+
+     * `elem` - the target DOM Element containing the attribute
+     * `key` - the attribute keyword or symbol
+     * `value` - the attribute value
+
+   The dispatcher will attempt to dispatch agains the key namespace or key.
+
+   ex. when key is `:namespace/key` will dispatch on `:namespace/*` otherwise `key`"
+  [elem key value]
+  (if-let [n (namespace key)] (keyword n "*") key))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defprotocol IHoplonNode
+  (-node [this]))
+
+(defn node? [this]
+  (satisfies? IHoplonNode this))
+
+(extend-protocol IHoplonNode
+  string
+  (-node [this]
+    ($text this))
+  number
+  (-node [this]
+    ($text (str this))))
+
+(defn- ->node
+  [x]
+  (if (node? x) (-node x) x))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defprotocol IHoplonAttribute
+  (-attribute! [this elem value]))
+
+(defn attribute? [this]
+  (satisfies? IHoplonAttribute this))
+
+(extend-protocol IHoplonAttribute
+  Keyword
+  (-attribute! [this elem value]
+    (-elem! elem this value)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn spec! []
+  (spect/instrument `-elem!)
+  (spect/instrument `-do!)
+  (spect/instrument `-on!))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defprotocol IHoplonElement
+  (-set-attributes! [this kvs]
+    "Sets attributes on a managed element using native functionality.")
+  (-set-styles!     [this kvs]
+    "Sets styles on a managed element using native functionality.")
+  (-hoplon-kids     [this]
+    "Returns the hoplon managed kids atom, or creates it if missing exist.")
+  (-append-child!   [this child]
+    "Appends `child` to `this` for the case of `this` being a managed element.")
+  (-remove-child!   [this child]
+    "Removes `child` from `this` for the case of `this` being a managed element.")
+  (-replace-child!  [this new existing]
+    "Replaces `existing` with `new` in `this` for the case of `this` being a managed element.")
+  (-insert-before!  [this new existing]
+    "Inserts `existing` before `new` in `this` for the case of `this` being a managed element."))
+
+(defn element?
+  "Returns true if elem is a managed element. Managed elements have
+  their children managed by Hoplon and implement the IHoplonElement protocol."
+  [this]
+  (and
+    (instance? js/Element this)
+    (satisfies? IHoplonElement this)))
+
+(defn native?
+  "Returns true if elem is a native element. Native elements' children
+  are not managed by Hoplon, and have not been extended with IHoplonElement."
+  [elem]
+  (and
+    (instance? js/Element elem)
+    (not (element? elem))))
+
+(defn native-node?
+ [node]
+ "Returns true if node is any native node. Same as native? but allows for nodes
+ that are not elements."
+ (and
+  (instance? js/Node node)
+  (not (element? node))))
+
+(defn hoplonify! [elem]
+  (specify! elem
+    IPrintWithWriter
+    (-pr-writer
+      ([this writer opts]
+       (write-all writer "#<HoplonElement: " (.-tagName this) ">")))
+    ILookup
+    (-lookup
+      ([this k]
+       (if (attribute? k)
+         (.getAttribute this (name k))
+         (obj/get (.-children this) k)))
+      ([this k not-found]
+       (or (-lookup this k) not-found)))
+    IHoplonElement
+    (-set-attributes!
+      ([this kvs]
+       (let [e this]
+         (doseq [[k v] kvs :let [k (name k)]]
+           (if-not v
+             (.removeAttribute e k)
+             (.setAttribute e k (if (true? v) k v)))))))
+    (-set-styles!
+      ([this kvs]
+       (let [e this]
+         (doseq [[k v] kvs]
+           (obj/set (.. e -style) (name k) (str v))))))
+    (-hoplon-kids
+      ([this]
+       (if-let [hl-kids (.-hoplonKids this)] hl-kids
+         (with-let [kids (atom (child-vec this))]
+           (set! (.-hoplonKids this) kids)
+           (do-watch kids (partial merge-kids this))))))
+    (-append-child!
+      ([this child]
+       (with-let [child child]
+         (let [kids (-hoplon-kids this)
+               i    (count @kids)]
+           (if (cell? child)
+             (do-watch child #(swap! kids assoc i %2))
+             (swap! kids assoc i child))))))
+    (-remove-child!
+      ([this child]
+       (with-let [child child]
+        (let [kids (-hoplon-kids this)
+              before-count (count @kids)]
+         (if (cell? child)
+           (swap! kids #(vec (remove (partial = @child) %)))
+           (swap! kids #(vec (remove (partial = child) %))))
+         (when-not (= (count @kids) (dec before-count))
+          (throw (js/Error. "Attempted to remove a node that is not a child of parent.")))))))
+    (-replace-child!
+      ([this new existing]
+       (with-let [existing existing]
+        (swap! (-hoplon-kids this) #(mapv (fn [el] (if (= el existing) new el)) %)))))
+    (-insert-before!
+      ([this new existing]
+       (with-let [new new]
+        (cond
+         (not existing) (swap! (-hoplon-kids this) conj new)
+         (not= new existing) (swap! (-hoplon-kids this) #(vec (mapcat (fn [el] (if (= el existing) [new el] [el])) %)))))))))
+
+(defn ->hoplon [elem]
+  (if (element? elem) elem
+    (with-let [_ elem]
+      (hoplonify! elem))))
+
+(defn set-attributes!
+  ([this kvs]
+   (-set-attributes! (->hoplon this) kvs))
+  ([this k v & kvs]
+   (set-attributes! this (apply hash-map k v kvs))))
+
+(defn set-styles!
+  ([this kvs]
+   (-set-styles! (->hoplon this) kvs))
+  ([this k v & kvs]
+   (set-styles! this (apply hash-map k v kvs))))
+
+(defn append-child!
+  [this child]
+  (-append-child! (->hoplon this) child))
+
+(defn remove-child!
+  [this child]
+  (-remove-child! (->hoplon this) child))
+
+(defn replace-child!
+  [this new existing]
+  (-replace-child! (->hoplon this) new existing))
+
+(defn insert-before!
+  [this new existing]
+  (-insert-before! (->hoplon this) new existing))
+
 (defn- add-attributes!
   [this attr]
-  (reduce-kv #(do (-attr! %2 %1 %3) %1) this attr))
+  (reduce-kv #(do (-attribute! %2 %1 %3) %1) this attr))
 
 (defn- add-children!
   [this [child-cell & _ :as kids]]
   (with-let [this this]
     (doseq [x (vflatten kids)]
       (when-let [x (->node x)]
-        (append-child! this x)))))
+        (-append-child! this x)))))
 
 (defn- invoke!
   [this & args]
   (let [[attr kids] (parse-args args)]
-    (doto this
+    (doto (->hoplon this)
       (add-attributes! attr)
       (add-children! kids))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- lookup!
-  ([this k]
-    (cond (attribute? k) (.getAttribute this (name k))
-      :else (goog.object/get (.-children this) k)))
-  ([this k not-found]
-    (or (lookup! this k) not-found)))
-
+;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (extend-type js/Element
   IPrintWithWriter
   (-pr-writer
@@ -469,80 +410,47 @@
     ([this a b c d e f g h i j k l m n o p q r s t]
      (invoke! this a b c d e f g h i j k l m n o p q r s t))
     ([this a b c d e f g h i j k l m n o p q r s t rest]
-     (invoke! this a b c d e f g h i j k l m n o p q r s t rest)))
-  ILookup
-  (-lookup
-    ([this k]
-      (lookup! this k))
-    ([this k not-found]
-      (lookup! this k not-found)))
-  IHoplonElement
-  (-set-attributes!
-    ([this kvs]
-     (let [e this]
-       (doseq [[k v] kvs :let [k (name k)]]
-         (if-not v
-           (.removeAttribute e k)
-           (.setAttribute e k (if (= true v) k v)))))))
-  (-set-styles!
-    ([this kvs]
-     (let [e this]
-       (doseq [[k v] kvs]
-         (obj/set (.. e -style) (name k) (str v))))))
-  (-append-child!
-    ([this child]
-     (.appendChild this child)))
-  (-remove-child!
-    ([this child]
-     (.removeChild this child)))
-  (-replace-child!
-    ([this new existing]
-     (.replaceChild this new existing)))
-  (-insert-before!
-    ([this new existing]
-     (.insertBefore this new existing))))
+     (invoke! this a b c d e f g h i j k l m n o p q r s t rest))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- mksingleton
-  [elem]
+;; HTML Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn- mksingleton [elem]
+  "Retrieves the DOM element `elem` from js/document and updates in-place.
+  Creates the element if missing."
   (fn [& args]
-   (with-let [elem elem]
-    (let [[attrs kids] (parse-args args)]
-     (ensure-hoplon! elem)
-     (add-attributes! elem attrs)
-     (when (not (:static attrs))
-       (remove-all-kids! elem)
-       (add-children! elem kids))))))
+   (let [oelem (obj/get js/document elem)]
+     (when-not oelem
+       (obj/set js/document elem
+         (.createElement js/document elem)))
+     (with-let [helem (->hoplon oelem)]
+       (let [[attrs kids] (parse-args args)]
+         (when-not (:static attrs)
+           (merge-kids helem nil nil)
+           (add-attributes! helem attrs)
+           (add-children! helem kids)))))))
 
 (defn- mkelem [tag]
+  "Creates a DOM element of `tag` type and upgrades it to a Hoplon Element."
   (fn [& args]
     (let [[attr kids] (parse-args args)
-          elem (.createElement js/document tag)]
-     (ensure-hoplon! elem)
-     (elem attr kids))))
+          elem (.createElement js/document tag)
+          hl (->hoplon elem)]
+      (hl attr kids))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn html [& args]
  "Updates and returns the document's `html` element in place."
  (with-let [el (.-documentElement js/document)]
-  (-> el
-   ensure-hoplon!
-   (add-attributes! (first (parse-args args))))))
+  (add-attributes! (->hoplon el) (first (parse-args args)))))
 
 (def head
  "Updates and returns the document's `head` element in place."
- (mksingleton (.-head js/document)))
+ (mksingleton "head"))
 
 (def body
- "Updates and returns the document's `body` element in place. Creates `body`
- if not exists."
- (mksingleton
-  (do
-   ; the body is not always set on the document (e.g. phantomjs tests)
-   (when-not (.-body js/document)
-    ; https://developer.mozilla.org/en-US/docs/Web/API/Document/body
-    (set!
-     (.-body js/document)
-     (.createElement js/document "body")))
-   (.-body js/document))))
+ "Updates and returns the document's `body` element in place."
+ (mksingleton "body"))
 
 (def a              (mkelem "a"))
 (def abbr           (mkelem "abbr"))
@@ -665,32 +573,28 @@
 
 (def <!--           $comment)
 (def -->            ::-->)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn add-initfn!  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
-(defn page-load    []  (.dispatchEvent js/document "page-load"))
-(defn on-page-load [f] (.addEventListener js/document "page-load" f))
+;; Hoplon elem! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti elem! dispatcher :default ::default)
 
-(add-initfn!
-  (fn []
-    (. (.-body js/document)
-       (addEventListener "submit"
-           #(let [e (.-target %)]
-              (when-not (or (.getAttribute e "action") (.getAttribute e "method"))
-                (.preventDefault %)))))))
+(defmethod elem! ::default
+  [elem key value]
+  (cond (cell? value) (do-watch value #(-do! elem key %2))
+        (fn? value)   (-on! elem key value)
+        :else         (-do! elem key value)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; custom attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmulti do!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+;; Hoplon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti do! dispatcher :default ::default)
 
 (defmethod do! ::default
   [elem key val]
   (do! elem :attr {key val}))
 
-(defmethod do! :css/*
-  [elem key val]
-  (set-styles! elem val))
+(defmethod do! :attr
+  [elem _ kvs]
+  (set-attributes! elem kvs))
 
 (defmethod do! :html/*
   [elem key val]
@@ -700,29 +604,31 @@
   [elem key val]
   (set-attributes! elem val))
 
-(defmethod do! :attr
-  [elem _ kvs]
-  (set-attributes! elem kvs))
-
 (defmethod do! :css
   [elem _ kvs]
   (set-styles! elem kvs))
 
-(defmulti on!
-  (fn [elem key val]
-    (if-let [n (namespace key)] (keyword n "*") key)) :default ::default)
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem val))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti on! dispatcher :default ::default)
 
 (defmethod on! ::default
   [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+  (.addEventListener elem (name event) callback))
 
 (defmethod on! :html/*
   [elem event callback]
-  (when-dom elem #(.addEventListener elem (name event) callback)))
+  (.addEventListener elem (name event) callback))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Template Macro Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn loop-tpl*
   "Given a cell items containing a seqable collection, constructs a cell that
-  works like a fill vector. The template tpl is a function of one argument: the
+  works like a fill vector. The template `tpl` is a function of one argument: the
   formula cell containing the ith item in items. The tpl function is called
   once (and only once) for each index in items. When the items collection
   shrinks the DOM element created by the template is not destroyed--it is only
@@ -748,11 +654,4 @@
                     (let [e (peek @current)]
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
-
-(defn route-cell
-  "Defines a cell whose value is the URI fragment."
-  [& [default]]
-  (let [c (cell (.. js/window -location -hash))]
-    (with-let [_ (cell= (or (and (seq c) c) default))]
-      (-> js/window
-          (.addEventListener "hashchange" #(reset! c (.. js/window -location -hash)))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
