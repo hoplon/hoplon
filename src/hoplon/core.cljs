@@ -359,6 +359,56 @@
       (add-children! kids))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Hoplon elem! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti elem! dispatcher :default ::default)
+
+(defmethod elem! ::default
+  [elem key value]
+  (cond (cell? value) (do-watch value #(-do! elem key %2))
+        (fn? value)   (-on! elem key value)
+        :else         (-do! elem key value)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti do! dispatcher :default ::default)
+
+(defmethod do! ::default
+  [elem key val]
+  (do! elem :attr {key val}))
+
+(defmethod do! :attr
+  [elem _ kvs]
+  (set-attributes! elem kvs))
+
+(defmethod do! :html/*
+  [elem key val]
+  (set-attributes! elem val))
+
+(defmethod do! :svg/*
+  [elem key val]
+  (set-attributes! elem val))
+
+(defmethod do! :css
+  [elem _ kvs]
+  (set-styles! elem kvs))
+
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem val))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti on! dispatcher :default ::default)
+
+(defmethod on! ::default
+  [elem event callback]
+  (.addEventListener elem (name event) callback))
+
+(defmethod on! :html/*
+  [elem event callback]
+  (.addEventListener elem (name event) callback))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (extend-type js/Element
   IPrintWithWriter
@@ -478,7 +528,7 @@
 (def del            (mkelem "del"))
 (def details        (mkelem "details"))
 (def dfn            (mkelem "dfn"))
-(def dialog         (mkelem "dialog")) ;; experimental
+(def dialog         (mkelem "dialog"))
 (def div            (mkelem "div"))
 (def dl             (mkelem "dl"))
 (def dt             (mkelem "dt"))
@@ -496,7 +546,7 @@
 (def h5             (mkelem "h5"))
 (def h6             (mkelem "h6"))
 (def header         (mkelem "header"))
-(def hgroup         (mkelem "hgroup")) ;; experimental
+(def hgroup         (mkelem "hgroup"))
 (def hr             (mkelem "hr"))
 (def i              (mkelem "i"))
 (def iframe         (mkelem "iframe"))
@@ -512,8 +562,8 @@
 (def main           (mkelem "main"))
 (def html-map       (mkelem "map"))
 (def mark           (mkelem "mark"))
-(def menu           (mkelem "menu")) ;; experimental
-(def menuitem       (mkelem "menuitem")) ;; experimental
+(def menu           (mkelem "menu"))
+(def menuitem       (mkelem "menuitem"))
 (def html-meta      (mkelem "meta"))
 (def meter          (mkelem "meter"))
 (def multicol       (mkelem "multicol"))
@@ -527,7 +577,7 @@
 (def output         (mkelem "output"))
 (def p              (mkelem "p"))
 (def param          (mkelem "param"))
-(def picture        (mkelem "picture")) ;; experimental
+(def picture        (mkelem "picture"))
 (def pre            (mkelem "pre"))
 (def progress       (mkelem "progress"))
 (def q              (mkelem "q"))
@@ -573,56 +623,6 @@
 
 (def <!--           $comment)
 (def -->            ::-->)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon elem! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti elem! dispatcher :default ::default)
-
-(defmethod elem! ::default
-  [elem key value]
-  (cond (cell? value) (do-watch value #(-do! elem key %2))
-        (fn? value)   (-on! elem key value)
-        :else         (-do! elem key value)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti do! dispatcher :default ::default)
-
-(defmethod do! ::default
-  [elem key val]
-  (do! elem :attr {key val}))
-
-(defmethod do! :attr
-  [elem _ kvs]
-  (set-attributes! elem kvs))
-
-(defmethod do! :html/*
-  [elem key val]
-  (set-attributes! elem val))
-
-(defmethod do! :svg/*
-  [elem key val]
-  (set-attributes! elem val))
-
-(defmethod do! :css
-  [elem _ kvs]
-  (set-styles! elem kvs))
-
-(defmethod do! :css/*
-  [elem key val]
-  (set-styles! elem val))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti on! dispatcher :default ::default)
-
-(defmethod on! ::default
-  [elem event callback]
-  (.addEventListener elem (name event) callback))
-
-(defmethod on! :html/*
-  [elem event callback]
-  (.addEventListener elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Template Macro Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
