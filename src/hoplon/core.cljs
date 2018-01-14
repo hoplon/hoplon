@@ -508,7 +508,7 @@
   (fn [& args]
     (if-let [elem (obj/get js/document tag)]
       (-elem! elem :hoplon/invoke args)
-      (let [elem (.createElement js/document tag)]
+      (with-let [elem (.createElement js/document tag)]
         (obj/set js/document tag elem)
         (-elem! elem :hoplon/invoke args)))))
 
@@ -526,7 +526,7 @@
  "Updates and returns the document's `html` element in place."
  (let [elem (mksingleton "documentElement")]
    (elem (first (parse-args args)))))
- 
+
 (def head
  "Updates and returns the document's `head` element in place."
  (mksingleton "head"))
