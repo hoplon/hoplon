@@ -124,6 +124,16 @@
 
 (spec/fdef for-tpl :args :hoplon.spec/for-tpl :ret any?)
 
+(defmacro keyed-for-tpl
+  "A wrapper like `for-tpl` around `keyed-loop-tpl*`."
+  [key-fn [bindings items] & tpl-body]
+  `(weathergen.ui.common/keyed-loop-tpl*
+    ~items
+    ~key-fn
+    (fn [item#]
+      (javelin.core/cell-let [~bindings item#]
+        ~@tpl-body))))
+
 (defmacro if-tpl
   "Template. Accepts a `predicate` cell and returns a cell containing either
   the element produced by `consequent` or `alternative`, depending on the value

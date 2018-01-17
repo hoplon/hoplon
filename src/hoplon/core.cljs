@@ -655,3 +655,42 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; I wound up needing this because I ran into all sorts of trouble
+;; with Hoplon's dealing with collections. Specifically, when
+;; reordering a collection, I found that the elements would not match
+;; the order of the data. Using a fragment to assemble the existing
+;; elements in the new order seems to work, so that's what I'm going
+;; with. Need to remember to talk to Micha about this.
+(defn keyed-loop-tpl*
+  "Like Hoplon's `loop-tpl*` but accepts a `key-fn` which, given an item
+  returns an (immutable) key under which to cache it. "
+  [items key-fn tpl]
+  (let [pos-map (formula-of [items]
+                  (zipmap (map key-fn items)
+                          (range)))
+        index     (atom {})]
+    (with-let [current (cell [])]
+      (do-watch
+       pos-map
+       (fn [_ _]
+         #_(.log js/console
+               "pos-map" (pr-str @pos-map))
+         (reset! current
+                 (with-let [frag (.createDocumentFragment js/document)]
+                   (doseq [item @items]
+                     (let [k (key-fn item)]
+                       (when-not (contains? @index k)
+                         (swap! index
+                                assoc
+                                k
+                                {:item item
+                                 :ui   (do
+                                         #_(.log js/console
+                                               "Creating template item"
+                                               "k" k)
+                                         (tpl
+                                          (formula-of [items pos-map]
+                                            (when-let [pos (get pos-map k)]
+                                              (nth items pos nil)))))}))
+                       (gdom/appendChild frag (get-in @index [k :ui])))))))))))
