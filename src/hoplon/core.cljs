@@ -667,7 +667,7 @@
   "Like Hoplon's `loop-tpl*` but accepts a `key-fn` which, given an item
   returns an (immutable) key under which to cache it. "
   [items key-fn tpl]
-  (let [pos-map (formula-of [items]
+  (let [pos-map (hoplon.core/formula-of [items]
                   (zipmap (map key-fn items)
                           (range)))
         index     (atom {})]
@@ -691,7 +691,7 @@
                                                "Creating template item"
                                                "k" k)
                                          (tpl
-                                          (formula-of [items pos-map]
+                                          (hoplon.core/formula-of [items pos-map]
                                             (when-let [pos (get pos-map k)]
                                               (nth items pos nil)))))}))
                        (gdom/appendChild frag (get-in @index [k :ui])))))))))))
