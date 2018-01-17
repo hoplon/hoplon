@@ -1,5 +1,6 @@
 (ns hoplon.tpl-test
  (:require
+  hoplon.test-util
   [cljs.test :refer-macros [deftest is]]
   [hoplon.core :as h]
   [javelin.core :as j]))
@@ -68,3 +69,45 @@
    (reset! c ["1" "2" "4" "5"])
    (is (= ["1" "2" "4" "5"]
         (find-text el))))))
+
+; sorting
+
+(defn expandable
+ [item]
+ (let [expand? (j/cell false)]
+  (h/div
+   :data-expanded expand?
+   :click #(swap! expand? not)
+   (j/cell= (name item)))))
+
+(deftest ??for-tpl--not-sortable
+ (let [items (j/cell [:a :b :c])
+       el (h/div (h/for-tpl [i items] (expandable i)))
+       first-child (first (hoplon.test-util/find el "div"))]
+  (is (not (.querySelector el "[data-expanded]")))
+
+  (hoplon.test-util/trigger! first-child "click")
+  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (hoplon.test-util/matches first-child "[data-expanded]"))
+
+  (swap! items reverse)
+  (is (= "c" (hoplon.test-util/text first-child)))
+  (is (hoplon.test-util/matches first-child "[data-expanded]"))))
+
+(deftest ??keyed-for-tpl--sortable
+ (let [items (j/cell [:a :b :c])
+       el (h/div (h/keyed-for-tpl identity [i items] (expandable i)))
+       first-child (first (hoplon.test-util/find el "div"))]
+  (is (not (.querySelector el "[data-expanded]")))
+
+  (hoplon.test-util/trigger! first-child "click")
+  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (hoplon.test-util/matches first-child "[data-expanded]"))
+
+  (swap! items reverse)
+  (is (= ["c" "b" "a"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (hoplon.test-util/matches first-child "[data-expanded]"))
+
+  (hoplon.test-util/trigger! first-child "click")
+  (is (not (hoplon.test-util/matches first-child "[data-expanded]")))))
