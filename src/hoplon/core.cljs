@@ -15,7 +15,8 @@
             [clojure.string       :refer [split join blank?]]
             [cljs.spec.alpha      :as spec]
             [cljs.spec.test.alpha :as spect]
-            [hoplon.spec])
+            [hoplon.spec]
+            [goog.dom :as gdom])
   (:require-macros [javelin.core :refer [with-let cell= prop-cell]]
                    [hoplon.core  :refer [with-timeout with-dom]]))
 
