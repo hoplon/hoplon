@@ -90,9 +90,16 @@
   (is (= "a" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
 
+  ; c should be expanded (it is positional in for-tpl)
+  ; first-child should still reference the first child (nothing moves)
+  ; the item text should be in reverse order (it is re-derived in expandable)
+  ; event handlers should not break
   (swap! items reverse)
   (is (= "c" (hoplon.test-util/text first-child)))
-  (is (hoplon.test-util/matches first-child "[data-expanded]"))))
+  (is (hoplon.test-util/matches first-child "[data-expanded]"))
+
+  (hoplon.test-util/trigger! first-child "click")
+  (is (not (hoplon.test-util/matches first-child "[data-expanded]")))))
 
 (deftest ??keyed-for-tpl--sortable
  (let [items (j/cell [:a :b :c])
@@ -104,6 +111,10 @@
   (is (= "a" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
 
+  ; a should be expanded
+  ; first-child should be a reference to the last child now (because it moved)
+  ; the items should be in reverse order
+  ; event handlers should not break
   (swap! items reverse)
   (is (= ["c" "b" "a"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
   (is (= "a" (hoplon.test-util/text first-child)))
