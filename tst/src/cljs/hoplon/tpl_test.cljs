@@ -99,7 +99,15 @@
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
 
   (hoplon.test-util/trigger! first-child "click")
-  (is (not (hoplon.test-util/matches first-child "[data-expanded]")))))
+  (is (not (hoplon.test-util/matches first-child "[data-expanded]")))
+
+  ; removing :a should just change first-child to :d instead
+  (hoplon.test-util/trigger! first-child "click")
+  (reset! items [:d :b :c]) ; <-- currently errors as :a goes to nil inside first-child
+  (is (= ["d" "b" "c"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+  (is (= "d" (hoplon.test-util/text first-child)))
+  (is (hoplon.test-util/matches first-child "[data-expanded]"))
+  (is (hoplon.test-util/contains el first-child))))
 
 (deftest ??keyed-for-tpl--sortable
  (let [items (j/cell [:a :b :c])
@@ -121,4 +129,12 @@
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
 
   (hoplon.test-util/trigger! first-child "click")
-  (is (not (hoplon.test-util/matches first-child "[data-expanded]")))))
+  (is (not (hoplon.test-util/matches first-child "[data-expanded]")))
+
+  ; removing :a should pop the first-child element out of el
+  (hoplon.test-util/trigger! first-child "click")
+  (reset! items [:d :b :c]) ; <-- currently errors as :a goes to nil inside first-child
+  (is (= ["d" "b" "c"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (hoplon.test-util/matches first-child "[data-expanded]"))
+  (is (not (hoplon.test-util/contains el first-child)))))

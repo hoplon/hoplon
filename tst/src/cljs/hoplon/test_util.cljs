@@ -19,3 +19,8 @@
 (defn text
  [el]
  (.-textContent el))
+
+(defn contains [el child]
+ (and
+  (not= el child)
+  (.contains el child)))
