@@ -739,9 +739,7 @@
     (fn [_ n]
      (javelin.core/dosync
       (doseq [i n]
-       (let [k (key-fn i)]
-        (when-not (= i (get-in scoped-items [k subscope]))
-         (swap! scoped-items assoc-in [k subscope] i))))))))
+       (swap! scoped-items assoc-in [(key-fn i) subscope] i))))))
 
   ; changing ks needs els to be reviewed
   (do-watch ks

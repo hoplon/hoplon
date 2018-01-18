@@ -199,7 +199,7 @@
        scope ::foo
        tpl-1 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 0) (nth items 1) (nth items 2)])]
               (expandable i))
-       tpl-2 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 3) (nth items 4)])]
+       tpl-2 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 3) (nth items 4 nil)])]
               (expandable i))
        a-el (first @tpl-1)]
   (hoplon.test-util/trigger! a-el "click")
@@ -210,5 +210,12 @@
   ; otherwise leave it unchanged
   (swap! items reverse)
   (is (= a-el (last @tpl-2)))
+  (is (hoplon.test-util/matches a-el "[data-expanded]"))
+  (is (= "a" (hoplon.test-util/text a-el)))
+
+  ; scoped items do not go to nil even when detached from all tpl
+  (swap! items (comp pop vec))
+  (prn items)
+  (is (not= a-el (last @tpl-2)))
   (is (hoplon.test-util/matches a-el "[data-expanded]"))
   (is (= "a" (hoplon.test-util/text a-el)))))
