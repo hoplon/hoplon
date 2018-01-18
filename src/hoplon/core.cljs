@@ -720,21 +720,9 @@
        els (if scope
             (-keyed-loop-tpl-els scope)
             (atom {}))
-       k->item (fn [k] (cell= (get k-i k)))
-       k->el (fn [k]
-              (prn "*" k (k->item k) k-i @els)
-
-              (if-let [el (get @els k)]
-               el
-               (with-let [el' (tpl (k->item k))]
-                (prn "x" el' tpl)
-                (swap! els assoc k el'))))]
-
-  ; (cell= (prn k-i))
-  ; (do-watch ks
-  ;  (fn [_ n]
-  ;   (doseq [k (remove (partial contains? @index) n)]
-  ;    (let [item (cell= (get k-i k))]
-  ;     (cell= (prn "*" k item))
-  ;     (swap! index assoc k (tpl item))))))
-  (cell= (doall (for [k ks] (k->el k))))))
+       el->k #(get @els %)]
+  (do-watch ks
+   (fn [_ n]
+    (doseq [k (remove (partial contains? @els) n)]
+     (swap! els assoc k (tpl (cell= (get k-i k)))))))
+  (cell= (for [k ks] (el->k k)))))

@@ -118,7 +118,7 @@
   (is (not (.querySelector el "[data-expanded]")))
 
   (hoplon.test-util/trigger! first-child "click")
-  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (= "a" (hoplon.test-util/text first-child)) "First child is not a in starting position")
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
 
   ; a should be expanded
@@ -127,7 +127,8 @@
   ; event handlers should not break
   (swap! items reverse)
   (is (= ["c" "b" "a"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
-  (is (= "a" (hoplon.test-util/text first-child)))
+
+  (is (= "a" (hoplon.test-util/text first-child)) "First child lost content a")
   (is (= last-child (first (hoplon.test-util/find el "div"))))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
 
@@ -139,7 +140,7 @@
   (hoplon.test-util/trigger! first-child "click")
   (reset! items [:d :b :c])
   (is (= ["d" "b" "c"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
-  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (= "a" (hoplon.test-util/text first-child)) "First child lost content when detached")
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
   (is (not (hoplon.test-util/contains el first-child)))))
 
@@ -162,8 +163,9 @@
             (h/div (j/cell= (:x i))))
        el (h/div tpl)]
   (is (= ["foo" ""] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+
   (swap! items assoc 0 {:id 1 :x "bar"})
   (is (= ["bar" ""] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+
   (swap! items assoc 2 {:id 3 :x "baz"})
-  (prn items (.-outerHTML el) tpl)
   (is (= ["bar" "" "baz"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))))
