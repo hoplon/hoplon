@@ -97,6 +97,7 @@
   (swap! items reverse)
   (is (= "c" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
+  (is (= first-child (first (hoplon.test-util/find el "div"))))
 
   (hoplon.test-util/trigger! first-child "click")
   (is (not (hoplon.test-util/matches first-child "[data-expanded]")))
@@ -112,7 +113,8 @@
 (deftest ??keyed-for-tpl--sortable
  (let [items (j/cell [:a :b :c])
        el (h/div (h/keyed-for-tpl identity [i items] (expandable i)))
-       first-child (first (hoplon.test-util/find el "div"))]
+       first-child (first (hoplon.test-util/find el "div"))
+       last-child (last (hoplon.test-util/find el "div"))]
   (is (not (.querySelector el "[data-expanded]")))
 
   (hoplon.test-util/trigger! first-child "click")
@@ -126,6 +128,7 @@
   (swap! items reverse)
   (is (= ["c" "b" "a"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
   (is (= "a" (hoplon.test-util/text first-child)))
+  (is (= last-child (first (hoplon.test-util/find el "div"))))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
 
   (hoplon.test-util/trigger! first-child "click")
