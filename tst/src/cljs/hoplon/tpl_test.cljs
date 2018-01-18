@@ -147,11 +147,12 @@
   (is (not (hoplon.test-util/matches first-child "[data-expanded]")))
 
   ; removing :a should pop the first-child element out of el
-  ; :a goes to nil internally
+  ; :a goes to nil internally because there is no scope to store the value of
+  ; an individual item once it leaves items
   (hoplon.test-util/trigger! first-child "click")
   (reset! items [:d :b :c])
   (is (= ["d" "b" "c"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
-  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (= "" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
   (is (not (hoplon.test-util/contains el first-child)))))
 

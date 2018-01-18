@@ -716,7 +716,6 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn prnr [v] (prn "z" v) v)
 
 (def -keyed-loop-tpl-els (memoize (fn [scope] (atom {}))))
 (def -keyed-loop-tpl-items (memoize (fn [scope] (cell {}))))
@@ -727,28 +726,30 @@
  (let [key-fn (or key-fn identity)
        subscope (keyword (gensym))
        ks (cell= (map key-fn items))
-       k-i (cell= (zipmap ks items))
        els (if scope
             (-keyed-loop-tpl-els scope)
             (atom {}))
        scoped-items (if scope
                      (-keyed-loop-tpl-items scope)
-                     (cell {}))
+                     (cell= (zipmap ks items)))
        k->el #(get @els %)]
   ; item updates need to be pushed to the shared scope
-  (do-watch items
-   (fn [_ n]
-    (javelin.core/dosync
-     (doseq [i n]
-      (let [k (key-fn i)]
-       (when-not (= i (get-in scoped-items [k subscope]))
-        (swap! scoped-items assoc-in [k subscope] i)))))))
+  (when scope
+   (do-watch items
+    (fn [_ n]
+     (javelin.core/dosync
+      (doseq [i n]
+       (let [k (key-fn i)]
+        (when-not (= i (get-in scoped-items [k subscope]))
+         (swap! scoped-items assoc-in [k subscope] i))))))))
 
   ; changing ks needs els to be reviewed
   (do-watch ks
    (fn [_ n]
     (doseq [k (remove (partial contains? @els) n)]
      (let [scoped-item (cell= (get scoped-items k))]
-      (swap! els assoc k (tpl (cell= (some identity (vals scoped-item)))))))))
+      (swap! els assoc k (tpl (cell= (if scope
+                                      (some identity (vals scoped-item))
+                                      scoped-item))))))))
 
   (cell= (map k->el ks))))
