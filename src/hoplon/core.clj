@@ -150,12 +150,13 @@
 
 (defmacro keyed-for-tpl
   "A wrapper like `for-tpl` around `keyed-loop-tpl*`."
-  [key-fn [bindings items] & tpl-body]
+  [scope key-fn [bindings items] & tpl-body]
   `(keyed-loop-tpl*
     ~items
     (fn [item#]
       (javelin.core/cell-let [~bindings item#]
         ~@tpl-body))
+    :scope ~scope
     :key-fn ~key-fn))
 
 

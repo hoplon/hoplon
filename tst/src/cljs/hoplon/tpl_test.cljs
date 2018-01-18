@@ -78,7 +78,7 @@
   (h/div
    :data-expanded expand?
    :click #(swap! expand? not)
-   (j/cell= (name item)))))
+   (j/cell= (when item (name item))))))
 
 (deftest ??for-tpl--not-sortable
  (let [items (j/cell [:a :b :c])
@@ -112,7 +112,7 @@
 
 (deftest ??keyed-for-tpl--sortable
  (let [items (j/cell [:a :b :c])
-       el (h/div (h/keyed-for-tpl identity [i items] (expandable i)))
+       el (h/div (h/keyed-for-tpl nil nil [i items] (expandable i)))
        first-child (first (hoplon.test-util/find el "div"))
        last-child (last (hoplon.test-util/find el "div"))]
   (is (not (.querySelector el "[data-expanded]")))
@@ -135,9 +135,10 @@
   (is (not (hoplon.test-util/matches first-child "[data-expanded]")))
 
   ; removing :a should pop the first-child element out of el
+  ; :a goes to nil internally
   (hoplon.test-util/trigger! first-child "click")
-  (reset! items [:d :b :c]) ; <-- currently errors as :a goes to nil inside first-child
+  (reset! items [:d :b :c])
   (is (= ["d" "b" "c"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
-  (is (= "a" (hoplon.test-util/text first-child)))
+  (is (= "" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
   (is (not (hoplon.test-util/contains el first-child)))))

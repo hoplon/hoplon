@@ -705,16 +705,20 @@
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn --keyed-loop-tpl-index [scope] (atom {}))
+(def -keyed-loop-tpl-index (memoize --keyed-loop-tpl-index))
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
  (immutable) key under which to cache and reuse the rendered DOM element."
- [items tpl & {:keys [key-fn]}]
+ [items tpl & {:keys [scope key-fn]}]
  (let [key-fn (or key-fn identity)
        pos-map (hoplon.core/formula-of [items]
                 (zipmap
                  (map key-fn items)
                  (range)))
-       index (atom {})]
+       index (if scope
+              (-keyed-loop-tpl-index scope)
+              (atom {}))]
   (with-let [current (cell [])]
    (do-watch
     pos-map
