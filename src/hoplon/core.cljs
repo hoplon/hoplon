@@ -716,9 +716,10 @@
                       (swap! current pop)
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn prnr [v] (prn "z" v) v)
 
 (def -keyed-loop-tpl-els (memoize (fn [scope] (atom {}))))
-(def -keyed-loop-tpl-items (memoize (fn [scope] (atom {}))))
+(def -keyed-loop-tpl-items (memoize (fn [scope] (cell {}))))
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
  (immutable) key under which to cache and reuse the rendered DOM element."
@@ -730,9 +731,24 @@
        els (if scope
             (-keyed-loop-tpl-els scope)
             (atom {}))
+       scoped-items (if scope
+                     (-keyed-loop-tpl-items scope)
+                     (cell {}))
        k->el #(get @els %)]
+  ; item updates need to be pushed to the shared scope
+  (do-watch items
+   (fn [_ n]
+    (javelin.core/dosync
+     (doseq [i n]
+      (let [k (key-fn i)]
+       (when-not (= i (get-in scoped-items [k subscope]))
+        (swap! scoped-items assoc-in [k subscope] i)))))))
+
+  ; changing ks needs els to be reviewed
   (do-watch ks
    (fn [_ n]
     (doseq [k (remove (partial contains? @els) n)]
-     (swap! els assoc k (tpl (cell= (get k-i k)))))))
+     (let [scoped-item (cell= (get scoped-items k))]
+      (swap! els assoc k (tpl (cell= (some identity (vals scoped-item)))))))))
+
   (cell= (map k->el ks))))

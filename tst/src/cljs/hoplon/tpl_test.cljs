@@ -151,7 +151,7 @@
   (hoplon.test-util/trigger! first-child "click")
   (reset! items [:d :b :c])
   (is (= ["d" "b" "c"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
-  (is (= "" (hoplon.test-util/text first-child)))
+  (is (= "a" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
   (is (not (hoplon.test-util/contains el first-child)))))
 
@@ -194,11 +194,11 @@
    (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div")))))))
 
 (deftest ??keyed-for-tpl--scoping
- (let [items (j/cell [:a :b :c :d])
+ (let [items (j/cell [:a :b :c :d :e])
        scope ::foo
-       tpl-1 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 0) (nth items 1)])]
+       tpl-1 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 0) (nth items 1) (nth items 2)])]
               (expandable i))
-       tpl-2 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 2) (nth items 3)])]
+       tpl-2 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 3) (nth items 4)])]
               (expandable i))
        a-el (first @tpl-1)]
   (hoplon.test-util/trigger! a-el "click")
@@ -210,5 +210,4 @@
   (swap! items reverse)
   (is (= a-el (last @tpl-2)))
   (is (hoplon.test-util/matches a-el "[data-expanded]"))
-  (is (= "a" (hoplon.test-util/text a-el)))
-  (prn tpl-1 tpl-2)))
+  (is (= "a" (hoplon.test-util/text a-el)))))
