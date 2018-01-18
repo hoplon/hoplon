@@ -710,6 +710,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def -keyed-loop-tpl-els (memoize (fn [scope] (atom {}))))
+(def -keyed-loop-tpl-items (memoize (fn [scope] (atom {}))))
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
  (immutable) key under which to cache and reuse the rendered DOM element."
@@ -725,4 +726,4 @@
    (fn [_ n]
     (doseq [k (remove (partial contains? @els) n)]
      (swap! els assoc k (tpl (cell= (get k-i k)))))))
-  (cell= (for [k ks] (el->k k)))))
+  (cell= (map el->k ks))))

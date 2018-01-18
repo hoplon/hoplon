@@ -140,7 +140,7 @@
   (hoplon.test-util/trigger! first-child "click")
   (reset! items [:d :b :c])
   (is (= ["d" "b" "c"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
-  (is (= "a" (hoplon.test-util/text first-child)) "First child lost content when detached")
+  (is (= "" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
   (is (not (hoplon.test-util/contains el first-child)))))
 
