@@ -413,6 +413,10 @@
      (invoke! this a b c d e f g h i j k l m n o p q r s t rest))))
 
 (extend-type js/DocumentFragment
+  IPrintWithWriter
+  (-pr-writer
+    ([this writer opts]
+     (write-all writer "#<DocumentFragment>")))
   ; a direct copy of IFn for Element
   IFn
   (-invoke

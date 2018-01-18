@@ -142,3 +142,15 @@
   (is (= "a" (hoplon.test-util/text first-child)))
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
   (is (not (hoplon.test-util/contains el first-child)))))
+
+(deftest ??keyed-for-tpl--key-changes
+ ; nothing should happen unless a key changes
+ (let [items (j/cell [{:id 1 :x "foo"} {:id 2}])
+       tpl (h/keyed-for-tpl nil :id [i items] (h/div (j/cell= (:x i))))
+       before @tpl]
+  (reset! items [{:id 1} {:id 2}])
+  (is (= before @tpl))
+
+  ; keys changing should be a new fragment in the tpl
+  (reset! items [{:id 2} {:id 1}])
+  (is (not (= before @tpl)))))
