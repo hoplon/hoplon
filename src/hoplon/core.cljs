@@ -708,9 +708,10 @@
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
  (immutable) key under which to cache and reuse the rendered DOM element."
- [items key-fn tpl]
- (let [pos-map (hoplon.core/formula-of [items]
-                (zipmap 
+ [items tpl & {:keys [key-fn]}]
+ (let [key-fn (or key-fn identity)
+       pos-map (hoplon.core/formula-of [items]
+                (zipmap
                  (map key-fn items)
                  (range)))
        index (atom {})]

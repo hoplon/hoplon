@@ -153,10 +153,11 @@
   [key-fn [bindings items] & tpl-body]
   `(keyed-loop-tpl*
     ~items
-    ~key-fn
     (fn [item#]
       (javelin.core/cell-let [~bindings item#]
-        ~@tpl-body))))
+        ~@tpl-body))
+    :key-fn ~key-fn))
+
 
 (defmacro if-tpl
   "Template. Accepts a `predicate` cell and returns a cell containing either
