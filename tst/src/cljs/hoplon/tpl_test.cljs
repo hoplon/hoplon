@@ -146,7 +146,8 @@
 (deftest ??keyed-for-tpl--key-changes
  ; nothing should happen unless a key changes
  (let [items (j/cell [{:id 1 :x "foo"} {:id 2}])
-       tpl (h/keyed-for-tpl nil :id [i items] (h/div (j/cell= (:x i))))
+       tpl (h/keyed-for-tpl nil :id [i items]
+            (h/div (j/cell= (:x i))))
        before @tpl]
   (reset! items [{:id 1} {:id 2}])
   (is (= before @tpl))
@@ -154,3 +155,15 @@
   ; keys changing should be a new fragment in the tpl
   (reset! items [{:id 2} {:id 1}])
   (is (not (= before @tpl)))))
+
+(deftest ??keyed-for-tpl--upstream-updates
+ (let [items (j/cell [{:id 1 :x "foo"} {:id 2}])
+       tpl (h/keyed-for-tpl nil :id [i (j/cell= (sort-by :id items))]
+            (h/div (j/cell= (:x i))))
+       el (h/div tpl)]
+  (is (= ["foo" ""] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+  (swap! items assoc 0 {:id 1 :x "bar"})
+  (is (= ["bar" ""] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+  (swap! items assoc 2 {:id 3 :x "baz"})
+  (prn items (.-outerHTML el) tpl)
+  (is (= ["bar" "" "baz"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))))

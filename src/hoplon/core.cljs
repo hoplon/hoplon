@@ -709,24 +709,32 @@
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def -keyed-loop-tpl-index (memoize (fn [scope] (atom {}))))
+(def -keyed-loop-tpl-els (memoize (fn [scope] (atom {}))))
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
  (immutable) key under which to cache and reuse the rendered DOM element."
  [items tpl & {:keys [scope key-fn]}]
  (let [key-fn (or key-fn identity)
-       keys (cell= (map key-fn items))
-       index (if scope
-              (-keyed-loop-tpl-index scope)
-              (atom {}))]
-  (with-let [current (cell [])]
-   (do-watch
-    keys
-    (fn [_ n]
-     (reset! current
-      ((.createDocumentFragment js/document)
-       (for [item @items]
-        (let [k (key-fn item)]
-         (when-not (get @index k nil)
-          (swap! index assoc k (tpl item)))
-         (get @index k nil))))))))))
+       ks (cell= (map key-fn items))
+       k-i (cell= (zipmap ks items))
+       els (if scope
+            (-keyed-loop-tpl-els scope)
+            (atom {}))
+       k->item (fn [k] (cell= (get k-i k)))
+       k->el (fn [k]
+              (prn "*" k (k->item k) k-i @els)
+
+              (if-let [el (get @els k)]
+               el
+               (with-let [el' (tpl (k->item k))]
+                (prn "x" el' tpl)
+                (swap! els assoc k el'))))]
+
+  ; (cell= (prn k-i))
+  ; (do-watch ks
+  ;  (fn [_ n]
+  ;   (doseq [k (remove (partial contains? @index) n)]
+  ;    (let [item (cell= (get k-i k))]
+  ;     (cell= (prn "*" k item))
+  ;     (swap! index assoc k (tpl item))))))
+  (cell= (doall (for [k ks] (k->el k))))))
