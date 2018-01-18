@@ -11,7 +11,8 @@
                            [org.clojure/clojurescript             "1.9.946"]
                            [org.clojure/test.check                "0.9.0"]
                            [cljsjs/jquery                         "3.2.1-0"]
-                           [hoplon/javelin                        "3.9.0"]]))
+                           [hoplon/javelin                        "3.9.0"]
+                           [clj-tagsoup/clj-tagsoup "0.3.0"]]))
 
 ;; External Tasks ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require
