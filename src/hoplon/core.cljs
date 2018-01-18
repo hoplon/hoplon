@@ -705,36 +705,23 @@
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn --keyed-loop-tpl-index [scope] (atom {}))
-(def -keyed-loop-tpl-index (memoize --keyed-loop-tpl-index))
+(def -keyed-loop-tpl-index (memoize (fn [scope] (atom {}))))
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
  (immutable) key under which to cache and reuse the rendered DOM element."
  [items tpl & {:keys [scope key-fn]}]
  (let [key-fn (or key-fn identity)
-       pos-map (hoplon.core/formula-of [items]
-                (zipmap
-                 (map key-fn items)
-                 (range)))
        index (if scope
               (-keyed-loop-tpl-index scope)
               (atom {}))]
   (with-let [current (cell [])]
    (do-watch
-    pos-map
-    (fn [_ _]
+    items
+    (fn [_ n]
      (reset! current
-      (with-let [frag (.createDocumentFragment js/document)]
-       (doseq [item @items]
+      ((.createDocumentFragment js/document)
+       (for [item n]
         (let [k (key-fn item)]
-         (when-not (contains? @index k)
-          (swap!
-           index
-           assoc
-           k
-           {:item item
-            :ui (tpl
-                 (hoplon.core/formula-of [items pos-map]
-                  (when-let [pos (get pos-map k)]
-                   (nth items pos nil))))}))
-         (frag (get-in @index [k :ui])))))))))))
+         (when-not (get @index k nil)
+          (swap! index assoc k (tpl item)))
+         (get @index k nil))))))))))
