@@ -192,3 +192,23 @@
   (dotimes [n 5]
    (swap! items shuffle)
    (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div")))))))
+
+(deftest ??keyed-for-tpl--scoping
+ (let [items (j/cell [:a :b :c :d])
+       scope ::foo
+       tpl-1 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 0) (nth items 1)])]
+              (expandable i))
+       tpl-2 (h/keyed-for-tpl scope nil [i (j/cell= [(nth items 2) (nth items 3)])]
+              (expandable i))
+       a-el (first @tpl-1)]
+  (hoplon.test-util/trigger! a-el "click")
+  (is (hoplon.test-util/matches a-el "[data-expanded]"))
+  (is (= "a" (hoplon.test-util/text a-el)))
+
+  ; reversing the main items list should push a-el to the end of tpl-2 but
+  ; otherwise leave it unchanged
+  (swap! items reverse)
+  (is (= a-el (last @tpl-2)))
+  (is (hoplon.test-util/matches a-el "[data-expanded]"))
+  (is (= "a" (hoplon.test-util/text a-el)))
+  (prn tpl-1 tpl-2)))
