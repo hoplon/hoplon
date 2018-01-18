@@ -721,7 +721,10 @@
 (def -keyed-loop-tpl-items (memoize (fn [scope] (cell {}))))
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
- (immutable) key under which to cache and reuse the rendered DOM element."
+ (immutable) key under which to cache and reuse the rendered DOM element.
+ Also accepts a `scope` allowing keyed items to be tracked across multiple lists
+ for use in e.g. drag and drop applications.
+ Duplicate items by key are not supported (even with a scope set)."
  [items tpl & {:keys [scope key-fn]}]
  (let [key-fn (or key-fn identity)
        subscope (keyword (gensym))
