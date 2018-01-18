@@ -664,19 +664,17 @@
 ;; elements in the new order seems to work, so that's what I'm going
 ;; with. Need to remember to talk to Micha about this.
 (defn keyed-loop-tpl*
-  "Like Hoplon's `loop-tpl*` but accepts a `key-fn` which, given an item
-  returns an (immutable) key under which to cache it. "
+  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
+  (immutable) key under which to cache and reuse the rendered DOM element."
   [items key-fn tpl]
   (let [pos-map (hoplon.core/formula-of [items]
                   (zipmap (map key-fn items)
                           (range)))
-        index     (atom {})]
+        index (atom {})]
     (with-let [current (cell [])]
       (do-watch
        pos-map
        (fn [_ _]
-         #_(.log js/console
-               "pos-map" (pr-str @pos-map))
          (reset! current
                  (with-let [frag (.createDocumentFragment js/document)]
                    (doseq [item @items]
@@ -686,12 +684,8 @@
                                 assoc
                                 k
                                 {:item item
-                                 :ui   (do
-                                         #_(.log js/console
-                                               "Creating template item"
-                                               "k" k)
-                                         (tpl
-                                          (hoplon.core/formula-of [items pos-map]
-                                            (when-let [pos (get pos-map k)]
-                                              (nth items pos nil)))))}))
+                                 :ui (tpl
+                                      (hoplon.core/formula-of [items pos-map]
+                                        (when-let [pos (get pos-map k)]
+                                          (nth items pos nil))))}))
                        (gdom/appendChild frag (get-in @index [k :ui])))))))))))
