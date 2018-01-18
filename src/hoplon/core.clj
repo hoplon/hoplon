@@ -124,30 +124,6 @@
 
 (spec/fdef for-tpl :args :hoplon.spec/for-tpl :ret any?)
 
-(defmacro formula-of
-  "Emits a form that will produce a cell using the formula over the
-  specified input cells. Avoids some of the code-walking problems of
-  the Hoplon macros. Cells can be either a vector, in which case the
-  cells will be re-bound to their values under the same names within
-  `body`, or a map whose keys are binding forms and whose values are
-  the cells to bind.
-  E.g.
-  (formula-of [x y z] (+ x y z))
-  (formula-of
-    {x-val x-cell
-     {:keys [a b]} y-cell}
-    (+ x-val a b))"
-  [cells & body]
-  (if (map? cells)
-    `((javelin.core/formula
-       (fn ~(-> cells keys vec)
-         ~@body))
-      ~@(vals cells))
-    `((javelin.core/formula
-       (fn ~cells
-         ~@body))
-      ~@cells)))
-
 (defmacro keyed-for-tpl
   "A wrapper like `for-tpl` around `keyed-loop-tpl*`."
   [scope key-fn [bindings items] & tpl-body]
@@ -158,7 +134,6 @@
         ~@tpl-body))
     :scope ~scope
     :key-fn ~key-fn))
-
 
 (defmacro if-tpl
   "Template. Accepts a `predicate` cell and returns a cell containing either
