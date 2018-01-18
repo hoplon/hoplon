@@ -724,14 +724,15 @@
  (immutable) key under which to cache and reuse the rendered DOM element."
  [items tpl & {:keys [scope key-fn]}]
  (let [key-fn (or key-fn identity)
+       subscope (keyword (gensym))
        ks (cell= (map key-fn items))
        k-i (cell= (zipmap ks items))
        els (if scope
             (-keyed-loop-tpl-els scope)
             (atom {}))
-       el->k #(get @els %)]
+       k->el #(get @els %)]
   (do-watch ks
    (fn [_ n]
     (doseq [k (remove (partial contains? @els) n)]
      (swap! els assoc k (tpl (cell= (get k-i k)))))))
-  (cell= (map el->k ks))))
+  (cell= (map k->el ks))))
