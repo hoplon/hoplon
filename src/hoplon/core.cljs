@@ -705,12 +705,6 @@
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; I wound up needing this because I ran into all sorts of trouble
-;; with Hoplon's dealing with collections. Specifically, when
-;; reordering a collection, I found that the elements would not match
-;; the order of the data. Using a fragment to assemble the existing
-;; elements in the new order seems to work, so that's what I'm going
-;; with. Need to remember to talk to Micha about this.
 (defn keyed-loop-tpl*
  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
  (immutable) key under which to cache and reuse the rendered DOM element."
