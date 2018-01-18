@@ -15,7 +15,8 @@
             [clojure.string       :refer [split join blank?]]
             [cljs.spec.alpha      :as spec]
             [cljs.spec.test.alpha :as spect]
-            [hoplon.spec])
+            [hoplon.spec]
+            clojure.data)
   (:require-macros [javelin.core :refer [with-let cell= prop-cell]]
                    [hoplon.core  :refer [with-timeout with-dom]]))
 
@@ -52,20 +53,27 @@
 (defn- merge-kids
   [this _ new]
   (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
-        new? (set new)]
-    (loop [[x & xs] new
-           [k & ks :as kids] (child-vec this)]
-      (when (or x k)
-        (recur xs
-          (cond
-            (= x k) ks
-            (not k) (with-let [ks ks]
-                      (.appendChild this x))
-            (not x) (with-let [ks ks]
-                      (when-not (new? k)
-                        (.removeChild this k)))
-            :else   (with-let [kids kids]
-                      (.insertBefore this x k))))))))
+        old (child-vec this)]
+   (loop [[o & os] old
+          [x & xs] new]
+    (when (or o x)
+     (cond
+      ; do nothing if no changes
+      (= x o) nil
+
+      ; if there is a new child swap out the old one
+      (and x o) (.replaceChild this x o)
+
+      ; add new items
+      x (.appendChild this x)
+
+      ; remove old items
+      o (.removeChild this o))
+     (recur
+      ; ensure we don't re-process x as an o later or replaceChild will do bad
+      ; things
+      (remove #{x} os)
+      xs)))))
 
 (defn- -do! [elem this value]
   (do! elem this value))

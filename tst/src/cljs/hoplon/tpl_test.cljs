@@ -189,5 +189,6 @@
             (h/div n))
        el (h/div start tpl end)]
   (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
-  (swap! items shuffle)
-  (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div"))))))
+  (dotimes [n 5]
+   (swap! items shuffle)
+   (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div")))))))
