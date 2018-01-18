@@ -110,6 +110,17 @@
   (is (hoplon.test-util/matches first-child "[data-expanded]"))
   (is (hoplon.test-util/contains el first-child))))
 
+(deftest ??for-tpl--shuffle-mix
+ (let [items (j/cell (map str (range 100)))
+       start (h/div "start")
+       end (h/div "end")
+       tpl (h/for-tpl [n items]
+            (h/div n))
+       el (h/div start tpl end)]
+  (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+  (swap! items shuffle)
+  (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div"))))))
+
 (deftest ??keyed-for-tpl--sortable
  (let [items (j/cell [:a :b :c])
        el (h/div (h/keyed-for-tpl nil nil [i items] (expandable i)))
@@ -169,3 +180,14 @@
 
   (swap! items assoc 2 {:id 3 :x "baz"})
   (is (= ["bar" "" "baz"] (map hoplon.test-util/text (hoplon.test-util/find el "div"))))))
+
+(deftest ??keyed-for-tpl--shuffle-mix
+ (let [items (j/cell (map str (range 100)))
+       start (h/div "start")
+       end (h/div "end")
+       tpl (h/keyed-for-tpl nil nil [n items]
+            (h/div n))
+       el (h/div start tpl end)]
+  (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div"))))
+  (swap! items shuffle)
+  (is (= (flatten ["start" @items "end"]) (map hoplon.test-util/text (hoplon.test-util/find el "div"))))))
