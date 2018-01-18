@@ -711,16 +711,17 @@
  (immutable) key under which to cache and reuse the rendered DOM element."
  [items tpl & {:keys [scope key-fn]}]
  (let [key-fn (or key-fn identity)
+       keys (cell= (map key-fn items))
        index (if scope
               (-keyed-loop-tpl-index scope)
               (atom {}))]
   (with-let [current (cell [])]
    (do-watch
-    items
+    keys
     (fn [_ n]
      (reset! current
       ((.createDocumentFragment js/document)
-       (for [item n]
+       (for [item @items]
         (let [k (key-fn item)]
          (when-not (get @index k nil)
           (swap! index assoc k (tpl item)))
