@@ -710,8 +710,9 @@
  (immutable) key under which to cache and reuse the rendered DOM element."
  [items key-fn tpl]
  (let [pos-map (hoplon.core/formula-of [items]
-                 (zipmap (map key-fn items)
-                         (range)))
+                (zipmap 
+                 (map key-fn items)
+                 (range)))
        index (atom {})]
   (with-let [current (cell [])]
    (do-watch
