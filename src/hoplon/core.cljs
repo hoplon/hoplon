@@ -727,7 +727,6 @@
  Duplicate items by key are not supported (even with a scope set)."
  [items tpl & {:keys [scope key-fn]}]
  (let [key-fn (or key-fn identity)
-       subscope (keyword (gensym))
        ks (cell= (map key-fn items))
        els (if scope
             (-keyed-loop-tpl-els scope)
@@ -737,20 +736,19 @@
                      (cell= (zipmap ks items)))
        k->el #(get @els %)]
   ; item updates need to be pushed to the shared scope
+  ; we're relying on the cell propagation cache to keep the overheads of this
+  ; within reason
   (when scope
    (do-watch items
     (fn [_ n]
      (javelin.core/dosync
       (doseq [i n]
-       (swap! scoped-items assoc-in [(key-fn i) subscope] i))))))
+       (swap! scoped-items assoc (key-fn i) i))))))
 
   ; changing ks needs els to be reviewed
   (do-watch ks
    (fn [_ n]
     (doseq [k (remove (partial contains? @els) n)]
-     (let [scoped-item (cell= (get scoped-items k))]
-      (swap! els assoc k (tpl (cell= (if scope
-                                      (some identity (vals scoped-item))
-                                      scoped-item))))))))
+     (swap! els assoc k (tpl (cell= (get scoped-items k)))))))
 
   (cell= (map k->el ks))))
