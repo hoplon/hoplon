@@ -215,7 +215,6 @@
 
   ; scoped items do not go to nil even when detached from all tpl
   (swap! items (comp pop vec))
-  (prn items)
   (is (not= a-el (last @tpl-2)))
   (is (hoplon.test-util/matches a-el "[data-expanded]"))
   (is (= "a" (hoplon.test-util/text a-el)))))
