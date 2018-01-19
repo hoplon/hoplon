@@ -724,7 +724,9 @@
   (immutable) key under which to cache and reuse the rendered DOM element.
   Also accepts a `scope` allowing keyed items to be tracked across multiple lists
   for use in e.g. drag and drop applications.
-  Duplicate items by key are not supported (even with a scope set)."
+  Only one item per key is supported per scope, it is the application's
+  responsibility to ensure that item values are consistent and correct across
+  multiple lists."
   [items tpl & {:keys [scope key-fn]}]
   (let [key-fn (or key-fn identity)
         ks (cell= (map key-fn items))
