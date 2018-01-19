@@ -717,38 +717,38 @@
                       (swap! on-deck conj e))))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def -keyed-loop-tpl-els (memoize (fn [scope] (atom {}))))
-(def -keyed-loop-tpl-items (memoize (fn [scope] (cell {}))))
-(defn keyed-loop-tpl*
- "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
- (immutable) key under which to cache and reuse the rendered DOM element.
- Also accepts a `scope` allowing keyed items to be tracked across multiple lists
- for use in e.g. drag and drop applications.
- Duplicate items by key are not supported (even with a scope set)."
- [items tpl & {:keys [scope key-fn]}]
- (let [key-fn (or key-fn identity)
-       ks (cell= (map key-fn items))
-       els (if scope
-            (-keyed-loop-tpl-els scope)
-            (atom {}))
-       scoped-items (if scope
-                     (-keyed-loop-tpl-items scope)
-                     (cell= (zipmap ks items)))
-       k->el #(get @els %)]
-  ; item updates need to be pushed to the shared scope
-  ; we're relying on the cell propagation cache to keep the overheads of this
-  ; within reason
-  (when scope
-   (do-watch items
+(let [els-state (memoize (fn [scope] (atom {})))
+      items-state (memoize (fn [scope] (cell {})))]
+ (defn keyed-loop-tpl*
+  "Like `loop-tpl*` but accepts a `key-fn` which, given a list item returns an
+  (immutable) key under which to cache and reuse the rendered DOM element.
+  Also accepts a `scope` allowing keyed items to be tracked across multiple lists
+  for use in e.g. drag and drop applications.
+  Duplicate items by key are not supported (even with a scope set)."
+  [items tpl & {:keys [scope key-fn]}]
+  (let [key-fn (or key-fn identity)
+        ks (cell= (map key-fn items))
+        els (if scope
+             (els-state scope)
+             (atom {}))
+        scoped-items (if scope
+                      (items-state scope)
+                      (cell= (zipmap ks items)))
+        k->el #(get @els %)]
+   ; item updates need to be pushed to the shared scope
+   ; we're relying on the cell propagation cache to keep the overheads of this
+   ; within reason
+   (when scope
+    (do-watch items
+     (fn [_ n]
+      (javelin.core/dosync
+       (doseq [i n]
+        (swap! scoped-items assoc (key-fn i) i))))))
+
+   ; changing ks needs els to be reviewed
+   (do-watch ks
     (fn [_ n]
-     (javelin.core/dosync
-      (doseq [i n]
-       (swap! scoped-items assoc (key-fn i) i))))))
+     (doseq [k (remove (partial contains? @els) n)]
+      (swap! els assoc k (tpl (cell= (get scoped-items k)))))))
 
-  ; changing ks needs els to be reviewed
-  (do-watch ks
-   (fn [_ n]
-    (doseq [k (remove (partial contains? @els) n)]
-     (swap! els assoc k (tpl (cell= (get scoped-items k)))))))
-
-  (cell= (map k->el ks))))
+   (cell= (map k->el ks)))))
