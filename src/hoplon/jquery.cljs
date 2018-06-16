@@ -1,5 +1,5 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do! on! when-dom normalize-class]]
+  (:require [hoplon.core :refer [do! on! normalize-class]]
             [cljsjs.jquery]
             [hoplon.spec :as spec])
   (:require-macros
@@ -159,10 +159,9 @@
 
 (defmethod do! :fade-toggle
   [elem _ v]
-  (when-dom elem
-    #(if v
-       (.fadeIn (.hide (js/jQuery elem)) "fast")
-       (.fadeOut (js/jQuery elem) "fast"))))
+  (if v
+    (.fadeIn (.hide (js/jQuery elem)) "fast")
+    (.fadeOut (js/jQuery elem) "fast")))
 
 (defmethod spec/do! :fade-toggle
   [_]
@@ -226,8 +225,8 @@
 
 (defmethod on! :hoplon.core/default
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (.on (js/jQuery elem) (name event) callback))
 
 (defmethod on! :html/*
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (.on (js/jQuery elem) (name event) callback))
