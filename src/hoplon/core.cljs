@@ -50,7 +50,7 @@
           (recur (inc i))))))))
 
 (defn- merge-kids
-  [this _ new]
+  [this new]
   (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
         new? (set new)]
     (loop [[x & xs] new
@@ -277,7 +277,7 @@
        (if-let [hl-kids (.-hoplonKids this)] hl-kids
          (with-let [kids (atom (child-vec this))]
            (set! (.-hoplonKids this) kids)
-           (do-watch kids (partial merge-kids this))))))
+           (do-watch kids #(merge-kids this %2))))))
     (-append-child!
       ([this child]
        (with-let [child child]
