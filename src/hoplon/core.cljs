@@ -351,6 +351,9 @@
       (when-let [x (->node x)]
         (-append-child! this x)))))
 
+(defn- remove-all-kids! [this]
+  (swap! (-hoplon-kids this) empty))
+
 (defn- invoke!
   [this & args]
   (let [[attr kids] (parse-args args)]
@@ -425,7 +428,7 @@
      (with-let [helem (->hoplon oelem)]
        (let [[attrs kids] (parse-args args)]
          (when-not (:static attrs)
-           (merge-kids helem nil nil)
+           (remove-all-kids! helem)
            (add-attributes! helem attrs)
            (add-children! helem kids)))))))
 
