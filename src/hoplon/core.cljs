@@ -50,7 +50,7 @@
   (reduce #(if %2 (conj %1 %2) %1) [] nodes))
 
 (defn- compact-kids
-  "Flattens and filters `nil` from a sequence of elements."
+  "Flattens nested sequencences of elements, removing nil values."
   [kids]
   (->>
     (vflatten kids)
