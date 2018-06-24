@@ -37,35 +37,42 @@
           (recur (inc i) (conj! ret (.item x i)))))))
 
 (defn- vflatten
- ([tree]
-  (persistent! (vflatten tree (transient []))))
- ([tree ret]
-  (let [l (count tree)]
-    (loop [i 0]
-      (if (= i l) ret
-        (let [x (nth tree i)]
-          (if-not (sequential? x)
-            (conj! ret x)
-            (vflatten x ret))
-          (recur (inc i))))))))
+  ([tree]
+   (persistent! (vflatten tree (transient []))))
+  ([tree ret]
+   (loop [[x & rst] tree]
+     (if (sequential? x)
+       (when (seq x) (vflatten x ret)) ;;edit: remove empty lists
+       (conj! ret x))
+     (if-not rst ret (recur rst)))))
 
-(defn- merge-kids
-  [this new]
-  (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
-        new? (set new)]
-    (loop [[x & xs] new
-           [k & ks :as kids] (child-vec this)]
-      (when (or x k)
-        (recur xs
-          (cond
-            (= x k) ks
-            (not k) (with-let [ks ks]
-                      (.appendChild this x))
-            (not x) (with-let [ks ks]
-                      (when-not (new? k)
-                        (.removeChild this k)))
-            :else   (with-let [kids kids]
-                      (.insertBefore this x k))))))))
+(defn- remove-nil [nodes]
+  (reduce #(if %2 (conj %1 %2) %1) [] nodes))
+
+(defn- compact-kids
+  "Flattens and filters `nil` from a sequence of elements."
+  [kids]
+  (->>
+    (vflatten kids)
+    (remove-nil)
+    (mapv ->node)))
+
+(defn- set-dom-children!
+  "Sets a DOM element's children to the sequence of children given."
+  [elem new-kids]
+  (let [new-kids (compact-kids new-kids)
+        new?     (set new-kids)]
+    (loop [[new-kid & nks]              new-kids
+           [old-kid & oks :as old-kids] (child-vec elem)]
+      (when (or new-kid old-kid)
+        (cond
+          (= new-kid old-kid) (recur nks oks)
+          (not old-kid)       (do (.appendChild elem new-kid)
+                                  (recur nks oks))
+          (not new-kid)       (do (when-not (new? old-kid) (.removeChild elem old-kid))
+                                  (recur nks oks))
+          :else               (do (.insertBefore elem new-kid old-kid)
+                                  (recur nks old-kids)))))))
 
 (defn- -do! [elem this value]
   (do! elem this value))
@@ -211,7 +218,7 @@
   (-set-styles!     [this kvs]
     "Sets styles on a managed element using native functionality.")
   (-hoplon-kids     [this]
-    "Returns the hoplon managed kids atom, or creates it if missing exist.")
+    "Returns the hoplon managed kids atom, or creates it if missing.")
   (-append-child!   [this child]
     "Appends `child` to `this` for the case of `this` being a managed element.")
   (-remove-child!   [this child]
@@ -277,7 +284,7 @@
        (if-let [hl-kids (.-hoplonKids this)] hl-kids
          (with-let [kids (atom (child-vec this))]
            (set! (.-hoplonKids this) kids)
-           (do-watch kids #(merge-kids this %2))))))
+           (do-watch kids #(set-dom-children! this %2))))))
     (-append-child!
       ([this child]
        (with-let [child child]
