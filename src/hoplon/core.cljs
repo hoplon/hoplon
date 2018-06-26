@@ -37,14 +37,10 @@
           (recur (inc i) (conj! ret (.item x i)))))))
 
 (defn- vflatten
-  ([tree]
-   (persistent! (vflatten tree (transient []))))
-  ([tree ret]
-   (loop [[x & rst] tree]
-     (if (sequential? x)
-       (when (seq x) (vflatten x ret)) ;;edit: remove empty lists
-       (conj! ret x))
-     (if-not rst ret (recur rst)))))
+  "Takes a sequential collection and returns a flattened vector of any nested
+  sequential collections."
+  ([x] (vflatten [] x))
+  ([acc x] (if (sequential? x) (reduce vflatten acc x) (conj acc x))))
 
 (defn- remove-nil [nodes]
   (reduce #(if %2 (conj %1 %2) %1) [] nodes))
