@@ -30,11 +30,8 @@
 ;; Internal Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- child-vec
   [this]
-  (let [x (.-childNodes this)
-        l (.-length x)]
-    (loop [i 0 ret (transient [])]
-      (or (and (= i l) (persistent! ret))
-          (recur (inc i) (conj! ret (.item x i)))))))
+  (let [x (.-childNodes this)]
+    (areduce x i ret [] (conj ret (.item x i)))))
 
 (defn- vflatten
   "Takes a sequential collection and returns a flattened vector of any nested
