@@ -36,8 +36,8 @@
 (defn- vflatten
   "Takes a sequential collection and returns a flattened vector of any nested
   sequential collections."
-  ([x] (vflatten [] x))
-  ([acc x] (if (sequential? x) (reduce vflatten acc x) (conj acc x))))
+  ([x] (persistent! (vflatten (transient []) x)))
+  ([acc x] (if (sequential? x) (reduce vflatten acc x) (conj! acc x))))
 
 (defn- remove-nil [nodes]
   (reduce #(if %2 (conj %1 %2) %1) [] nodes))
