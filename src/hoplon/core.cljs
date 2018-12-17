@@ -365,8 +365,8 @@
   [this & args]
   (let [[attr kids] (parse-args args)]
     (doto (->hoplon this)
-      (add-attributes! attr)
-      (add-children! kids))))
+      (add-children! kids)
+      (add-attributes! attr))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
