@@ -2,7 +2,7 @@
   <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
 
-# Hoplon [![clojars][8]][9]  [![build status][14]][15]  [![road map][11]][16]
+# Hoplon [![clojars][8]][9]  [![build status][14]][15]  [![road map][11]][16] [![Backers on Open Collective][17]](#backers)[![Sponsors on Open Collective][18]](#sponsors)
 
 Hoplon is a set of tools and libraries for making web applications.
 
@@ -59,7 +59,7 @@ Install [Boot](http://boot-clj.com) and then generate a starter project with:
 Hoplon has been thoroughly tested on desktop and mobile devices against the
 following browsers:
 
-![IEdge](https://img.shields.io/badge/IEdge-10%2B-blue.svg) ![Firefox](https://img.shields.io/badge/Firefox-14%2B-orange.svg) ![Safari](https://img.shields.io/badge/Safari-5%2B-blue.svg)
+[![Backers on Open Collective](https://opencollective.com/hoplon/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/hoplon/sponsors/badge.svg)](#sponsors) ![IEdge](https://img.shields.io/badge/IEdge-10%2B-blue.svg) ![Firefox](https://img.shields.io/badge/Firefox-14%2B-orange.svg) ![Safari](https://img.shields.io/badge/Safari-5%2B-blue.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-26%2B-yellow.svg) ![Opera](https://img.shields.io/badge/Opera-11%2B-red.svg)
 ![Android](https://img.shields.io/badge/Android-4%2B-green.svg)
 
@@ -87,6 +87,36 @@ or advanced optimizations turned on.
 # build and install locally
 boot develop
 ```
+
+## Contributors
+
+This project exists thanks to all the people who contribute. 
+<a href="https://github.com/hoplon/hoplon/graphs/contributors"><img src="https://opencollective.com/hoplon/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/hoplon#backer)]
+
+<a href="https://opencollective.com/hoplon#backers" target="_blank"><img src="https://opencollective.com/hoplon/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/hoplon#sponsor)]
+
+<a href="https://opencollective.com/hoplon/sponsor/0/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/1/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/2/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/3/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/4/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/5/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/6/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/7/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/8/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/9/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/9/avatar.svg"></a>
+
+
 
 ## License
 
@@ -116,3 +146,6 @@ this license. You must not remove this notice, or any other, from this software.
 [14]: https://travis-ci.org/hoplon/hoplon.svg?branch=master
 [15]: https://travis-ci.org/hoplon/hoplon
 [16]: https://github.com/hoplon/hoplon/milestones?direction=desc&sort=completeness&state=open
+[17]: https://opencollective.com/XX/backers/badge.svg
+[18]: https://opencollective.com/XX/sponsors/badge.svg
+ 
