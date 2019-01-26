@@ -2,7 +2,7 @@
   <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
 
-# Hoplon [![clojars][8]][9]  [![build status][14]][15]  [![road map][11]][16] [![Backers on Open Collective][17]](#backers)[![Sponsors on Open Collective][18]](#sponsors)
+# Hoplon [![clojars][8]][9]  [![build status][14]][15]  [![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
 
 Hoplon is a set of tools and libraries for making web applications.
 
@@ -59,7 +59,7 @@ Install [Boot](http://boot-clj.com) and then generate a starter project with:
 Hoplon has been thoroughly tested on desktop and mobile devices against the
 following browsers:
 
-[![Backers on Open Collective](https://opencollective.com/hoplon/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/hoplon/sponsors/badge.svg)](#sponsors) ![IEdge](https://img.shields.io/badge/IEdge-10%2B-blue.svg) ![Firefox](https://img.shields.io/badge/Firefox-14%2B-orange.svg) ![Safari](https://img.shields.io/badge/Safari-5%2B-blue.svg)
+![IEdge](https://img.shields.io/badge/IEdge-10%2B-blue.svg) ![Firefox](https://img.shields.io/badge/Firefox-14%2B-orange.svg) ![Safari](https://img.shields.io/badge/Safari-5%2B-blue.svg)
 ![Chrome](https://img.shields.io/badge/Chrome-26%2B-yellow.svg) ![Opera](https://img.shields.io/badge/Opera-11%2B-red.svg)
 ![Android](https://img.shields.io/badge/Android-4%2B-green.svg)
 
