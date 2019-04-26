@@ -148,7 +148,7 @@
             (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
-(defn dispatcher
+(defn key-dispatcher
   "A multi-method dispatch function.
 
    Will dispatch against three arguments:
@@ -157,7 +157,21 @@
      * `key` - the attribute keyword or symbol
      * `value` - the attribute value
 
-   The dispatcher will attempt to dispatch agains the key namespace or key.
+   The key-dispatcher will attempt to dispatch agains the key.
+
+   ex. when key is `:namespace/key` will dispatch on `:namespace/key`"
+  [elem key value] key)
+
+(defn ns-dispatcher
+  "A multi-method dispatch function.
+
+   Will dispatch against three arguments:
+
+     * `elem` - the target DOM Element containing the attribute
+     * `key` - the attribute keyword or symbol
+     * `value` - the attribute value
+
+   The ns-dispatcher will attempt to dispatch agains the key namespace or key.
 
    ex. when key is `:namespace/key` will dispatch on `:namespace/*` otherwise `key`"
   [elem key value]
@@ -340,23 +354,95 @@
   [this new existing]
   (-insert-before! (->hoplon this) new existing))
 
-(defn- add-attributes!
+(defn add-attributes!
   [this attr]
-  (reduce-kv #(do (-attribute! %2 %1 %3) %1) this attr))
+  (-elem! this :hoplon/attr attr))
 
-(defn- add-children!
-  [this [child-cell & _ :as kids]]
-  (with-let [this this]
+(defn add-children!
+  [this kids]
+  (-elem! this :hoplon/kids kids))
+
+(defn invoke!
+  [this & args]
+  (-elem! this :hoplon/invoke args))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon elem! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti elem! ns-dispatcher :default ::default)
+
+(defmethod elem! ::default
+  [elem key value]
+  (cond (cell? value) (do-watch value #(-do! elem key %2))
+        (fn? value)   (-on! elem key value)
+        :else         (-do! elem key value)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon hl! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti hl! key-dispatcher)
+
+(defmethod elem! :hoplon/*
+  [elem key args]
+  (hl! elem key args))
+
+(defmethod hl! :hoplon/invoke
+  [elem key args]
+  (let [[attr kids] (parse-args args)]
+    (when-not (:hoplon/static attr)
+      (doto (->hoplon elem)
+        (hl! :hoplon/attr attr)
+        (hl! :hoplon/kids kids)))))
+
+(defmethod hl! :hoplon/attr
+  [elem key attr]
+  (reduce-kv #(do (-attribute! %2 %1 %3) %1) elem attr))
+
+(defmethod hl! :hoplon/kids
+  [elem key kids]
+  (with-let [elem elem]
     (doseq [x (vflatten kids)]
       (when-let [x (->node x)]
-        (-append-child! this x)))))
+        (-append-child! elem x)))))
 
-(defn- invoke!
-  [this & args]
-  (let [[attr kids] (parse-args args)]
-    (doto (->hoplon this)
-      (add-attributes! attr)
-      (add-children! kids))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti do! ns-dispatcher :default ::default)
+
+(defmethod do! ::default
+  [elem key val]
+  (do! elem :attr {key val}))
+
+(defmethod do! :attr
+  [elem _ kvs]
+  (set-attributes! elem kvs))
+
+(defmethod do! :html/*
+  [elem key val]
+  (set-attributes! elem val))
+
+(defmethod do! :svg/*
+  [elem key val]
+  (set-attributes! elem val))
+
+(defmethod do! :css
+  [elem _ kvs]
+  (set-styles! elem kvs))
+
+(defmethod do! :css/*
+  [elem key val]
+  (set-styles! elem val))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmulti on! ns-dispatcher :default ::default)
+
+(defmethod on! ::default
+  [elem event callback]
+  (.addEventListener elem (name event) callback))
+
+(defmethod on! :html/*
+  [elem event callback]
+  (.addEventListener elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -414,35 +500,31 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn- mksingleton [elem]
+(defn- mksingleton [tag]
   "Retrieves the DOM element `elem` from js/document and updates in-place.
+
   Creates the element if missing."
   (fn [& args]
-   (let [oelem (obj/get js/document elem)]
-     (when-not oelem
-       (obj/set js/document elem
-         (.createElement js/document elem)))
-     (with-let [helem (->hoplon oelem)]
-       (let [[attrs kids] (parse-args args)]
-         (when-not (:static attrs)
-           (merge-kids helem nil nil)
-           (add-attributes! helem attrs)
-           (add-children! helem kids)))))))
+    (if-let [elem (obj/get js/document tag)]
+      (-elem! elem :hoplon/invoke args)
+      (with-let [elem (.createElement js/document tag)]
+        (obj/set js/document tag elem)
+        (-elem! elem :hoplon/invoke args)))))
 
 (defn- mkelem [tag]
-  "Creates a DOM element of `tag` type and upgrades it to a Hoplon Element."
+  "Returns a DOM element function.
+
+  This creates a DOM element of type `tag` and invokes it."
   (fn [& args]
-    (let [[attr kids] (parse-args args)
-          elem (.createElement js/document tag)
-          hl (->hoplon elem)]
-      (hl attr kids))))
+    (with-let [elem (.createElement js/document tag)]
+      (-elem! elem :hoplon/invoke args))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn html [& args]
  "Updates and returns the document's `html` element in place."
- (with-let [el (.-documentElement js/document)]
-  (add-attributes! (->hoplon el) (first (parse-args args)))))
+ (let [elem (mksingleton "documentElement")]
+   (elem (first (parse-args args)))))
 
 (def head
  "Updates and returns the document's `head` element in place."
@@ -478,7 +560,7 @@
 (def del            (mkelem "del"))
 (def details        (mkelem "details"))
 (def dfn            (mkelem "dfn"))
-(def dialog         (mkelem "dialog")) ;; experimental
+(def dialog         (mkelem "dialog"))
 (def div            (mkelem "div"))
 (def dl             (mkelem "dl"))
 (def dt             (mkelem "dt"))
@@ -496,7 +578,7 @@
 (def h5             (mkelem "h5"))
 (def h6             (mkelem "h6"))
 (def header         (mkelem "header"))
-(def hgroup         (mkelem "hgroup")) ;; experimental
+(def hgroup         (mkelem "hgroup"))
 (def hr             (mkelem "hr"))
 (def i              (mkelem "i"))
 (def iframe         (mkelem "iframe"))
@@ -512,8 +594,8 @@
 (def main           (mkelem "main"))
 (def html-map       (mkelem "map"))
 (def mark           (mkelem "mark"))
-(def menu           (mkelem "menu")) ;; experimental
-(def menuitem       (mkelem "menuitem")) ;; experimental
+(def menu           (mkelem "menu"))
+(def menuitem       (mkelem "menuitem"))
 (def html-meta      (mkelem "meta"))
 (def meter          (mkelem "meter"))
 (def multicol       (mkelem "multicol"))
@@ -527,7 +609,7 @@
 (def output         (mkelem "output"))
 (def p              (mkelem "p"))
 (def param          (mkelem "param"))
-(def picture        (mkelem "picture")) ;; experimental
+(def picture        (mkelem "picture"))
 (def pre            (mkelem "pre"))
 (def progress       (mkelem "progress"))
 (def q              (mkelem "q"))
@@ -573,56 +655,6 @@
 
 (def <!--           $comment)
 (def -->            ::-->)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon elem! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti elem! dispatcher :default ::default)
-
-(defmethod elem! ::default
-  [elem key value]
-  (cond (cell? value) (do-watch value #(-do! elem key %2))
-        (fn? value)   (-on! elem key value)
-        :else         (-do! elem key value)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon do! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti do! dispatcher :default ::default)
-
-(defmethod do! ::default
-  [elem key val]
-  (do! elem :attr {key val}))
-
-(defmethod do! :attr
-  [elem _ kvs]
-  (set-attributes! elem kvs))
-
-(defmethod do! :html/*
-  [elem key val]
-  (set-attributes! elem val))
-
-(defmethod do! :svg/*
-  [elem key val]
-  (set-attributes! elem val))
-
-(defmethod do! :css
-  [elem _ kvs]
-  (set-styles! elem kvs))
-
-(defmethod do! :css/*
-  [elem key val]
-  (set-styles! elem val))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti on! dispatcher :default ::default)
-
-(defmethod on! ::default
-  [elem event callback]
-  (.addEventListener elem (name event) callback))
-
-(defmethod on! :html/*
-  [elem event callback]
-  (.addEventListener elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Template Macro Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
