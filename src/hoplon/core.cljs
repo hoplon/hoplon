@@ -173,9 +173,9 @@
 
    The ns-dispatcher will attempt to dispatch agains the key namespace or key.
 
-   ex. when key is `:namespace/key` will dispatch on `:namespace/*` otherwise `key`"
+   ex. when key is `:namespace/key` will dispatch on `:namespace/default` otherwise `key`"
   [elem key value]
-  (if-let [n (namespace key)] (keyword n "*") key))
+  (if-let [n (namespace key)] (keyword n "default") key))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -380,7 +380,7 @@
 ;; Hoplon hl! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmulti hl! key-dispatcher)
 
-(defmethod elem! :hoplon/*
+(defmethod elem! :hoplon/default
   [elem key args]
   (hl! elem key args))
 
@@ -416,11 +416,11 @@
   [elem _ kvs]
   (set-attributes! elem kvs))
 
-(defmethod do! :html/*
+(defmethod do! :html/default
   [elem key val]
   (set-attributes! elem val))
 
-(defmethod do! :svg/*
+(defmethod do! :svg/default
   [elem key val]
   (set-attributes! elem val))
 
@@ -428,7 +428,7 @@
   [elem _ kvs]
   (set-styles! elem kvs))
 
-(defmethod do! :css/*
+(defmethod do! :css/default
   [elem key val]
   (set-styles! elem val))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -440,7 +440,7 @@
   [elem event callback]
   (.addEventListener elem (name event) callback))
 
-(defmethod on! :html/*
+(defmethod on! :html/default
   [elem event callback]
   (.addEventListener elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
