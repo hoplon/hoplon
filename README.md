@@ -2,7 +2,10 @@
   <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
 
-# Hoplon [![clojars][8]][9]  [![build status][14]][15]  [![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
+# Hoplon
+[![clojars][8]][9]  [![snapshot status][19]][9] 
+
+[![build status][14]][15]  [![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
 
 Hoplon is a set of tools and libraries for making web applications.
 
@@ -148,4 +151,5 @@ this license. You must not remove this notice, or any other, from this software.
 [16]: https://github.com/hoplon/hoplon/milestones?direction=desc&sort=completeness&state=open
 [17]: https://opencollective.com/XX/backers/badge.svg
 [18]: https://opencollective.com/XX/sponsors/badge.svg
- 
+[19]: https://img.shields.io/clojars/vpre/hoplon.svg
+
