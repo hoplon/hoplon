@@ -2,10 +2,21 @@
   (:refer-clojure :exclude [symbol filter mask set use])
   (:require [hoplon.core :refer [parse-args do!]]))
 
-(defmethod do! :xlink/*
+(defmethod do! :xlink/default
   [elem kw val]
   (let [xlink "http://www.w3.org/1999/xlink"]
     (.setAttributeNS elem xlink (name kw) val)))
+
+(derive :xlink/type    :xlink/default)
+(derive :xlink/href    :xlink/default)
+(derive :xlink/role    :xlink/default)
+(derive :xlink/arcrole :xlink/default)
+(derive :xlink/title   :xlink/default)
+(derive :xlink/show    :xlink/default)
+(derive :xlink/actuate :xlink/default)
+(derive :xlink/label   :xlink/default)
+(derive :xlink/from    :xlink/default)
+(derive :xlink/to      :xlink/default)
 
 (defn mksvg [tag]
   (fn [& args]

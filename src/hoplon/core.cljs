@@ -37,35 +37,41 @@
           (recur (inc i) (conj! ret (.item x i)))))))
 
 (defn- vflatten
- ([tree]
-  (persistent! (vflatten tree (transient []))))
- ([tree ret]
-  (let [l (count tree)]
-    (loop [i 0]
-      (if (= i l) ret
-        (let [x (nth tree i)]
-          (if-not (sequential? x)
-            (conj! ret x)
-            (vflatten x ret))
-          (recur (inc i))))))))
+  ([tree]
+   (persistent! (vflatten tree (transient []))))
+  ([tree ret]
+   (loop [[x & rst] tree]
+     (if-not (sequential? x) (conj! ret x)
+       (when (seq x) (vflatten x ret)))
+     (if-not rst ret (recur rst)))))
 
-(defn- merge-kids
-  [this _ new]
-  (let [new  (->> (vflatten new) (reduce #(if (nil? %2) %1 (conj %1 %2)) []) (mapv ->node))
-        new? (set new)]
-    (loop [[x & xs] new
-           [k & ks :as kids] (child-vec this)]
-      (when (or x k)
-        (recur xs
-          (cond
-            (= x k) ks
-            (not k) (with-let [ks ks]
-                      (.appendChild this x))
-            (not x) (with-let [ks ks]
-                      (when-not (new? k)
-                        (.removeChild this k)))
-            :else   (with-let [kids kids]
-                      (.insertBefore this x k))))))))
+(defn- remove-nil [nodes]
+  (reduce #(if %2 (conj %1 %2) %1) [] nodes))
+
+(defn- compact-kids
+  "Flattens nested sequencences of elements, removing nil values."
+  [kids]
+  (->>
+    (vflatten kids)
+    (remove-nil)
+    (mapv ->node)))
+
+(defn- set-dom-children!
+  "Sets a DOM element's children to the sequence of children given."
+  [elem new-kids]
+  (let [new-kids (compact-kids new-kids)
+        new?     (set new-kids)]
+    (loop [[new-kid & nks]              new-kids
+           [old-kid & oks :as old-kids] (child-vec elem)]
+      (when (or new-kid old-kid)
+        (cond
+          (= new-kid old-kid) (recur nks oks)
+          (not old-kid)       (do (.appendChild elem new-kid)
+                                  (recur nks oks))
+          (not new-kid)       (do (when-not (new? old-kid) (.removeChild elem old-kid))
+                                  (recur nks oks))
+          :else               (do (.insertBefore elem new-kid old-kid)
+                                  (recur nks old-kids)))))))
 
 (defn- -do! [elem this value]
   (do! elem this value))
@@ -148,16 +154,16 @@
             (vector? arg)    (recur attr (reduce conj! kids (vflatten arg)) args)
             :else            (recur attr (conj! kids arg) args)))))
 
-(defn key-dispatcher
+(defn kw-dispatcher
   "A multi-method dispatch function.
 
    Will dispatch against three arguments:
 
-     * `elem` - the target DOM Element containing the attribute
-     * `key` - the attribute keyword or symbol
+     * `elem`  - the target DOM Element containing the attribute
+     * `key`   - the attribute keyword
      * `value` - the attribute value
 
-   The key-dispatcher will attempt to dispatch agains the key.
+   The kw-dispatcher will attempt to dispatch agains the key argument.
 
    ex. when key is `:namespace/key` will dispatch on `:namespace/key`"
   [elem key value] key)
@@ -167,15 +173,16 @@
 
    Will dispatch against three arguments:
 
-     * `elem` - the target DOM Element containing the attribute
-     * `key` - the attribute keyword or symbol
+     * `elem`  - the target DOM Element containing the attribute
+     * `key`   - the attribute keyword
      * `value` - the attribute value
 
    The ns-dispatcher will attempt to dispatch agains the key namespace or key.
 
-   ex. when key is `:namespace/key` will dispatch on `:namespace/*` otherwise `key`"
+   ex. when key is `:namespace/key` will dispatch on `:namespace/default` otherwise `:namespace/key`"
   [elem key value]
-  (if-let [n (namespace key)] (keyword n "*") key))
+  (if-let [n (namespace key)]
+    (keyword n "default") key))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Nodes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -225,7 +232,7 @@
   (-set-styles!     [this kvs]
     "Sets styles on a managed element using native functionality.")
   (-hoplon-kids     [this]
-    "Returns the hoplon managed kids atom, or creates it if missing exist.")
+    "Returns the hoplon managed kids atom, or creates it if missing.")
   (-append-child!   [this child]
     "Appends `child` to `this` for the case of `this` being a managed element.")
   (-remove-child!   [this child]
@@ -291,7 +298,7 @@
        (if-let [hl-kids (.-hoplonKids this)] hl-kids
          (with-let [kids (atom (child-vec this))]
            (set! (.-hoplonKids this) kids)
-           (do-watch kids (partial merge-kids this))))))
+           (do-watch kids #(set-dom-children! this %2))))))
     (-append-child!
       ([this child]
        (with-let [child child]
@@ -378,23 +385,41 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon hl! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmulti hl! key-dispatcher)
+(defmulti hl! kw-dispatcher)
 
-(defmethod elem! :hoplon/*
+(defmethod elem! :hoplon/default
   [elem key args]
   (hl! elem key args))
+
+(defmethod hl! :hoplon/singleton
+  [elem key args]
+  (let [[attr kids] (parse-args args)]
+    (if (:hoplon/static attr) elem
+      (doto (->hoplon elem)
+        (hl! :hoplon/reset nil)
+        (hl! :hoplon/attr attr)
+        (hl! :hoplon/kids kids)))))
+
+(defmethod hl! :hoplon/reset
+  [elem key val]
+  (with-let [elem elem]
+    (let [kids (-hoplon-kids elem)]
+      (doseq [w (keys (.-watches kids))]
+        (remove-watch kids w))
+      (set! (.-hoplonKids elem) val))))
 
 (defmethod hl! :hoplon/invoke
   [elem key args]
   (let [[attr kids] (parse-args args)]
-    (when-not (:hoplon/static attr)
+    (if (:hoplon/static attr) elem
       (doto (->hoplon elem)
         (hl! :hoplon/attr attr)
         (hl! :hoplon/kids kids)))))
 
 (defmethod hl! :hoplon/attr
   [elem key attr]
-  (reduce-kv #(do (-attribute! %2 %1 %3) %1) elem attr))
+  (with-let [elem elem]
+    (reduce-kv #(do (-attribute! %2 %1 %3) %1) elem attr)))
 
 (defmethod hl! :hoplon/kids
   [elem key kids]
@@ -409,38 +434,30 @@
 (defmulti do! ns-dispatcher :default ::default)
 
 (defmethod do! ::default
-  [elem key val]
-  (do! elem :attr {key val}))
-
-(defmethod do! :attr
-  [elem _ kvs]
+  [elem key kvs]
   (set-attributes! elem kvs))
 
-(defmethod do! :html/*
-  [elem key val]
-  (set-attributes! elem val))
+(defmethod do! ::attr
+  [elem key kvs]
+  (set-attributes! elem kvs))
 
-(defmethod do! :svg/*
-  [elem key val]
-  (set-attributes! elem val))
+(derive :attr         ::attr)
+(derive :attr/default ::attr)
+(derive :html/default ::attr)
+(derive :svg/default  ::attr)
 
-(defmethod do! :css
+(defmethod do! ::css
   [elem _ kvs]
   (set-styles! elem kvs))
 
-(defmethod do! :css/*
-  [elem key val]
-  (set-styles! elem val))
+(derive :css         ::css)
+(derive :css/default ::css)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon on! Multimethod ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmulti on! ns-dispatcher :default ::default)
 
 (defmethod on! ::default
-  [elem event callback]
-  (.addEventListener elem (name event) callback))
-
-(defmethod on! :html/*
   [elem event callback]
   (.addEventListener elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -506,7 +523,7 @@
   Creates the element if missing."
   (fn [& args]
     (if-let [elem (obj/get js/document tag)]
-      (-elem! elem :hoplon/invoke args)
+      (-elem! elem :hoplon/singleton args)
       (with-let [elem (.createElement js/document tag)]
         (obj/set js/document tag elem)
         (-elem! elem :hoplon/invoke args)))))
