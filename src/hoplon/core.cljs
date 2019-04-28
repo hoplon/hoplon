@@ -398,7 +398,7 @@
 (defmethod hl! :hoplon/invoke
   [elem key args]
   (let [[attr kids] (parse-args args)]
-    (if (:hoplon/static attr) elem
+    (when-not (:hoplon/static attr)
       (with-let [elem (->hoplon elem)]
         (when-let [reset (:hoplon/reset attr)]
           (hl! elem :hoplon/reset reset))
