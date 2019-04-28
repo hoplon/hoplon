@@ -392,7 +392,8 @@
 
 (defmethod hl! :hoplon/reset
   [elem key fval]
-  (swap! (-hoplon-kids elem) fval))
+  (with-let [elem elem]
+    (swap! (-hoplon-kids elem) fval)))
 
 (defmethod hl! :hoplon/invoke
   [elem key args]
@@ -406,7 +407,8 @@
 
 (defmethod hl! :hoplon/attr
   [elem key attr]
-  (reduce-kv #(do (-attribute! %2 %1 %3) %1) elem attr))
+  (with-let [elem elem]
+    (reduce-kv #(do (-attribute! %2 %1 %3) %1) elem attr)))
 
 (defmethod hl! :hoplon/kids
   [elem key kids]
