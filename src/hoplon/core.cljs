@@ -388,7 +388,7 @@
 (defmethod hl! :hoplon/singleton
   [elem key args]
   (let [[attr kids] (parse-args args)]
-    (when-not (:hoplon/static attr)
+    (if (:hoplon/static attr) elem
       (doto (->hoplon elem)
         (hl! :hoplon/reset nil)
         (hl! :hoplon/attr attr)
@@ -402,7 +402,7 @@
 (defmethod hl! :hoplon/invoke
   [elem key args]
   (let [[attr kids] (parse-args args)]
-    (when-not (:hoplon/static attr)
+    (if (:hoplon/static attr) elem
       (doto (->hoplon elem)
         (hl! :hoplon/attr attr)
         (hl! :hoplon/kids kids)))))
