@@ -387,23 +387,25 @@
 
 (defmethod hl! :hoplon/singleton
   [elem key args]
-  (hl! elem :hoplon/invoke
-    (conj args :hoplon/reset empty)))
+  (let [[attr kids] (parse-args args)]
+    (when-not (:hoplon/static attr)
+      (doto (->hoplon elem)
+        (hl! :hoplon/reset nil)
+        (hl! :hoplon/attr attr)
+        (hl! :hoplon/kids kids)))))
 
 (defmethod hl! :hoplon/reset
-  [elem key fval]
+  [elem key val]
   (with-let [elem elem]
-    (swap! (-hoplon-kids elem) fval)))
+    (set! (.-hoplonKids elem) (atom val))))
 
 (defmethod hl! :hoplon/invoke
   [elem key args]
   (let [[attr kids] (parse-args args)]
     (when-not (:hoplon/static attr)
-      (with-let [elem (->hoplon elem)]
-        (when-let [reset (:hoplon/reset attr)]
-          (hl! elem :hoplon/reset reset))
-        (hl! elem :hoplon/attr attr)
-        (hl! elem :hoplon/kids kids)))))
+      (doto (->hoplon elem)
+        (hl! :hoplon/attr attr)
+        (hl! :hoplon/kids kids)))))
 
 (defmethod hl! :hoplon/attr
   [elem key attr]
