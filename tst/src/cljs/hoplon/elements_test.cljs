@@ -52,6 +52,17 @@
   (is (not (h/native-node? e)))
   (is (h/element? e))))
 
+(deftest ??singletons-static
+ ; calling a static element will not modify it's children
+ (doseq [[e s] [[(h/head :hoplon/static true) "head"]
+                [(h/body :hoplon/static true) "body"]
+                [(h/html :hoplon/static true) "html"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (not (h/native? e)))
+  (is (not (h/native-node? e)))
+  (is (h/element? e))))
+
 (def elements
  [
   [h/a "a"]
