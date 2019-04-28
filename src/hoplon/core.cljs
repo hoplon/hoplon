@@ -397,9 +397,9 @@
 (defmethod hl! :hoplon/reset
   [elem key val]
   (with-let [elem elem]
-    (let [kids (-hoplon-kids elem)
-          watches (keys (.-watches kids))]
-      (doseq [w watches] (remove-watch kids w))
+    (let [kids (-hoplon-kids elem)]
+      (doseq [w (keys (.-watches kids))]
+        (remove-watch kids w))
       (set! (.-hoplonKids elem) val))))
 
 (defmethod hl! :hoplon/invoke
