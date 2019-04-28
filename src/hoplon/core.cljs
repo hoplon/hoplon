@@ -30,20 +30,14 @@
 ;; Internal Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- child-vec
   [this]
-  (let [x (.-childNodes this)
-        l (.-length x)]
-    (loop [i 0 ret (transient [])]
-      (or (and (= i l) (persistent! ret))
-          (recur (inc i) (conj! ret (.item x i)))))))
+  (let [x (.-childNodes this)]
+    (areduce x i ret [] (conj ret (.item x i)))))
 
 (defn- vflatten
-  ([tree]
-   (persistent! (vflatten tree (transient []))))
-  ([tree ret]
-   (loop [[x & rst] tree]
-     (if-not (sequential? x) (conj! ret x)
-       (when (seq x) (vflatten x ret)))
-     (if-not rst ret (recur rst)))))
+  "Takes a sequential collection and returns a flattened vector of any nested
+  sequential collections."
+  ([x] (persistent! (vflatten (transient []) x)))
+  ([acc x] (if (sequential? x) (reduce vflatten acc x) (conj! acc x))))
 
 (defn- remove-nil [nodes]
   (reduce #(if %2 (conj %1 %2) %1) [] nodes))
@@ -684,23 +678,13 @@
   removed from the DOM and cached. When the items collection grows again those
   cached elements will be reinserted into the DOM at their original index."
   [items tpl]
-  (let [on-deck   (atom ())
-        items-seq (cell= (seq items))
-        ith-item  #(cell= (nth items-seq % nil))
-        shift!    #(with-let [x (first @%)] (swap! % rest))]
-    (with-let [current (cell [])]
-      (do-watch items-seq
-        (fn [old-items new-items]
-          (let [old  (count old-items)
-                new  (count new-items)
-                diff (- new old)]
-            (cond (pos? diff)
-                  (doseq [i (range old new)]
-                    (let [e (or (shift! on-deck) (tpl (ith-item i)))]
-                      (swap! current conj e)))
-                  (neg? diff)
-                  (dotimes [_ (- diff)]
-                    (let [e (peek @current)]
-                      (swap! current pop)
-                      (swap! on-deck conj e))))))))))
+  (let [els         (cell [])
+        itemsv      (cell= (vec items))
+        items-count (cell= (count items))]
+    (do-watch items-count
+              (fn [_ n]
+                (when (< (count @els) n)
+                  (doseq [i (range (count @els) n)]
+                    (swap! els assoc i (tpl (cell= (get itemsv i nil))))))))
+    (cell= (subvec els 0 (min items-count (count els))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
