@@ -130,8 +130,14 @@
                      (obj/set this "_hoplonWhenDom" nil))))))))))
 
 (defn add-initfn!
-  "Executes a function once the window load event is fired."
-  [f] (.addEventListener js/window "load" #(with-timeout 0 (f))))
+  "Executes a function once the window load event is fired.
+
+   Or, if the page has already loaded, executes the function immediately."
+  [f]
+  (let [f' #(with-timeout 0 (f))]
+    (if (= "complete" (.-readyState js/document))
+      (f')
+      (.addEventListener js/window "load" f'))))
 
 (defn parse-args
   "Parses a sequence of element arguments into attributes and children."
