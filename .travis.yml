@@ -7,7 +7,7 @@ install:
   - curl -L https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh -o ~/bin/boot
   - chmod +x ~/bin/boot
 jdk:
-  - oraclejdk8
+  - oraclejdk11
 cache:
   directories:
   - $HOME/.m2
