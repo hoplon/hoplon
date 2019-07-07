@@ -19,7 +19,7 @@
    (is (h/native-node? n))
    (is (not (h/element? n))))))
 
-(deftest ??singletons
+(deftest ??singletons-unmanaged
  ; initially both head and body are unmanaged
  (doseq [[e s] [[(.-head js/document) "head"]
                 [(.-body js/document) "body"]
@@ -28,8 +28,9 @@
   (is (.webkitMatchesSelector e s))
   (is (h/native? e))
   (is (h/native-node? e))
-  (is (not (h/element? e))))
+  (is (not (h/element? e)))))
 
+(deftest ??singletons-managed
  ; calling hoplon singleton fns will start managing the relevant el
  (doseq [[e s] [[(h/head) "head"]
                 [(h/body) "body"]
@@ -38,12 +39,24 @@
   (is (.webkitMatchesSelector e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
-  (is (h/element? e)))
+  (is (h/element? e))))
 
+(deftest ??singletons-direct
  ; the els will still be considered managed even if referenced directly
  (doseq [[e s] [[(.-head js/document) "head"]
                 [(.-body js/document) "body"]
                 [(.-documentElement js/document) "html"]]]
+  (is (goog.dom/isElement e))
+  (is (.webkitMatchesSelector e s))
+  (is (not (h/native? e)))
+  (is (not (h/native-node? e)))
+  (is (h/element? e))))
+
+(deftest ??singletons-static
+ ; calling a static element will not modify it's children
+ (doseq [[e s] [[(h/head :hoplon/static true) "head"]
+                [(h/body :hoplon/static true) "body"]
+                [(h/html :hoplon/static true) "html"]]]
   (is (goog.dom/isElement e))
   (is (.webkitMatchesSelector e s))
   (is (not (h/native? e)))

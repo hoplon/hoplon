@@ -2,7 +2,10 @@
   <img src="http://hoplon.io/images/logos/hoplon-logo.png" alt="Hoplon Logo" title="Hoplon" align="right" width="225px" />
 </a>
 
-# Hoplon [![clojars][8]][9]  [![build status][14]][15]  [![road map][11]][16]
+# Hoplon
+[![clojars][8]][9]  [![snapshot status][19]][9] 
+
+[![build status][14]][15]  [![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
 
 Hoplon is a set of tools and libraries for making web applications.
 
@@ -88,6 +91,36 @@ or advanced optimizations turned on.
 boot develop
 ```
 
+## Contributors
+
+This project exists thanks to all the people who contribute. 
+<a href="https://github.com/hoplon/hoplon/graphs/contributors"><img src="https://opencollective.com/hoplon/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/hoplon#backer)]
+
+<a href="https://opencollective.com/hoplon#backers" target="_blank"><img src="https://opencollective.com/hoplon/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/hoplon#sponsor)]
+
+<a href="https://opencollective.com/hoplon/sponsor/0/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/1/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/2/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/3/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/4/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/5/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/6/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/7/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/8/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/hoplon/sponsor/9/website" target="_blank"><img src="https://opencollective.com/hoplon/sponsor/9/avatar.svg"></a>
+
+
+
 ## License
 
 ```
@@ -116,3 +149,7 @@ this license. You must not remove this notice, or any other, from this software.
 [14]: https://travis-ci.org/hoplon/hoplon.svg?branch=master
 [15]: https://travis-ci.org/hoplon/hoplon
 [16]: https://github.com/hoplon/hoplon/milestones?direction=desc&sort=completeness&state=open
+[17]: https://opencollective.com/XX/backers/badge.svg
+[18]: https://opencollective.com/XX/sponsors/badge.svg
+[19]: https://img.shields.io/clojars/vpre/hoplon.svg
+

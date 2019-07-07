@@ -5,11 +5,11 @@
                            [boot-codox                            "0.10.3"   :scope "test"]
                            [lein-doo                              "0.1.8"    :scope "test"]
                            [crisptrutski/boot-cljs-test           "0.3.4"    :scope "test"]
-                           [degree9/boot-semver                   "1.7.0"    :scope "test"]
+                           [degree9/boot-semver                   "1.8.0"    :scope "test"]
                            [tolitius/boot-check                   "0.1.6"    :scope "test"]
+                           [org.clojure/test.check                "0.9.0"    :scope "test"]
                            [org.clojure/clojure                   ~(clojure-version)]
-                           [org.clojure/clojurescript             "1.9.946"]
-                           [org.clojure/test.check                "0.9.0" :scope "test"]
+                           [org.clojure/clojurescript             "1.10.439"]
                            [cljsjs/jquery                         "3.2.1-0"]
                            [hoplon/javelin                        "3.9.0"]]))
 

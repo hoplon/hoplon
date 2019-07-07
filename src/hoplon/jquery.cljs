@@ -1,5 +1,5 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do! on! when-dom normalize-class]]
+  (:require [hoplon.core :refer [do! on! normalize-class]]
             [cljsjs.jquery]
             [hoplon.spec :as spec])
   (:require-macros
@@ -46,53 +46,53 @@
   [_]
   (spec/attr any?))
 
-(defmethod do! :css/*
+(defmethod do! :css/default
   [elem key val]
   (set-styles! elem key val))
 
-(defmethod spec/do! :data/*
+(defmethod spec/do! :data/default
   [_]
   (spec/attr any?))
 
-(defmethod do! :html/*
+(defmethod do! :html/default
   [elem key val]
   (set-attributes! elem key val))
 
-(defmethod spec/do! :html/*
+(defmethod spec/do! :html/default
   [_]
   (spec/attr any?))
 
-(defmethod do! :svg/*
+(defmethod do! :svg/default
   [elem key val]
   (set-attributes! elem key val))
 
-(defmethod spec/do! :svg/*
+(defmethod spec/do! :svg/default
   [_]
   (spec/attr any?))
 
-(defmethod do! :attr/*
+(defmethod do! :attr/default
   [elem _ kvs]
   (set-attributes! elem kvs))
 
-(defmethod spec/do! :data/*
+(defmethod spec/do! :data/default
   [_]
   (spec/attr :hoplon.spec/map))
 
-(defmethod do! :prop/*
+(defmethod do! :prop/default
   [elem key val]
   (let [e (js/jQuery elem)]
     (.prop e (name key) val)))
 
-(defmethod spec/do! :prop/*
+(defmethod spec/do! :prop/default
   [_]
   (spec/attr any?))
 
-(defmethod do! :data/*
+(defmethod do! :data/default
   [elem key val]
   (let [e (js/jQuery elem)]
     (.data e (name key) val)))
 
-(defmethod spec/do! :data/*
+(defmethod spec/do! :data/default
   [_]
   (spec/attr any?))
 
@@ -131,11 +131,11 @@
   [_]
   (spec/attr :hoplon.spec/class))
 
-(defmethod do! :class/*
+(defmethod do! :class/default
   [elem _ kvs]
   (do! elem :class kvs))
 
-(defmethod spec/do! :class/*
+(defmethod spec/do! :class/default
   [_]
   (spec/attr :hoplon.spec/class))
 
@@ -159,10 +159,9 @@
 
 (defmethod do! :fade-toggle
   [elem _ v]
-  (when-dom elem
-    #(if v
-       (.fadeIn (.hide (js/jQuery elem)) "fast")
-       (.fadeOut (js/jQuery elem) "fast"))))
+  (if v
+    (.fadeIn (.hide (js/jQuery elem)) "fast")
+    (.fadeOut (js/jQuery elem) "fast")))
 
 (defmethod spec/do! :fade-toggle
   [_]
@@ -226,8 +225,8 @@
 
 (defmethod on! :hoplon.core/default
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (.on (js/jQuery elem) (name event) callback))
 
-(defmethod on! :html/*
+(defmethod on! :html/default
   [elem event callback]
-  (when-dom elem #(.on (js/jQuery elem) (name event) callback)))
+  (.on (js/jQuery elem) (name event) callback))

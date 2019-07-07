@@ -1,5 +1,5 @@
 {
  :deps
- {org.clojure/clojurescript {:mvn/version "1.9.946"}
+ {org.clojure/clojurescript {:mvn/version "1.10.439"}
   cljsjs/jquery {:mvn/version "3.2.1-0"}
   hoplon/javelin {:mvn/version "3.9.0"}}}

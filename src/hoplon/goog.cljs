@@ -117,5 +117,5 @@
 (defmethod on! :hoplon.core/default
   [elem event callback]
   (let [event (obj/get events/EventType (name event))]
-    (when-dom elem #(events/listen elem event callback))))
+    (events/listen elem event callback)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
