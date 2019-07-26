@@ -115,7 +115,11 @@
 (defmethod do! :value
   [elem _ & args]
   (let [e (js/jQuery elem)]
-    (apply (if (= "checkbox" (.attr e "type")) check-val! text-val!) e args)))
+    (apply
+     (if (#{"checkbox" "radio"} (.attr e "type"))
+      check-val!
+      text-val!)
+     e args)))
 
 (defmethod spec/do! :value
   [_]
