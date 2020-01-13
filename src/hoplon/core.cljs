@@ -428,8 +428,8 @@
 (defmulti do! ns-dispatcher :default ::default)
 
 (defmethod do! ::default
-  [elem key kvs]
-  (set-attributes! elem kvs))
+  [elem k v]
+  (set-attributes! elem k v))
 
 (defmethod do! ::attr
   [elem key kvs]
