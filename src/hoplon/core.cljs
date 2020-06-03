@@ -534,8 +534,9 @@
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn html [& args]
  "Updates and returns the document's `html` element in place."
- (let [elem (mksingleton "documentElement")]
-   (elem (first (parse-args args)))))
+  (let [elem (mksingleton "documentElement")
+        [attr kids] (parse-args args)]
+   (elem kids)))
 
 (def head
  "Updates and returns the document's `head` element in place."
