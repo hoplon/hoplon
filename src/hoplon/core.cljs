@@ -398,6 +398,7 @@
   [elem key val]
   (with-let [elem elem]
     (let [kids (-hoplon-kids elem)]
+      (swap! kids empty)
       (doseq [w (keys (.-watches kids))]
         (remove-watch kids w))
       (set! (.-hoplonKids elem) val))))
