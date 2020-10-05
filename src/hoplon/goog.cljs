@@ -117,6 +117,5 @@
 ;; Google Closure Library Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod on! :hoplon.core/default
   [elem event callback]
-  (let [event (obj/get events/EventType (.toUpperCase (name event)))]
-    (events/listen elem event callback)))
+  (events/listen elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
