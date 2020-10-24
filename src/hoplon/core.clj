@@ -231,6 +231,11 @@
   [msec & body]
   `(js/setInterval (fn [] ~@body) ~msec))
 
+(defmacro with-animation-frame
+  "Evaluates the body before the next browser repaint as requestAnimationFrame."
+  [& body]
+  `(.requestAnimationFrame js/window (fn [] ~@body)))
+
 (defmacro with-init!
   "Evaluates the body after Hoplon has completed constructing the page."
   [& body]
