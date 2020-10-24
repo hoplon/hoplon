@@ -190,6 +190,27 @@
        ((j/formula tpl#) ~expr))))
 
 (spec/fdef case-tpl :args :hoplon.spec/case-tpl :ret any?)
+
+(defmacro regexp-tpl
+  "Template. Accepts a number of `regexp` RegExp-template pairs and returns a
+  cell with the value produced by the matching clause:
+
+    (regexp-tpl
+      #\"regexp-a\" (span \"A\")
+      #\"regexp-b\" (span \"B\")
+      :else         (span \"Default\"))
+
+  "
+  [expr & clauses]
+  (assert (even? (count clauses)))
+  (let [[conds tpls] (apply map vector (partition 2 clauses))
+        conds        (map #(if-not (keyword? %)
+                            `(j/cell= (re-matches ~% (str ~expr))) %)
+                          conds)]
+    `(cond-tpl ~@(interleave conds tpls))))
+
+(spec/fdef regexp-tpl :args :hoplon.spec/regexp-tpl :ret any?)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; DOM Macros ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

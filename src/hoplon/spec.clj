@@ -39,7 +39,7 @@
 
 (spec/def ::loop-tpl
   (spec/cat :bindings-kw ::bindings-kw :bindings ::binding-cell :forms ::forms))
-  
+
 (spec/def ::for-tpl
   (spec/cat :bindings ::binding-cell :forms ::forms))
 
@@ -54,3 +54,6 @@
 
 (spec/def ::case-tpl
   (spec/cat :expr ::forms :cases (spec/* ::forms) :default ::forms))
+
+(spec/def ::regexp-tpl
+  (spec/and ::pairs (spec/coll-of ::forms)))
