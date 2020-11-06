@@ -56,4 +56,4 @@
   (spec/cat :expr ::forms :cases (spec/* ::forms) :default ::forms))
 
 (spec/def ::regexp-tpl
-  (spec/and ::pairs (spec/coll-of ::forms)))
+  (spec/cat :expr ::forms :regexps (spec/* ::forms) :default ::forms))
