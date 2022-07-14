@@ -20,7 +20,7 @@ the following libraries as dependencies to complete the stack:
 
 ### Quickstart
 
-Install [Boot](http://boot-clj.com) and then generate a starter project with:
+Install [Boot](https://boot-clj.github.io/) and then generate a starter project with:
 
     boot -d boot/new new -t hoplon -n hoplon-starter-project
 
