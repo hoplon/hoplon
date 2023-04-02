@@ -5,7 +5,7 @@
 # Hoplon
 [![clojars][8]][9]  [![snapshot status][19]][9] 
 
-[![build status][14]][15]  [![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
+[![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
 
 Hoplon is a set of tools and libraries for making web applications.
 
@@ -91,6 +91,17 @@ or advanced optimizations turned on.
 boot develop
 ```
 
+### Testing
+#### Setup
+```
+npm install
+npm install -g karma-cli
+```
+#### Run
+```
+clojure -T:build test
+```
+
 ## Contributors
 
 This project exists thanks to all the people who contribute. 
@@ -146,10 +157,7 @@ this license. You must not remove this notice, or any other, from this software.
 [11]: https://img.shields.io/badge/road%20map-7.3-lightgrey.svg
 [12]: https://badge.waffle.io/hoplon/hoplon.png?label=ready&title=Ready
 [13]: https://waffle.io/hoplon/hoplon
-[14]: https://travis-ci.org/hoplon/hoplon.svg?branch=master
-[15]: https://travis-ci.org/hoplon/hoplon
 [16]: https://github.com/hoplon/hoplon/milestones?direction=desc&sort=completeness&state=open
 [17]: https://opencollective.com/XX/backers/badge.svg
 [18]: https://opencollective.com/XX/sponsors/badge.svg
 [19]: https://img.shields.io/clojars/vpre/hoplon.svg
-
