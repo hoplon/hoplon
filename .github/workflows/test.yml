@@ -20,12 +20,12 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: subdir/package-lock.json
       - name: Cache All The Things
         uses: actions/cache@v3
         with:
           path: |
             ~/.m2/repository
+            ~/.npm
             ~/.gitlibs
             ~/.clojure
             ~/.cpcache
