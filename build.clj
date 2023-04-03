@@ -4,7 +4,8 @@
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'hoplon/hoplon)
-(def version "7.3.0-SNAPSHOT")
+(def version "7.3.0")
+(def snapshot (format "%s-SNAPSHOT" version))
 #_ ; alternatively, use MAJOR.MINOR.COMMITS:
 (def version (format "1.0.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
@@ -20,14 +21,16 @@
   opts)
 
 (defn- jar-opts [opts]
-  (assoc opts
-          :lib lib :version version
-          :jar-file (format "target/%s-%s.jar" lib version)
-          :scm {:tag (str "v" version)}
-          :basis (b/create-basis {})
-          :class-dir class-dir
-          :target "target"
-          :src-dirs ["src"]))
+  (let [version (if (:snapshot opts) snapshot version)]
+    (println "\nVersion:" version)
+    (assoc opts
+      :lib lib :version version
+      :jar-file (format "target/%s-%s.jar" lib version)
+      :scm {:tag (str "v" version)}
+      :basis (b/create-basis {})
+      :class-dir class-dir
+      :target "target"
+      :src-dirs ["src"])))
 
 (defn ci "Run the CI pipeline of tests (and build the JAR)." [opts]
   (test opts)

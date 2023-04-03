@@ -20,9 +20,13 @@ the following libraries as dependencies to complete the stack:
 
 ### Quickstart
 
-Install [Boot](https://boot-clj.github.io/) and then generate a starter project with:
+Install [clj-new](https://github.com/seancorfield/clj-new):
 
-    boot -d boot/new new -t hoplon -n hoplon-starter-project
+    clojure -Ttools install com.github.seancorfield/clj-new '{:git/tag "v1.2.399"}' :as clj-new
+
+And then generate a starter project with:
+
+    clojure -Tclj-new create :template hoplon :name myname/hoplon-starter-project
 
 ### Example
 
@@ -66,14 +70,6 @@ following browsers:
 ![Chrome](https://img.shields.io/badge/Chrome-26%2B-yellow.svg) ![Opera](https://img.shields.io/badge/Opera-11%2B-red.svg)
 ![Android](https://img.shields.io/badge/Android-4%2B-green.svg)
 
->Note that the `object` element is not implemented for IE 8, and that older
-browsers that predate HTML 5 elements such as `Audio` and `Video` will not render
-them.  Additionally, boot development tasks such as `boot-reload` and
-`boot-cljs-repl`, which inject scripts into the browser to function, do not
-support IE 8 (which errors when output is written to the console without the
-developer tools open).  Testing against these browsers is best done with simple
-or advanced optimizations turned on.
-
 ### Documentation
 
 * [http://hoplon.io][7]
@@ -88,7 +84,8 @@ or advanced optimizations turned on.
 
 ```
 # build and install locally
-boot develop
+clojure -T:build ci :snapshot true
+clojure -T:build install :snapshot true
 ```
 
 ### Testing
@@ -146,9 +143,8 @@ this license. You must not remove this notice, or any other, from this software.
 
 [1]: https://github.com/hoplon/javelin
 [2]: https://github.com/hoplon/castra
-[3]: https://github.com/hoplon/cljson
 [4]: https://clojars.org/hoplon/hoplon
-[5]: https://github.com/hoplon/hoplon-demos
+[5]: https://github.com/hoplon/demos
 [6]: Design.md
 [7]: http://hoplon.io/
 [8]: https://img.shields.io/clojars/v/hoplon.svg
