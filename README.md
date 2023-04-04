@@ -145,7 +145,7 @@ this license. You must not remove this notice, or any other, from this software.
 [2]: https://github.com/hoplon/castra
 [4]: https://clojars.org/hoplon/hoplon
 [5]: https://github.com/hoplon/demos
-[6]: Design.md
+[6]: https://github.com/hoplon/hoplon/blob/cf9d2d1e806d36d098ae1def3b130df2bcd69e55/Design.md
 [7]: http://hoplon.io/
 [8]: https://img.shields.io/clojars/v/hoplon.svg
 [9]: https://clojars.org/hoplon
