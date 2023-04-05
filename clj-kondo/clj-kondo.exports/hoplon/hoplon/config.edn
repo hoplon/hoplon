@@ -1,0 +1,11 @@
+{:lint-as {castra.core/defrpc      clojure.core/defn
+           hoplon.core/for-tpl     clojure.core/for
+           javelin.core/cell-let   clojure.core/let
+           javelin.core/cell-doseq clojure.core/doseq
+           javelin.core/defc       clojure.core/def
+           javelin.core/defc=      clojure.core/def
+           javelin.core/formulet   clojure.core/let
+           javelin.core/with-let   clojure.core/let}
+ :hooks   {:analyze-call {hoplon.core/elem     clj-kondo.hoplon/hoplon-core-elem
+                          hoplon.core/defelem  clj-kondo.hoplon/hoplon-core-defelem
+                          hoplon.core/loop-tpl clj-kondo.hoplon/hoplon-core-loop-tpl}}}

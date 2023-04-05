@@ -1,6 +1,6 @@
 {:deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
         hoplon/javelin {:mvn/version "3.9.0"}}
- :paths ["src"]
+ :paths ["src" "clj-kondo"]
  :aliases {:test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}
                                cljsjs/jquery {:mvn/version "3.2.1-0"}}
                   :extra-paths ["tst/src/cljs"]
