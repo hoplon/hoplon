@@ -30,7 +30,7 @@
       :basis (b/create-basis {})
       :class-dir class-dir
       :target "target"
-      :src-dirs ["src"])))
+      :src-dirs ["src" "clj-kondo"])))
 
 (defn ci "Run the CI pipeline of tests (and build the JAR)." [opts]
   (test opts)
@@ -39,7 +39,7 @@
     (println "\nWriting pom.xml...")
     (b/write-pom opts)
     (println "\nCopying source...")
-    (b/copy-dir {:src-dirs ["resources" "src"] :target-dir class-dir})
+    (b/copy-dir {:src-dirs ["src" "clj-kondo"] :target-dir class-dir})
     (println "\nBuilding JAR...")
     (b/jar opts))
   opts)
