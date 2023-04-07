@@ -1,4 +1,4 @@
-(ns hoplon.boot-hoplon.util
+(ns ^:no-doc hoplon.boot-hoplon.util
   (:refer-clojure :exclude [read-string])
   (:require
    [clojure.string :as string]))

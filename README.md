@@ -6,6 +6,7 @@
 [![clojars][8]][9]  [![snapshot status][19]][9] 
 
 [![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
+[![cljdoc badge](https://cljdoc.org/badge/hoplon/hoplon)](https://cljdoc.org/d/hoplon/hoplon)
 
 Hoplon is a set of tools and libraries for making web applications.
 
@@ -20,45 +21,38 @@ the following libraries as dependencies to complete the stack:
 
 ### Quickstart
 
-Install [clj-new](https://github.com/seancorfield/clj-new):
+Install [deps-new](https://github.com/seancorfield/deps-new) if you haven't already:
 
-    clojure -Ttools install com.github.seancorfield/clj-new '{:git/tag "v1.2.399"}' :as clj-new
+    clojure -Ttools install io.github.seancorfield/deps-new '{:git/tag "v0.5.1"}' :as new
 
 And then generate a starter project with:
 
-    clojure -Tclj-new create :template hoplon :name myname/hoplon-starter-project
+    clojure -Sdeps '{:deps {io.github.hoplon/project-template {:git/tag "v0.2.0" :git/sha "5a10650"}}}' -Tnew create :template hoplon/hoplon :name your/app-name
 
 ### Example
-
-`src/pages/index.cljs`:
+A small bit of Hoplon:
 
 ```clojure
-(page "index.html")
-
-(ns ^{:hoplon/page "index.html"} pages.index
-  (:require [hoplon.core  :as h :refer [div ul li html head title body h1 span p button text]]
-            [javelin.core :as j :refer [cell cell=]]
-            [hoplon.jquery]))
+(ns view.index
+  (:require [hoplon.core  :as h]
+            [hoplon.goog]
+            [javelin.core :as j]))
 
 (defn my-list [& items]
-  (div
+  (h/div
     :class "my-list"
-    (apply ul (map #(li (div :class "my-list-item" %)) items))))
+    (apply h/ul (map #(h/li (h/div :class "my-list-item" %)) items))))
 
-(def clicks (cell 0))
+(def clicks (j/cell 0))
 
-(html
-  (head
-    (title "example page"))
-  (body
-    (h1 "Hello, Hoplon")
-
+(defn hello []
+  (h/div
+    (h/h1 "Hello, Hoplon")
     (my-list
-      (span "first thing")
-      (span "second thing"))
-
-    (p (text "You've clicked ~{clicks} times, so far."))
-    (button :click #(swap! clicks inc) "click me")))
+      (h/span "first thing")
+      (h/span "second thing"))
+    (h/p (h/text "You've clicked ~{clicks} times, so far."))
+    (h/button :click #(swap! clicks inc) "click me")))
 ```
 
 ### Browser Support
@@ -80,7 +74,7 @@ following browsers:
 
 * [Hoplon demo applications repository][5]
 
-## Hacking
+## Developing Hoplon itself
 
 ```
 # build and install locally
@@ -89,6 +83,9 @@ clojure -T:build install :snapshot true
 ```
 
 ### Testing
+
+This setup will run tests using chrome-webdriver.
+
 #### Setup
 ```
 npm install

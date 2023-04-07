@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns hoplon.boot-hoplon.compiler
+(ns ^:no-doc hoplon.boot-hoplon.compiler
   (:require
     cljs.util
     [clojure.pprint             :as pp]

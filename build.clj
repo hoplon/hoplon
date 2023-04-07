@@ -4,7 +4,7 @@
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'hoplon/hoplon)
-(def version "7.3.0")
+(def version "7.3.1")
 (def snapshot (format "%s-SNAPSHOT" version))
 #_ ; alternatively, use MAJOR.MINOR.COMMITS:
 (def version (format "1.0.%s" (b/git-count-revs nil)))
@@ -13,7 +13,7 @@
 (defn test "Run all the tests." [opts]
   (let [basis    (b/create-basis {:aliases [:test]})
         cmds     (b/java-command
-                  {:basis      basis
+                   {:basis     basis
                     :main      'clojure.main
                     :main-args ["-m" "cljs-test-runner.main" "-d" "tst/src/cljs" "-x" "chrome-headless"]})
         {:keys [exit]} (b/process cmds)]
@@ -26,7 +26,8 @@
     (assoc opts
       :lib lib :version version
       :jar-file (format "target/%s-%s.jar" lib version)
-      :scm {:tag (str "v" version)}
+      :scm {:tag (str "v" version)
+            :url "git@github.com:hoplon/hoplon.git"}
       :basis (b/create-basis {})
       :class-dir class-dir
       :target "target"
