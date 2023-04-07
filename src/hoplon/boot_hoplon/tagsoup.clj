@@ -10,8 +10,7 @@
   (:refer-clojure :exclude [replace])
   (:require
     [pl.danieljanus.tagsoup :as ts]
-    [clojure.pprint         :refer [pprint]]
-    [clojure.string         :refer [blank? replace replace-first split join]]
+    [clojure.string         :refer [blank? replace split join]]
     [clojure.walk           :refer [postwalk]]))
 
 (def cljs-attr? #(and (string? %) (re-find #"^\s*\{\{.*\}\}\s*" %)))
@@ -47,7 +46,7 @@
   (collapse (ts/parse-string s :strip-whitespace false)))
 
 (defn parse-snip [s]
-  (let [[html attr body] (read-hiccup s)]
+  (let [[_html _attr body] (read-hiccup s)]
     (parse-hiccup (nth body 2))))
 
 (defn parse-page [s]
@@ -86,7 +85,7 @@
 (defn html-escape [s]
   (-> s (replace #"&" "&amp;") (replace #"<" "&lt;") (replace #">" "&gt;")))
 
-(defn hoplon->string* [[tag attr & kids :as form]]
+(defn hoplon->string* [[tag attr & kids :as _form]]
   (case tag
     $text     (html-escape attr)
     $comment  (str "<!-- " attr " -->")

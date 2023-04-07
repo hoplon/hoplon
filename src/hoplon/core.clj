@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:require [clojure.string     :as string]
-            [clojure.spec.alpha :as spec]
+  (:require [clojure.spec.alpha :as spec]
             [javelin.core       :as j]
             [hoplon.spec]))
 
@@ -22,7 +21,7 @@
   (try
     (let [r (-> s java.io.StringReader. java.io.PushbackReader.)]
       [(read r) (slurp r)])
-    (catch Exception e))) ; this indicates an invalid form -- the head of s is just string data
+    (catch Exception _))) ; this indicates an invalid form -- the head of s is just string data
 
 (defn- ^{:from 'org.clojure/core.incubator} terpol8*
   "Yields a seq of Strings and read forms."

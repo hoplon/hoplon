@@ -5,8 +5,6 @@
             [goog.events        :as events]
             [goog.fx.dom        :as fxdom]
             [goog.style         :as style]
-            [goog.object        :as obj]
-            [goog.string        :as string]
             [hoplon.core        :refer [on! do! normalize-class]]
             [hoplon.spec        :as spec])
   (:require-macros [hoplon.core :refer [with-timeout]]))

@@ -9,22 +9,19 @@
 (ns hoplon.core
   (:require [goog.Uri]
             [goog.object          :as obj]
-            [clojure.set          :refer [difference intersection]]
-            [javelin.core         :refer [cell? cell lift destroy-cell!]]
-            [cljs.reader          :refer [read-string]]
-            [clojure.string       :refer [split join blank?]]
+            [javelin.core         :refer [cell? cell]]
             [cljs.spec.alpha      :as spec]
             [cljs.spec.test.alpha :as spect]
             [hoplon.spec])
-  (:require-macros [javelin.core :refer [with-let cell= prop-cell]]
-                   [hoplon.core  :refer [with-timeout with-dom]]))
+  (:require-macros [javelin.core :refer [with-let cell=]]
+                   [hoplon.core  :refer [with-timeout]]))
 
 ;; Console Printing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (enable-console-print!)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Declare Variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(declare elem! do! on! ->node $text add-children! attribute?)
+(declare elem! do! on! ->node $text attribute?)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Internal Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -160,7 +157,7 @@
    The kw-dispatcher will attempt to dispatch agains the key argument.
 
    ex. when key is `:namespace/key` will dispatch on `:namespace/key`"
-  [elem key value] key)
+  [_elem key _value] key)
 
 (defn ns-dispatcher
   "A multi-method dispatch function.
@@ -174,7 +171,7 @@
    The ns-dispatcher will attempt to dispatch agains the key namespace or key.
 
    ex. when key is `:namespace/key` will dispatch on `:namespace/default` otherwise `:namespace/key`"
-  [elem key value]
+  [_elem key _value]
   (if-let [n (namespace key)]
     (keyword n "default") key))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -253,9 +250,9 @@
     (not (element? elem))))
 
 (defn native-node?
- [node]
  "Returns true if node is any native node. Same as native? but allows for nodes
  that are not elements."
+ [node]
  (and
   (instance? js/Node node)
   (not (element? node))))
@@ -264,7 +261,7 @@
   (specify! elem
     IPrintWithWriter
     (-pr-writer
-      ([this writer opts]
+      ([this writer _opts]
        (write-all writer "#<HoplonElement: " (.-tagName this) ">")))
     ILookup
     (-lookup
@@ -386,7 +383,7 @@
   (hl! elem key args))
 
 (defmethod hl! :hoplon/singleton
-  [elem key args]
+  [elem _key args]
   (let [[attr kids] (parse-args args)]
     (if (:hoplon/static attr) elem
       (doto (->hoplon elem)
@@ -395,7 +392,7 @@
         (hl! :hoplon/kids kids)))))
 
 (defmethod hl! :hoplon/reset
-  [elem key val]
+  [elem _key val]
   (with-let [elem elem]
     (let [kids (-hoplon-kids elem)]
       (doseq [w (keys (.-watches kids))]
@@ -403,7 +400,7 @@
       (set! (.-hoplonKids elem) val))))
 
 (defmethod hl! :hoplon/invoke
-  [elem key args]
+  [elem _key args]
   (let [[attr kids] (parse-args args)]
     (if (:hoplon/static attr) elem
       (doto (->hoplon elem)
@@ -411,12 +408,12 @@
         (hl! :hoplon/kids kids)))))
 
 (defmethod hl! :hoplon/attr
-  [elem key attr]
+  [elem _key attr]
   (with-let [elem elem]
     (reduce-kv #(do (-attribute! %2 %1 %3) %1) elem attr)))
 
 (defmethod hl! :hoplon/kids
-  [elem key kids]
+  [elem _key kids]
   (with-let [elem elem]
     (doseq [x (vflatten kids)]
       (when-let [x (->node x)]
@@ -432,7 +429,7 @@
   (set-attributes! elem k v))
 
 (defmethod do! ::attr
-  [elem key kvs]
+  [elem _key kvs]
   (set-attributes! elem kvs))
 
 (derive :attr         ::attr)
@@ -460,7 +457,7 @@
 (extend-type js/Element
   IPrintWithWriter
   (-pr-writer
-    ([this writer opts]
+    ([this writer _opts]
      (write-all writer "#<Element: " (.-tagName this) ">")))
   IFn
   (-invoke
@@ -511,10 +508,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Constructors ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn- mksingleton [tag]
+(defn- mksingleton
   "Retrieves the DOM element `elem` from js/document and updates in-place.
 
   Creates the element if missing."
+  [tag]
   (fn [& args]
     (if-let [elem (obj/get js/document tag)]
       (-elem! elem :hoplon/singleton args)
@@ -522,28 +520,30 @@
         (obj/set js/document tag elem)
         (-elem! elem :hoplon/invoke args)))))
 
-(defn- mkelem [tag]
+(defn- mkelem
   "Returns a DOM element function.
 
   This creates a DOM element of type `tag` and invokes it."
+  [tag]
   (fn [& args]
     (with-let [elem (.createElement js/document tag)]
       (-elem! elem :hoplon/invoke args))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; HTML Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn html [& args]
- "Updates and returns the document's `html` element in place."
- (let [elem (mksingleton "documentElement")]
-   (elem (first (parse-args args)))))
+(defn html
+  "Updates and returns the document's `html` element in place."
+  [& args]
+  (let [elem (mksingleton "documentElement")]
+    (elem (first (parse-args args)))))
 
 (def head
- "Updates and returns the document's `head` element in place."
- (mksingleton "head"))
+  "Updates and returns the document's `head` element in place."
+  (mksingleton "head"))
 
 (def body
- "Updates and returns the document's `body` element in place."
- (mksingleton "body"))
+  "Updates and returns the document's `body` element in place."
+  (mksingleton "body"))
 
 (def a              (mkelem "a"))
 (def abbr           (mkelem "abbr"))

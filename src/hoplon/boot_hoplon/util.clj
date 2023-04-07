@@ -1,11 +1,8 @@
-(ns ^:no-doc hoplon.boot-hoplon.util
-  (:refer-clojure :exclude [read-string])
-  (:require
-   [clojure.string :as string]))
+(ns ^:no-doc hoplon.boot-hoplon.util)
 
 (defn get-aliases [forms-str]
   (->> forms-str
-    clojure.core/read-string
+    read-string
     (filter sequential?)
     (group-by first)
     :require
@@ -15,4 +12,4 @@
     (into {})))
 
 ;(defn get-ns [forms-str]
-;  (->> forms-str clojure.core/read-string second munge-page))
+;  (->> forms-str read-string second munge-page))

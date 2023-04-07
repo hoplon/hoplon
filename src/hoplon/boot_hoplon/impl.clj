@@ -25,7 +25,7 @@
               forms1 (->frms (slurp in-path))
               forms2 (->frms (phantom! render-js-path in-path))
               [_ att1 [_ hatt1 & head1] [_ batt1 & body1]] forms1
-              [html* att2 [head* hatt2 & head2] [body* batt2 & body2]] forms2
+              [_html* att2 [_head* hatt2 & head2] [_body* batt2 & body2]] forms2
               script? (comp (partial = 'script) first)
               rm-scripts #(remove script? %)
               att (merge att1 att2)
