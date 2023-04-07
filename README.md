@@ -6,6 +6,7 @@
 [![clojars][8]][9]  [![snapshot status][19]][9] 
 
 [![road map][11]][16] [![Backers on Open Collective][17]](#backers) [![Sponsors on Open Collective][18]](#sponsors)
+[![cljdoc badge](https://cljdoc.org/badge/hoplon/hoplon)](https://cljdoc.org/d/hoplon/hoplon)
 
 Hoplon is a set of tools and libraries for making web applications.
 

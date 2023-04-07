@@ -1,4 +1,4 @@
-(ns hoplon.boot-hoplon.kahn
+(ns ^:no-doc hoplon.boot-hoplon.kahn
   (:refer-clojure :exclude [sort])
   (:require [clojure.set :refer [difference union intersection]]))
 
