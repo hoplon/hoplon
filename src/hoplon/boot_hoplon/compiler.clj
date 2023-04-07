@@ -13,13 +13,12 @@
     [clojure.java.io            :as io]
     [clojure.string             :as string]
     [clojure.set                :as set]
-    [hoplon.core                :as hl]
     [hoplon.boot-hoplon.tagsoup :as tags]
     [hoplon.boot-hoplon.refer   :as refer])
   (:import
     [java.util UUID]
     [clojure.lang LineNumberingPushbackReader]
-    [java.io PushbackReader BufferedReader StringReader]))
+    [java.io StringReader]))
 
 (def ^:dynamic *printer* prn)
 
@@ -54,7 +53,7 @@
        (string/join (concat (repeat (dec (.getLineNumber r)) "\n") [(slurp r)]))])))
 
 (defn up-parents [path name]
-  (let [[f & dirs] (string/split path #"/")]
+  (let [[_f & dirs] (string/split path #"/")]
     (->> [name] (concat (repeat (count dirs) "../")) (apply str))))
 
 (defn inline-code [s process]
@@ -116,7 +115,7 @@
              (~'body {} (~'script {:type "text/javascript"
                                    :src ~(str js-uri)})))))
 
-(defn compile-forms [nsdecl body {:keys [bust-cache refers] :as opts}]
+(defn compile-forms [nsdecl body {:keys [bust-cache _refers] :as opts}]
   (case (first nsdecl)
     ns   {:cljs (forms-str (make-nsdecl nsdecl opts) body) :ns (second nsdecl)}
     page (let [[_ page & _] nsdecl
@@ -137,8 +136,8 @@
     (doto f io/make-parents (spit s))))
 
 (defn compile-string
-  [say-it forms-as-str path cljsdir htmldir & {{:keys [bust-cache refers] :as opts} :opts}]
-  (let [[[tag ns-sym & clauses :as ns-form] body] (read-string-1 (->cljs-str forms-as-str))
+  [say-it forms-as-str path cljsdir htmldir & {{:keys [bust-cache _refers] :as opts} :opts}]
+  (let [[[_tag ns-sym & clauses :as ns-form] body] (read-string-1 (->cljs-str forms-as-str))
         {html-path :hoplon/page} (meta ns-sym)]
     (cond (.endsWith path ".cljs")
           (let [gen-html? #(= :page (first %))

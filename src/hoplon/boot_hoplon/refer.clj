@@ -90,7 +90,6 @@
             names         (if (= names :all) (set/union defs macros) (set names))
             refer-defs    (set/intersection defs names)
             refer-macros  (set/intersection macros names)
-            refer-errors  (set/difference names (set/union defs macros))
             inset         (fnil into #{})
             xs (if (empty? defs) xs (update-in xs [:require ns] merge mods))
             xs (if (empty? macros) xs (update-in xs [:require-macros ns] merge mods))
