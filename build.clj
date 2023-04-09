@@ -4,7 +4,7 @@
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'hoplon/hoplon)
-(def version "7.3.2")
+(def version "7.3.3")
 (def snapshot (format "%s-SNAPSHOT" version))
 #_ ; alternatively, use MAJOR.MINOR.COMMITS:
 (def version (format "1.0.%s" (b/git-count-revs nil)))

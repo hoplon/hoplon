@@ -1,6 +1,30 @@
 # Hoplon Changelog
 
-## 7.2.0-SNAPSHOT
+## Unreleased
+
+## 7.3.2
+- Move the cljsjs.jquery dependency back to regular deps
+- More :no-doc metadata to fix building on cljdoc
+
+#### Library developers
+- Fix lint warnings from clj-kondo
+
+## 7.3.1
+- Add some :no-doc metadata to fix building on cljdoc
+- Fix scm link so cljdoc can find the project on github
+
+## 7.3.0
+- clj-kondo config to fix errors displayed by clojure-lsp
+- `with-animation-frame` macro
+- Move the cljsjs.jquery dependency to test deps
+
+#### Library developers
+- Use Github Actions to test, release snapshots and versions
+- Move tooling from boot to tools deps
+- Test setup using chrome webdriver
+- npm setup used for testing
+
+## 7.2.0
 
 #### Bug Fixes
   - `defattr` spec was not being used, improved spec
