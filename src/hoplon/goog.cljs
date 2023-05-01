@@ -110,6 +110,12 @@
 (defmethod spec/do! :scroll-to
   [_]
   (spec/attr :hoplon.spec/boolean))
+
+(extend-type goog.events.BrowserEvent
+  cljs.core/IDeref
+  (-deref [this]
+    (-> this .-target .-value)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Google Closure Library Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
