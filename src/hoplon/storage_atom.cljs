@@ -16,11 +16,11 @@
 
 (deftype StorageBackend [store key]
   IStorageBackend
-  (-get [this not-found]
+  (-get [_this not-found]
     (if-let [existing (.getItem store (pr-str key))]
       (read-string existing)
       not-found))
-  (-commit! [this value]
+  (-commit! [_this value]
     (.setItem store (pr-str key) (pr-str value))))
 
 (defn store

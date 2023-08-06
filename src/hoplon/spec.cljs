@@ -24,7 +24,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Attribute Provider Spec Multimethods ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn dispatcher [[elem key val]]
+(defn dispatcher [[_elem key _val]]
   (if-let [n (namespace key)] (keyword n "*") key))
 
 (defmulti elem! dispatcher :default ::default)

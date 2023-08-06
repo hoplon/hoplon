@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns hoplon.boot-hoplon
+(ns ^:no-doc hoplon.boot-hoplon
   {:boot/export-tasks true}
   (:require [boot.core        :as boot]
             [boot.pod         :as pod]

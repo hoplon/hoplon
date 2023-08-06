@@ -5,7 +5,6 @@
             [goog.events        :as events]
             [goog.fx.dom        :as fxdom]
             [goog.style         :as style]
-            [goog.object        :as obj]
             [hoplon.core        :refer [on! do! normalize-class]]
             [hoplon.spec        :as spec])
   (:require-macros [hoplon.core :refer [with-timeout]]))
@@ -111,11 +110,16 @@
 (defmethod spec/do! :scroll-to
   [_]
   (spec/attr :hoplon.spec/boolean))
+
+(extend-type goog.events.BrowserEvent
+  cljs.core/IDeref
+  (-deref [this]
+    (-> this .-target .-value)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Google Closure Library Events ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod on! :hoplon.core/default
   [elem event callback]
-  (let [event (obj/get events/EventType (name event))]
-    (events/listen elem event callback)))
+  (events/listen elem (name event) callback))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

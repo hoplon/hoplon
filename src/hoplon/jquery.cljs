@@ -1,14 +1,13 @@
 (ns hoplon.jquery
-  (:require [hoplon.core :refer [do! on! normalize-class]]
-            [cljsjs.jquery]
+  (:require [cljsjs.jquery]
+            [hoplon.core :refer [do! on! normalize-class]]
             [hoplon.spec :as spec])
   (:require-macros
-    [javelin.core   :refer [with-let cell= prop-cell]]
-    [hoplon.core    :refer [with-timeout]]))
+    [hoplon.core :refer [with-timeout]]))
 
 ;; Helper Fn's ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn set-attributes!
+(defn- set-attributes!
   ([this kvs]
    (let [e (js/jQuery this)]
      (doseq [[k v] kvs :let [k (name k)]]
@@ -18,7 +17,7 @@
   ([this k v & kvs]
    (set-attributes! this (apply hash-map k v kvs))))
 
-(defn set-styles!
+(defn- set-styles!
   ([this kvs]
    (let [e (js/jQuery this)]
      (doseq [[k v] kvs]
@@ -26,13 +25,13 @@
   ([this k v & kvs]
    (set-styles! this (apply hash-map k v kvs))))
 
-(defn text-val!
+(defn- text-val!
   ([e] (.val e))
   ([e v] (let [v (str v)]
            (when (not= v (text-val! e))
              (.val e v)))))
 
-(defn check-val!
+(defn- check-val!
   ([e] (.is e ":checked"))
   ([e v] (.prop e "checked" (boolean v))))
 
@@ -115,7 +114,11 @@
 (defmethod do! :value
   [elem _ & args]
   (let [e (js/jQuery elem)]
-    (apply (if (= "checkbox" (.attr e "type")) check-val! text-val!) e args)))
+    (apply
+     (if (#{"checkbox" "radio"} (.attr e "type"))
+      check-val!
+      text-val!)
+     e args)))
 
 (defmethod spec/do! :value
   [_]
