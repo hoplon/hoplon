@@ -9,4 +9,4 @@
 
 (deftest ??defattr
  (let [el (h/div :baz true)]
-  (is (.webkitMatchesSelector el "div[baz]"))))
+  (is (.matches el "div[baz]"))))
