@@ -391,7 +391,8 @@
 (defmethod hl! :hoplon/singleton
   [elem _key args]
   (let [[attr kids] (parse-args args)]
-    (if (:hoplon/static attr) elem
+    (if (:hoplon/static attr)
+      elem
       (doto (->hoplon elem)
         (hl! :hoplon/reset nil)
         (hl! :hoplon/attr attr)
@@ -401,9 +402,11 @@
   [elem _key val]
   (with-let [elem elem]
     (let [kids (-hoplon-kids elem)]
-      (doseq [w (keys (.-watches kids))]
+      (when-not (= "HTML" (.-tagName elem))
+        (swap! kids empty))
+      (doseq [w (keys ^js (.-watches kids))]
         (remove-watch kids w))
-      (set! (.-hoplonKids elem) val))))
+      (set! ^js (.-hoplonKids elem) val))))
 
 (defmethod hl! :hoplon/invoke
   [elem _key args]
