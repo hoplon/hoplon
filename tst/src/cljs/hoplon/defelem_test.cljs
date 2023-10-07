@@ -34,14 +34,14 @@
 
 (deftest ??divs
  ; trivial case
- (is (.webkitMatchesSelector (div--basic) "div"))
+ (is (.matches (div--basic) "div"))
 
  ; attribute arguments
- (is (.webkitMatchesSelector (div--attributes :data-foo true) "div[data-foo]"))
+ (is (.matches (div--attributes :data-foo true) "div[data-foo]"))
 
  ; destructuring attributes
- (is (.webkitMatchesSelector (div--destructured :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]"))
- (is (.webkitMatchesSelector (div--destructured-attributes-only :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]"))
+ (is (.matches (div--destructured :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]"))
+ (is (.matches (div--destructured-attributes-only :foo "123" :data-baz "456") "div[data-bar=\"123\"][data-baz=\"456\"]"))
 
  (doseq [el [; children arguments
              (div--children (h/span) (h/p))

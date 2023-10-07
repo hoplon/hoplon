@@ -20,22 +20,22 @@
 
 (deftest ??class
  (let [el (h/div :class "foo")]
-  (is (.webkitMatchesSelector el ".foo"))
+  (is (.matches el ".foo"))
 
   (el :class "bar")
-  (is (.webkitMatchesSelector el ".foo.bar"))
+  (is (.matches el ".foo.bar"))
 
   (el :class/baz "baz")
-  (is (.webkitMatchesSelector el ".foo.bar.baz"))
+  (is (.matches el ".foo.bar.baz"))
 
   (el :class {"foo" false
               "baz" false
               "bar" true})
-  (is (.webkitMatchesSelector el ".bar"))
-  (is (not (.webkitMatchesSelector el ".foo")))
-  (is (not (.webkitMatchesSelector el ".baz"))))
+  (is (.matches el ".bar"))
+  (is (not (.matches el ".foo")))
+  (is (not (.matches el ".baz"))))
 
- (is (.webkitMatchesSelector
+ (is (.matches
       (h/div
        :class #{"foo" "bar"}
        :class/baz "baz"
@@ -43,10 +43,10 @@
       ".foo.bar.baz.bing")))
 
 (deftest ??class--extend
- (is (.webkitMatchesSelector
+ (is (.matches
       (extended-el :class "bing")
       "div.foo.bar.bing"))
 
- (is (.webkitMatchesSelector
+ (is (.matches
       (extended-el :class/extend "baz")
       "div.foo.baz:not(.bar)")))

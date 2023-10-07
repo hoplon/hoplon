@@ -25,7 +25,7 @@
                 [(.-body js/document) "body"]
                 [(.-documentElement js/document) "html"]]]
   (is (goog.dom/isElement e))
-  (is (.webkitMatchesSelector e s))
+  (is (.matches e s))
   (is (h/native? e))
   (is (h/native-node? e))
   (is (not (h/element? e)))))
@@ -36,7 +36,7 @@
                 [(h/body) "body"]
                 [(h/html) "html"]]]
   (is (goog.dom/isElement e))
-  (is (.webkitMatchesSelector e s))
+  (is (.matches e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
   (is (h/element? e))))
@@ -47,7 +47,7 @@
                 [(.-body js/document) "body"]
                 [(.-documentElement js/document) "html"]]]
   (is (goog.dom/isElement e))
-  (is (.webkitMatchesSelector e s))
+  (is (.matches e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
   (is (h/element? e))))
@@ -58,7 +58,7 @@
                 [(h/body :hoplon/static true) "body"]
                 [(h/html :hoplon/static true) "html"]]]
   (is (goog.dom/isElement e))
-  (is (.webkitMatchesSelector e s))
+  (is (.matches e s))
   (is (not (h/native? e)))
   (is (not (h/native-node? e)))
   (is (h/element? e))))
@@ -182,8 +182,8 @@
    (is (goog.dom/isElement hoplon-el))
    (is (goog.dom/isElement native-el))
 
-   (is (.webkitMatchesSelector hoplon-el s) (str "Element did not match selector: " s))
-   (is (.webkitMatchesSelector native-el s) (str "Element did not match selector: " s))
+   (is (.matches hoplon-el s) (str "Element did not match selector: " s))
+   (is (.matches native-el s) (str "Element did not match selector: " s))
 
    (is (not (hoplon.core/native? hoplon-el)))
    (is (hoplon.core/native? native-el))
@@ -224,14 +224,14 @@
   (doseq [e [(el-fn #{:data-foo})
              (el-fn :data-foo true)
              (el-fn {:data-foo true})]]
-   (is (.webkitMatchesSelector e "[data-foo=\"data-foo\"]")))
+   (is (.matches e "[data-foo=\"data-foo\"]")))
 
   ; setting a specific cljs value (such as a keyword) for "data-foo"
   (doseq [e [(el-fn :data-foo :data-foo)
              (el-fn {:data-foo :data-foo})]]
-   (is (.webkitMatchesSelector e "[data-foo=\":data-foo\"]")))
+   (is (.matches e "[data-foo=\":data-foo\"]")))
   ; ability to set "true" is important for some HTML APIs, e.g. "draggable" for
   ; HTML5 drag and drop.
-  (is (.webkitMatchesSelector
+  (is (.matches
        (el-fn {:data-foo "true"})
        "[data-foo=\"true\"]"))))
