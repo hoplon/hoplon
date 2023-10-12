@@ -18,11 +18,11 @@ underlying [Javelin][1] cell graph.
 
 Install [deps-new](https://github.com/seancorfield/deps-new) if you haven't already:
 
-    clojure -Ttools install io.github.seancorfield/deps-new '{:git/tag "v0.5.2"}' :as new
+    clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new
 
 And then generate a starter project with:
 
-    clojure -Sdeps '{:deps {io.github.hoplon/project-template {:git/tag "v0.3.0" :git/sha "ed6ce5f"}}}' -Tnew create :template hoplon/hoplon :name your/app-name
+    clojure -Sdeps '{:deps {io.github.hoplon/project-template {:git/tag "v0.3.1" :git/sha "e6bf194"}}}' -Tnew create :template hoplon/hoplon :name your/app-name
 
 ### Example
 A small bit of Hoplon:
