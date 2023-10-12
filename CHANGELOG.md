@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 7.3.4
+- `with-init!` execute the fn immediately if the page has already loaded (fixes #257)
+- Fix singletons appending instead of replacing children (fixes #264)
+
+#### Library developers
+- Use Element.matches() instead of Element.webkitMatchesSelector() in tests (fixes #272)
+
+## 7.3.3
+- Derefing an event now works when using `hoplon.goog` attribute provider
+
 ## 7.3.2
 - Move the cljsjs.jquery dependency back to regular deps
 - More :no-doc metadata to fix building on cljdoc
