@@ -18,7 +18,7 @@ underlying [Javelin][1] cell graph.
 
 Install [deps-new](https://github.com/seancorfield/deps-new) if you haven't already:
 
-    clojure -Ttools install io.github.seancorfield/deps-new '{:git/tag "v0.5.2"}' :as new
+    clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new
 
 And then generate a starter project with:
 
