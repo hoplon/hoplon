@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 7.3.5
+- Update dependencies
+
 ## 7.3.4
 - `with-init!` execute the fn immediately if the page has already loaded (fixes #257)
 - Fix singletons appending instead of replacing children (fixes #264)
