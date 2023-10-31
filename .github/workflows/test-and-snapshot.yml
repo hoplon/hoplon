@@ -9,7 +9,7 @@ jobs:
   build-and-snapshot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.1
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
@@ -17,9 +17,9 @@ jobs:
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@master
         with:
-          cli: '1.11.1.1208'
+          cli: '1.11.1.1413'
       - name: Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'

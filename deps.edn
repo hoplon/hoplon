@@ -1,10 +1,10 @@
-{:deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
-        hoplon/javelin {:mvn/version "3.9.0"}
+{:deps {org.clojure/clojurescript {:mvn/version "1.11.121"}
+        hoplon/javelin {:mvn/version "3.9.3"}
         cljsjs/jquery {:mvn/version "3.4.0-0"}}
  :paths ["src" "clj-kondo"]
- :aliases {:test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
-                  :extra-paths ["tst/src/cljs"]
-                  :main-opts ["-m" "cljs-test-runner.main"]}
-           :build {:deps {io.github.clojure/tools.build {:git/tag "v0.9.2" :git/sha "fe6b140"}
-                          slipset/deps-deploy {:mvn/version "0.2.0"}}
+ :aliases {:cljs-chrome {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
+                         :extra-paths ["tst/src/cljs"]
+                         :main-opts ["-m" "cljs-test-runner.main" "-d" "tst/src/cljs" "-x" "chrome-headless"]}
+           :build {:deps {io.github.clojure/tools.build {:mvn/version "0.9.6"}
+                          slipset/deps-deploy {:mvn/version "0.2.2"}}
                    :ns-default build}}}
