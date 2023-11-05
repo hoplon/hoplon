@@ -1,11 +1,8 @@
 (ns hoplon.spec
-  (:require [cljs.spec.alpha :as spec]))
+  (:require [cljs.spec.alpha :as spec]
+            [hoplon.core :as h]))
 
 ;; Attribute Specs ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(spec/def ::elem any?)
-
-(spec/def ::attr keyword?)
-
 (spec/def ::class
   (spec/or
     :map map?
@@ -20,7 +17,7 @@
 
 ;; Attribute Provider Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn attr [vspec]
-  (spec/cat :element ::elem :attribute ::attr :value vspec))
+  (spec/cat :element any? :attribute keyword? :value vspec))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Attribute Provider Spec Multimethods ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -47,3 +44,7 @@
 
 (spec/def ::on! (spec/multi-spec on! ::on!))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(spec/fdef h/-do! :args :hoplon.spec/do! :ret any?)
+(spec/fdef h/-on! :args :hoplon.spec/on! :ret any?)
+(spec/fdef h/-elem! :args :hoplon.spec/elem! :ret any?)

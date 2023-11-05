@@ -9,10 +9,7 @@
 (ns hoplon.core
   (:require [goog.Uri]
             [goog.object          :as obj]
-            [javelin.core         :refer [cell? cell]]
-            [cljs.spec.alpha      :as spec]
-            [cljs.spec.test.alpha :as spect]
-            [hoplon.spec])
+            [javelin.core         :refer [cell? cell]])
   (:require-macros [javelin.core :refer [with-let cell=]]
                    [hoplon.core  :refer [with-timeout]]))
 
@@ -64,20 +61,15 @@
           :else               (do (.insertBefore elem new-kid old-kid)
                                   (recur nks old-kids)))))))
 
-(defn- -do! [elem this value]
+(defn -do! [elem this value]
   (do! elem this value))
 
-(spec/fdef -do! :args :hoplon.spec/do! :ret any?)
-
-(defn- -on! [elem this value]
+(defn -on! [elem this value]
   (on! elem this value))
 
-(spec/fdef -on! :args :hoplon.spec/on! :ret any?)
-
-(defn- -elem! [elem this value]
+(defn -elem! [elem this value]
   (elem! elem this value))
 
-(spec/fdef -elem! :args :hoplon.spec/elem! :ret any?)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Public Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -213,13 +205,6 @@
   Keyword
   (-attribute! [this elem value]
     (-elem! elem this value)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Hoplon Runtime Spec ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn spec! []
-  (spect/instrument `-elem!)
-  (spect/instrument `-do!)
-  (spect/instrument `-on!))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Elements ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
