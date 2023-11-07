@@ -4,7 +4,6 @@
 
 # Hoplon
 [![clojars](https://img.shields.io/clojars/v/hoplon.svg)](https://clojars.org/hoplon)
-[![snapshot status](https://img.shields.io/clojars/vpre/hoplon.svg)](https://clojars.org/hoplon)
 [![cljdoc badge](https://cljdoc.org/badge/hoplon/hoplon)](https://cljdoc.org/d/hoplon/hoplon)
 
 Hoplon is a ClojureScript library that unify some of the web platform's 
