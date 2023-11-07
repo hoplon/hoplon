@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 7.4.0
+- Make specs and spec validation optional when building the application
+- BREAKING: users that are using spec validation and call `(hoplon.core/spec!)`
+  now need to call `(hoplon.googl-spec/spec!)` or `(hoplon.jquery-spec/spec!)`
+  depending on the provider they use. The default provider if you don't have a
+  explicit require on `hoplon.jquery` or `hoplon.goog` is jquery.
+- BREAKING: remove broken attributes on goog provider. The following attributes
+  were removed:
+  - `:slide-toggle`
+  - `:focus`
+  - `:select`
+  - `:focus-select`
+  - `:html`
+  - `:scroll-to`
+- goog implementation is considered deprecated at this point considering that
+  Closure Library is in [maintenance mode](https://github.com/google/closure-library/issues/1214)
+
 ## 7.3.5
 - Update dependencies
 
