@@ -21,7 +21,7 @@ Install [deps-new](https://github.com/seancorfield/deps-new) if you haven't alre
 
 And then generate a starter project with:
 
-    clojure -Sdeps '{:deps {io.github.hoplon/project-template {:git/tag "v0.3.2" :git/sha "5e5d95a"}}}' -Tnew create :template hoplon/hoplon :name your/app-name
+    clojure -Sdeps '{:deps {io.github.hoplon/project-template {:git/tag "v0.3.3" :git/sha "95620a4"}}}' -Tnew create :template hoplon/hoplon :name your/app-name
 
 ### Example
 A small bit of Hoplon:
@@ -63,13 +63,12 @@ following browsers:
 
 ### Documentation
 
-* [https://hoplon.io][4]
+* [The Wiki][6]
 * [Design Document][3] (early version)
-* [The Wiki](https://github.com/hoplon/hoplon/wiki)
 
 ### Demos
 
-* [Hoplon demo applications repository][2]
+* [Hoplon demos][5] and [demos source code][2]
 
 ## Developing Hoplon itself
 
@@ -117,3 +116,5 @@ this license. You must not remove this notice, or any other, from this software.
 [2]: https://github.com/hoplon/demos
 [3]: https://github.com/hoplon/hoplon/blob/cf9d2d1e806d36d098ae1def3b130df2bcd69e55/Design.md
 [4]: https://hoplon.io/
+[5]: https://hoplon.github.io/demos/
+[6]: https://github.com/hoplon/hoplon/wiki
