@@ -1,5 +1,6 @@
 {:deps {org.clojure/clojurescript {:mvn/version "1.11.121"}
         hoplon/javelin {:mvn/version "3.9.3"}
+        applied-science/js-interop {:mvn/version "0.4.2"}
         cljsjs/jquery {:mvn/version "3.4.0-0"}}
  :paths ["src" "clj-kondo"]
  :aliases {:cljs-chrome {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
