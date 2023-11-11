@@ -1,0 +1,38 @@
+(page "dom-churn.html")
+
+(html
+  (head
+    (title "DOM churn examples")
+    (style "input {float: left; clear: left;"))
+
+  (body
+    (div
+      :id "input-list"
+      (let [values (cell {})
+            values+final (cell= (into values {:new nil}))
+            on-input! (fn [id v] (reset! values (->>
+                                                  ; Update values.
+                                                  (merge @values {id v})
+                                                  ; Filter empty strings.
+                                                  (remove #(let [[_ v] %] (= "" v)))
+                                                  ; Ensure we have a map.
+                                                  (into {}))))]
+        (loop-tpl :bindings [[k v] values+final]
+          (let [id (cell= (if (= :new k) (gensym) k))]
+            (input
+              :value v
+              :id id
+              :input #(on-input! @id @%))))))
+
+    (div
+      :id "deterministic-loop-tpl"
+      :css {:clear "left"}
+
+      ; These states must line up with hoplon.dom-churn-test/deterministic-loop-tpl
+      (let [state-1 ["a" "a"]
+            state-2 ["a"]
+            current (cell [])]
+        [(span "state 1" :data-state-1 true :click #(reset! current state-1) (br))
+         (span "state 2" :data-state-2 true :click #(reset! current state-2) (br))
+         (loop-tpl :bindings [i current]
+          (input :value i))]))))
