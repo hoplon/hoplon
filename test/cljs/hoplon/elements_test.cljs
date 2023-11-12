@@ -2,6 +2,7 @@
  (:require
   goog.dom
   [hoplon.core :as h]
+  hoplon.jquery
   [javelin.core :as j]
   [cljs.test :refer-macros [deftest is]]))
 

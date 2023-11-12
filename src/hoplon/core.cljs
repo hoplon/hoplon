@@ -10,10 +10,10 @@
   (:require
     [applied-science.js-interop :as j]
     [goog.Uri]
-    [javelin.core         :refer [cell? cell]])
+    [javelin.core :refer [cell? cell]])
   (:require-macros
     [javelin.core :refer [with-let cell=]]
-    [hoplon.core  :refer [with-timeout]]))
+    [hoplon.core :refer [with-timeout]]))
 
 ;; Console Printing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (enable-console-print!)
@@ -193,7 +193,9 @@
 
 (defn- ->node
   [x]
-  (if (node? x) (-node x) x))
+  (if (node? x)
+    (-node x)
+    x))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

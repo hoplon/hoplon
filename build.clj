@@ -51,8 +51,17 @@
   (run-task [:cljs-chrome])
   opts)
 
+(defn chrome-advanced-test
+  "Run cljs tests using chrome"
+  [opts]
+  (run-task [:cljs-chrome-advanced])
+  opts)
+
 (defn test "Run all the tests." [opts]
   (chrome-test opts))
+
+(defn advanced-test "Run all the tests using advanced compilation." [opts]
+  (chrome-advanced-test opts))
 
 (defn- jar-opts [opts]
   (let [version (if (:snapshot opts) snapshot version)]

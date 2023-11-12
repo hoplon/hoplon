@@ -5,8 +5,8 @@
   [cljs.test :refer-macros [deftest is]]))
 
 (h/defattr :baz [elem key value]
-  (elem :attr {key value}))
+  (elem :attr {:custombaz value}))
 
 (deftest ??defattr
  (let [el (h/div :baz true)]
-  (is (.matches el "div[baz]"))))
+  (is (.matches el "div[custombaz]"))))

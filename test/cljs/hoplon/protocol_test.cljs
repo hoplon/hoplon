@@ -1,6 +1,7 @@
 (ns hoplon.protocol-test
  (:require
   [hoplon.core :as h]
+  hoplon.jquery
   [cljs.test :refer-macros [deftest is]]))
 
 (deftest ??element-IFn
