@@ -1,7 +1,8 @@
 (ns hoplon.dom
-  (:require [applied-science.js-interop :as j]
-            [clojure.set :as set]
-            [hoplon.core :refer [do! normalize-class on!]]))
+  (:require
+    [applied-science.js-interop :as j]
+    [clojure.set :as set]
+    [hoplon.core :refer [do! normalize-class on! with-timeout]]))
 
 (defmethod do! :value
   [elem _ v]
@@ -34,9 +35,34 @@
   [elem _ v]
   (j/assoc-in! elem [:style :display] (if v "" "none")))
 
+(defmethod do! :focus
+  [elem _ v]
+  (with-timeout 0
+    (if v
+      (j/call elem :focus)
+      (j/call elem :blur))))
+
+(defmethod do! :select
+  [elem _ v]
+  (if v
+    (j/call elem :select)
+    (-> js/window
+        (j/call :getSelection)
+        (j/call :removeAllRanges))))
+
 (defmethod do! :text
   [elem _ v]
   (j/assoc! elem :textContent (str v)))
+
+(defmethod do! :html
+  [elem _ v]
+  (j/call elem :replaceChildren v))
+
+(defmethod do! :dangerous-html
+  [elem _ v]
+  (if (string? v)
+    (j/assoc! elem :innerHTML v)
+    (j/call elem :replaceChildren v)))
 
 (defmethod do! :scroll-to
   [elem _ v]

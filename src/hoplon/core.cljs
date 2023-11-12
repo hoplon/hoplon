@@ -7,11 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:require [goog.Uri]
-            [goog.object          :as obj]
-            [javelin.core         :refer [cell? cell]])
-  (:require-macros [javelin.core :refer [with-let cell=]]
-                   [hoplon.core  :refer [with-timeout]]))
+  (:require
+    [applied-science.js-interop :as j]
+    [goog.Uri]
+    [javelin.core         :refer [cell? cell]])
+  (:require-macros
+    [javelin.core :refer [with-let cell=]]
+    [hoplon.core  :refer [with-timeout]]))
 
 ;; Console Printing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (enable-console-print!)
@@ -108,15 +110,15 @@
   [this f]
   (if-not (instance? js/Element this)
     (with-timeout 0 (f))
-    (if-let [v (obj/get this "_hoplonWhenDom")]
+    (if-some [v (j/get this .-_hoplonWhenDom)]
       (.push v f)
-      (do (obj/set this "_hoplonWhenDom" (array f))
+      (do (j/assoc! this .-_hoplonWhenDom (array f))
           (with-timeout 0
             ((fn doit []
                (if-not (.contains (.-documentElement js/document) this)
                  (with-timeout 20 (doit))
-                 (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
-                     (obj/set this "_hoplonWhenDom" nil))))))))))
+                 (do (doseq [f (j/get this .-_hoplonWhenDom)] (f))
+                     (j/assoc! this .-_hoplonWhenDom nil))))))))))
 
 (defn add-initfn!
   "Executes a function once the window load event is fired.
@@ -259,7 +261,7 @@
       ([this k]
        (if (attribute? k)
          (.getAttribute this (name k))
-         (obj/get (.-children this) k)))
+         (j/get-in this [.-children k])))
       ([this k not-found]
        (or (-lookup this k) not-found)))
     IHoplonElement
@@ -274,7 +276,7 @@
       ([this kvs]
        (let [e this]
          (doseq [[k v] kvs]
-           (obj/set (.. e -style) (name k) (str v))))))
+           (j/assoc-in! e [:style (name k)] (str v))))))
     (-hoplon-kids
       ([this]
        (if-let [hl-kids (.-hoplonKids this)] hl-kids
@@ -508,10 +510,10 @@
   Creates the element if missing."
   [tag]
   (fn [& args]
-    (if-let [elem (obj/get js/document tag)]
+    (if-let [elem (j/get js/document tag)]
       (-elem! elem :hoplon/singleton args)
       (with-let [elem (.createElement js/document tag)]
-        (obj/set js/document tag elem)
+        (j/assoc! js/document tag elem)
         (-elem! elem :hoplon/invoke args)))))
 
 (defn- mkelem
