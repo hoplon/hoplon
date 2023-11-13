@@ -45,16 +45,37 @@
         {:keys [exit]} (b/process cmds)]
     (when-not (zero? exit) (throw (ex-info "Task failed" {})))))
 
+(defn jquery-chrome-test
+  "Run jquery provider cljs tests using chrome"
+  [opts]
+  (run-task [:cljs-jquery-chrome])
+  opts)
+
+(defn dom-chrome-test
+  "Run dom provider cljs tests using chrome"
+  [opts]
+  (run-task [:cljs-dom-chrome])
+  opts)
+
+(defn goog-chrome-test
+  "Run goog provider cljs tests using chrome"
+  [opts]
+  (run-task [:cljs-goog-chrome])
+  opts)
+
 (defn chrome-test
   "Run cljs tests using chrome"
   [opts]
-  (run-task [:cljs-chrome])
-  opts)
+  (jquery-chrome-test opts)
+  (dom-chrome-test opts)
+  (goog-chrome-test opts))
 
 (defn chrome-advanced-test
   "Run cljs tests using chrome"
   [opts]
-  (run-task [:cljs-chrome-advanced])
+  (run-task [:cljs-jquery-chrome-advanced])
+  (run-task [:cljs-dom-chrome-advanced])
+  (run-task [:cljs-goog-chrome-advanced])
   opts)
 
 (defn test "Run all the tests." [opts]

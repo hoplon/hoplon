@@ -17,6 +17,23 @@
       (j/call-in elem [:classList :add] (name c))
       (j/call-in elem [:classList :remove] (name c)))))
 
+(defmethod do! :class/default
+  [elem _ kvs]
+  (do! elem :class kvs))
+
+(defn- set-attributes!
+  ([elem kvs]
+   (doseq [[k v] kvs :let [k (name k)]]
+     (if-not v
+       (j/call elem :removeAttribute k)
+       (j/call elem :setAttribute k (if (true? v) k v)))))
+  ([elem k v & kvs]
+   (set-attributes! elem (apply hash-map k v kvs))))
+
+(defmethod do! :svg/default
+  [elem key val]
+  (set-attributes! elem key val))
+
 (defmethod do! :smart-class
   [elem _ kvs]
   (if (map? kvs)

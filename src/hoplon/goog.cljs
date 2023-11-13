@@ -17,6 +17,10 @@
   (doseq [[c p?] (normalize-class kvs)]
     (domcl/enable elem (name c) (boolean p?))))
 
+(defmethod do! :class/default
+  [elem _ kvs]
+  (do! elem :class kvs))
+
 (defmethod do! :toggle
   [elem _ v]
   (style/setElementShown elem (boolean v)))
