@@ -1,7 +1,7 @@
 (ns hoplon.class-test
  (:require
   [hoplon.core :as h]
-  hoplon.goog
+  hoplon.goog-provider
   [cljs.test :refer-macros [deftest is]]))
 
 (h/defelem base-el

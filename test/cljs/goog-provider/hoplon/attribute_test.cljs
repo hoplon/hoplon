@@ -1,15 +1,15 @@
 (ns hoplon.attribute-test
   (:require
     [hoplon.core :as h]
-    hoplon.goog
+    hoplon.goog-provider
     [cljs.test :refer-macros [deftest is]]))
 
 (deftest ??attribute
-  (let [el (h/div :bazz "foo")]
-    (is (= (:bazz el) "foo"))
+  (let [el (h/div :baz "foo")]
+    (is (= (:baz el) "foo"))
 
     (is (= (:bar el "bar") "bar"))
 
-    (is (= (get el :bazz) "foo"))
+    (is (= (get el :baz) "foo"))
 
     (is (= (get el :bar "bar") "bar"))))

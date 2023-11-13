@@ -30,7 +30,7 @@ A small bit of Hoplon:
 (ns view.index
   (:require
     [hoplon.core  :as h]
-    [hoplon.goog]
+    [hoplon.dom]
     [javelin.core :as j]))
 
 (defn my-list [& items]
@@ -89,7 +89,11 @@ npm install -g karma-cli
 ```
 #### Run
 ```
+; Run tests in simple compilation
 clojure -T:build test
+
+; Run tests in advanced compilation
+clojure -T:build advanced-test
 ```
 
 ## Contributors

@@ -1,7 +1,7 @@
 (ns hoplon.prototype-test
  (:require
   [hoplon.core :as h]
-  hoplon.goog
+  hoplon.goog-provider
   [javelin.core :as j]
   [cljs.test :refer-macros [deftest is]]))
 

@@ -1,4 +1,4 @@
-(ns hoplon.goog-spec
+(ns hoplon.goog-provider-spec
   (:require [cljs.spec.test.alpha :as spect]
             [hoplon.core :as h]
             [hoplon.spec :as hspec]))

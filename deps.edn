@@ -3,25 +3,24 @@
         applied-science/js-interop {:mvn/version "0.4.2"}
         cljsjs/jquery {:mvn/version "3.4.0-0"}}
  :paths ["src" "clj-kondo"]
- :aliases {
-           :cljs-jquery-chrome {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
+ :aliases {:cljs-jquery-chrome {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
                                 :extra-paths ["test/cljs/jquery-provider"]
                                 :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/jquery-provider" "-x" "chrome-headless"]}
            :cljs-dom-chrome {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
-                                :extra-paths ["test/cljs/dom-provider"]
-                                :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/dom-provider" "-x" "chrome-headless"]}
+                             :extra-paths ["test/cljs/dom-provider"]
+                             :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/dom-provider" "-x" "chrome-headless"]}
            :cljs-goog-chrome {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
-                                :extra-paths ["test/cljs/goog-provider"]
-                                :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/goog-provider" "-x" "chrome-headless"]}
+                              :extra-paths ["test/cljs/goog-provider"]
+                              :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/goog-provider" "-x" "chrome-headless"]}
            :cljs-jquery-chrome-advanced {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
                                          :extra-paths ["test/cljs/jquery-provider"]
                                          :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/jquery-provider" "-x" "chrome-headless" "-c" "{:optimizations :advanced}"]}
            :cljs-dom-chrome-advanced {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
-                                         :extra-paths ["test/cljs/dom-provider"]
-                                         :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/dom-provider" "-x" "chrome-headless" "-c" "{:optimizations :advanced}"]}
+                                      :extra-paths ["test/cljs/dom-provider"]
+                                      :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/dom-provider" "-x" "chrome-headless" "-c" "{:optimizations :advanced}"]}
            :cljs-goog-chrome-advanced {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}}
-                                         :extra-paths ["test/cljs/goog-provider"]
-                                         :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/goog-provider" "-x" "chrome-headless" "-c" "{:optimizations :advanced}"]}
+                                       :extra-paths ["test/cljs/goog-provider"]
+                                       :main-opts ["-m" "cljs-test-runner.main" "-d" "test/cljs/goog-provider" "-x" "chrome-headless" "-c" "{:optimizations :advanced}"]}
 
            :build {:deps {io.github.clojure/tools.build {:mvn/version "0.9.6"}
                           slipset/deps-deploy {:mvn/version "0.2.2"}}

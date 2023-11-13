@@ -2,7 +2,7 @@
  (:require
   [cljs.test :refer-macros [deftest is]]
   [hoplon.core :as h]
-  hoplon.goog
+  hoplon.goog-provider
   [javelin.core :as j]))
 
 (deftest ??if-tpl
