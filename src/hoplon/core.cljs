@@ -9,7 +9,6 @@
 (ns hoplon.core
   (:require
     [applied-science.js-interop :as j]
-    [goog.Uri]
     [javelin.core :refer [cell? cell]])
   (:require-macros
     [javelin.core :refer [with-let cell=]]
@@ -78,7 +77,7 @@
 (def prerendering?
   "Is the application running in a prerendering container (eg. PhantomJS via
   the prerender task)?"
-  (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
+  (.get (js/URLSearchParams. (.. js/window -location -search)) "prerendering"))
 
 (defn do-watch
   "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
