@@ -110,15 +110,15 @@
   [this f]
   (if-not (instance? js/Element this)
     (with-timeout 0 (f))
-    (if-some [v (j/get this .-_hoplonWhenDom)]
+    (if-some [v (.-_hoplonWhenDom ^js this)]
       (.push v f)
-      (do (j/assoc! this .-_hoplonWhenDom (array f))
+      (do (set! (.-_hoplonWhenDom ^js this) (array f))
           (with-timeout 0
             ((fn doit []
                (if-not (.contains (.-documentElement js/document) this)
                  (with-timeout 20 (doit))
-                 (do (doseq [f (j/get this .-_hoplonWhenDom)] (f))
-                     (j/assoc! this .-_hoplonWhenDom nil))))))))))
+                 (do (doseq [f (.-_hoplonWhenDom ^js this)] (f))
+                     (set! (.-_hoplonWhenDom ^js this) nil))))))))))
 
 (defn add-initfn!
   "Executes a function once the window load event is fired.
