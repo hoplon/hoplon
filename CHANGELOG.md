@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 7.5.0
+- Add a new provider that uses the dom api directly. To use it require
+  `hoplon.dom`.
+- Add tests to all providers and run those in ci including using advanced
+  compilation.
+
 ## 7.4.0
 - Make specs and spec validation optional when building the application
 - BREAKING: users that are using spec validation and call `(hoplon.core/spec!)`
