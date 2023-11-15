@@ -1,13 +1,28 @@
 (ns hoplon.goog
-  (:require [goog.dom           :as dom]
-            [goog.dom.classlist :as domcl]
-            [goog.dom.forms     :as domf]
-            [goog.events        :as events]
-            [goog.fx.dom        :as fxdom]
-            [goog.style         :as style]
-            [hoplon.core        :refer [on! do! normalize-class]]))
+  (:require
+   [applied-science.js-interop :as j]
+   [goog.dom           :as dom]
+   [goog.dom.classlist :as domcl]
+   [goog.dom.forms     :as domf]
+   [goog.events        :as events]
+   [goog.fx.dom        :as fxdom]
+   [goog.style         :as style]
+   [hoplon.core        :refer [do! normalize-class on!]]))
+
+(defn- set-attributes!
+  ([elem kvs]
+   (doseq [[k v] kvs :let [k (name k)]]
+     (if-not v
+       (j/call elem :removeAttribute k)
+       (j/call elem :setAttribute k (if (true? v) k v)))))
+  ([elem k v & kvs]
+   (set-attributes! elem (apply hash-map k v kvs))))
 
 ;; Google Closure Library Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod do! :svg/default
+  [elem key val]
+  (set-attributes! elem key val))
+
 (defmethod do! :value
   [elem _ v]
   (domf/setValue elem v))
@@ -16,6 +31,10 @@
   [elem _ kvs]
   (doseq [[c p?] (normalize-class kvs)]
     (domcl/enable elem (name c) (boolean p?))))
+
+(defmethod do! :class/default
+  [elem _ kvs]
+  (do! elem :class kvs))
 
 (defmethod do! :toggle
   [elem _ v]

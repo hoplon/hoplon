@@ -35,4 +35,4 @@ jobs:
       - name: Install karma cli globally
         run: npm install -g karma-cli
       - name: Run Tests
-        run: clojure -T:build test
+        run: clojure -T:build ci-test

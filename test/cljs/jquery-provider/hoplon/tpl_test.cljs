@@ -2,6 +2,7 @@
  (:require
   [cljs.test :refer-macros [deftest is]]
   [hoplon.core :as h]
+  hoplon.jquery
   [javelin.core :as j]))
 
 (deftest ??if-tpl

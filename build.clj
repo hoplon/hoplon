@@ -45,14 +45,66 @@
         {:keys [exit]} (b/process cmds)]
     (when-not (zero? exit) (throw (ex-info "Task failed" {})))))
 
+(defn jquery-chrome-test
+  "Run jquery provider cljs tests using chrome"
+  [opts]
+  (run-task [:cljs-jquery-chrome])
+  opts)
+
+(defn dom-chrome-test
+  "Run dom provider cljs tests using chrome"
+  [opts]
+  (run-task [:cljs-dom-chrome])
+  opts)
+
+(defn goog-chrome-test
+  "Run goog provider cljs tests using chrome"
+  [opts]
+  (run-task [:cljs-goog-chrome])
+  opts)
+
 (defn chrome-test
   "Run cljs tests using chrome"
   [opts]
-  (run-task [:cljs-chrome])
+  (jquery-chrome-test opts)
+  (dom-chrome-test opts)
+  (goog-chrome-test opts))
+
+(defn jquery-chrome-advanced-test
+  "Run jquery provider cljs tests using chrome in advanced compilation"
+  [opts]
+  (run-task [:cljs-jquery-chrome-advanced])
+  opts)
+
+(defn dom-chrome-advanced-test
+  "Run dom provider cljs tests using chrome in advanced compilation"
+  [opts]
+  (run-task [:cljs-dom-chrome-advanced])
+  opts)
+
+(defn goog-chrome-advanced-test
+  "Run goog provider cljs tests using chrome in advanced compilation"
+  [opts]
+  (run-task [:cljs-goog-chrome-advanced])
+  opts)
+
+(defn chrome-advanced-test
+  "Run cljs tests using chrome in advanced compilation"
+  [opts]
+  (jquery-chrome-advanced-test opts)
+  (dom-chrome-advanced-test opts)
+  ; (goog-chrome-advanced-test opts) ; this causes problems with advanced copilation because of the namespace name
   opts)
 
 (defn test "Run all the tests." [opts]
   (chrome-test opts))
+
+(defn advanced-test "Run all the tests using advanced compilation." [opts]
+  (chrome-advanced-test opts))
+
+(defn ci-test [opts]
+  (chrome-test opts)
+  (chrome-advanced-test opts))
 
 (defn- jar-opts [opts]
   (let [version (if (:snapshot opts) snapshot version)]
@@ -67,7 +119,7 @@
       :pom-data (pom-template version))))
 
 (defn ci "Run the CI pipeline of tests (and build the JAR)." [opts]
-  (test opts)
+  (ci-test opts)
   (b/delete {:path "target"})
   (let [opts (jar-opts opts)]
     (println "\nWriting pom.xml...")

@@ -7,11 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns hoplon.core
-  (:require [goog.Uri]
-            [goog.object          :as obj]
-            [javelin.core         :refer [cell? cell]])
-  (:require-macros [javelin.core :refer [with-let cell=]]
-                   [hoplon.core  :refer [with-timeout]]))
+  (:require
+    [applied-science.js-interop :as j]
+    [javelin.core :refer [cell? cell]])
+  (:require-macros
+    [javelin.core :refer [with-let cell=]]
+    [hoplon.core :refer [with-timeout]]))
 
 ;; Console Printing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (enable-console-print!)
@@ -76,7 +77,7 @@
 (def prerendering?
   "Is the application running in a prerendering container (eg. PhantomJS via
   the prerender task)?"
-  (.getParameterValue (goog.Uri. (.. js/window -location -href)) "prerendering"))
+  (.get (js/URLSearchParams. (.. js/window -location -search)) "prerendering"))
 
 (defn do-watch
   "Adds f as a watcher to ref and evaluates (f init @ref) once. The watcher
@@ -108,15 +109,15 @@
   [this f]
   (if-not (instance? js/Element this)
     (with-timeout 0 (f))
-    (if-let [v (obj/get this "_hoplonWhenDom")]
+    (if-some [v (.-_hoplonWhenDom ^js this)]
       (.push v f)
-      (do (obj/set this "_hoplonWhenDom" (array f))
+      (do (set! (.-_hoplonWhenDom ^js this) (array f))
           (with-timeout 0
             ((fn doit []
                (if-not (.contains (.-documentElement js/document) this)
                  (with-timeout 20 (doit))
-                 (do (doseq [f (obj/get this "_hoplonWhenDom")] (f))
-                     (obj/set this "_hoplonWhenDom" nil))))))))))
+                 (do (doseq [f (.-_hoplonWhenDom ^js this)] (f))
+                     (set! (.-_hoplonWhenDom ^js this) nil))))))))))
 
 (defn add-initfn!
   "Executes a function once the window load event is fired.
@@ -191,7 +192,9 @@
 
 (defn- ->node
   [x]
-  (if (node? x) (-node x) x))
+  (if (node? x)
+    (-node x)
+    x))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Hoplon Attributes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -259,7 +262,7 @@
       ([this k]
        (if (attribute? k)
          (.getAttribute this (name k))
-         (obj/get (.-children this) k)))
+         (j/get-in this [.-children k])))
       ([this k not-found]
        (or (-lookup this k) not-found)))
     IHoplonElement
@@ -274,7 +277,7 @@
       ([this kvs]
        (let [e this]
          (doseq [[k v] kvs]
-           (obj/set (.. e -style) (name k) (str v))))))
+           (j/assoc-in! e [:style (name k)] (str v))))))
     (-hoplon-kids
       ([this]
        (if-let [hl-kids (.-hoplonKids this)] hl-kids
@@ -508,10 +511,10 @@
   Creates the element if missing."
   [tag]
   (fn [& args]
-    (if-let [elem (obj/get js/document tag)]
+    (if-let [elem (j/get js/document tag)]
       (-elem! elem :hoplon/singleton args)
       (with-let [elem (.createElement js/document tag)]
-        (obj/set js/document tag elem)
+        (j/assoc! js/document tag elem)
         (-elem! elem :hoplon/invoke args)))))
 
 (defn- mkelem
