@@ -21,7 +21,7 @@ Install [deps-new](https://github.com/seancorfield/deps-new) if you haven't alre
 
 And then generate a starter project with:
 
-    clojure -Sdeps '{:deps {io.github.hoplon/project-template {:git/tag "v0.3.3" :git/sha "95620a4"}}}' -Tnew create :template hoplon/hoplon :name your/app-name
+    clojure -Sdeps '{:deps {io.github.hoplon/project-template {:git/tag "v1.0.0" :git/sha "14361f1"}}}' -Tnew create :template hoplon/hoplon :name your/app-name
 
 ### Example
 A small bit of Hoplon:
