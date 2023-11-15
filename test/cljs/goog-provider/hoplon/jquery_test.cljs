@@ -2,7 +2,7 @@
  (:require
   [hoplon.core :as h]
   [javelin.core :as j]
-  hoplon.goog-provider
+  hoplon.goog
   hoplon.svg
   [cljs.test :refer-macros [deftest is]]))
 

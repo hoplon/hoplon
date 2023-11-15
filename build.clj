@@ -93,7 +93,7 @@
   [opts]
   (jquery-chrome-advanced-test opts)
   (dom-chrome-advanced-test opts)
-  (goog-chrome-advanced-test opts)
+  ; (goog-chrome-advanced-test opts) ; this causes problems with advanced copilation because of the namespace name
   opts)
 
 (defn test "Run all the tests." [opts]

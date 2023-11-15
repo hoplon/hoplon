@@ -1,7 +1,7 @@
 (ns hoplon.attribute-test
   (:require
     [hoplon.core :as h]
-    hoplon.goog-provider
+    hoplon.goog
     [cljs.test :refer-macros [deftest is]]))
 
 (deftest ??attribute

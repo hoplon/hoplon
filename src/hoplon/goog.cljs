@@ -1,4 +1,4 @@
-(ns hoplon.goog_provider
+(ns hoplon.goog
   (:require
    [applied-science.js-interop :as j]
    [goog.dom           :as dom]
